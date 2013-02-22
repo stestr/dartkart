@@ -1,0 +1,20 @@
+name:  dartkart
+description: >
+   dartkart is  framwork for web cartografy in the tradition of the
+   JavaScript OpenLayers and Leaflet. It isn't a 1:1 port of either
+   of them, but it has a similar structure and borrows a lot of
+   ideas from them.
+
+version: 0.0.1
+
+authors:
+  - Karl Guggisberg <karl.guggisberg@guggis.ch>
+
+dependencies:
+  unittest: any
+
+dependencies:
+   browser: any
+   unittest: any
+   meta: any
+   unittest: any
