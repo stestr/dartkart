@@ -1,5 +1,30 @@
 part of dartkart.map;
 
+/**
+ * A layer event emitted by a [MapViewport]
+ */
+class LayerEvent {
+  /// layer has been added 
+  static const ADDED = 0;
+  /// layer has been removed 
+  static const REMOVED = 1;
+  /// layer has been moved   
+  static const MOVED = 2;
+  
+  /// the map viewport emitting the event 
+  final MapViewport map;
+  /// the layer 
+  final Layer layer;
+  /// the type of event (either [ADDED], [REMOVED], or [MOVED]
+  final type;
+  
+  /// Creates an event of type [type] emitted by [map] for [layer]
+  const LayerEvent(this.map, this.layer, this.type);
+  const LayerEvent.added(map, layer): this(map, layer, ADDED);
+  const LayerEvent.removed(map, layer):this(map, layer, REMOVED);
+  const LayerEvent.moved(map, layer): this(map, layer, MOVED);
+}
+
 class MapViewport {
 
   DivElement _container;
@@ -124,6 +149,8 @@ class MapViewport {
   
   /* ----------------------- layer handling -------------------------- */
   final List<Layer> _layers = [];
+  final StreamController<LayerEvent> _layerEvents = 
+      new StreamController<LayerEvent>.broadcast();
 
   /// update the z-indexes of the layer. Reflects the ordering in
   /// the layer stack. The layer with the highest index is renderer
@@ -157,6 +184,7 @@ class MapViewport {
     layer.attach(this);
     _updateLayerZIndex();
     Timer.run(() => render());
+    _layerEvents.add(new LayerEvent.added(this, layer));
   }
   
   /**
@@ -172,6 +200,7 @@ class MapViewport {
     _layers.remove(layer);
     _updateLayerZIndex();
     Timer.run(() => render());
+    _layerEvents.add(new LayerEvent.removed(this, layer));
   }
   
   /// true, if [layer] is part of the layer stack of this map
@@ -189,6 +218,7 @@ class MapViewport {
     _layers.remove(layer);
     _layers.add(layer);
     _updateLayerZIndex();
+    _layerEvents.add(new LayerEvent.moved(this, layer));
   }
 
   /**
@@ -199,6 +229,7 @@ class MapViewport {
     _layers.remove(layer);
     _layers.insertRange(0, 1, layer);
     _updateLayerZIndex();
+    _layerEvents.add(new LayerEvent.moved(this, layer));
   }
   
   /**
@@ -212,8 +243,22 @@ class MapViewport {
     _layers.remove(layer);
     _layers.insertRange(index, 1, layer);
     _updateLayerZIndex();
+    _layerEvents.add(new LayerEvent.moved(this, layer));
   }
-
+  
+  /**
+   * Stream of layer change events.
+   * 
+   * ## Example
+   * 
+   *   map.onLayersChanged
+   *     .where((LayerEvent e) => e.type == LayerEvent.ADDED))
+   *     .listen((LayerEvent e) {
+   *         print("layer added - cur num layers: ${map.layers.length}");      
+   *      }); 
+   */
+  Stream<LayerEvent> get onLayersChanged => _layerEvents.stream;
+  
   /* ----------------------- zooming       --------------------------- */
   int _zoom = 0;
 

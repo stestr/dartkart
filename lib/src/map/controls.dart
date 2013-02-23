@@ -1,5 +1,10 @@
 part of dartkart.map;
 
+/**
+ * The container class for [MapControl]s. There's exatly one [ControlsPane] in
+ * a [MapViewport].
+ * 
+ */
 class ControlsPane {
   MapViewport _viewport;
   DivElement _container;
@@ -8,12 +13,16 @@ class ControlsPane {
     _container = new Element.tag("div");
   }
 
+  /// the container 
   DivElement get container => _container;
 
+  /// Detach this pane from the map viewport.
   detach() {
     _viewport = null;
   }
 
+  /// Attach this control pane to the [viewport]. [viewport]
+  /// must not be null.
   attach(MapViewport viewport) {
     assert(viewport != null);
     var viewportSize = viewport.viewportSize;
@@ -79,7 +88,8 @@ abstract class MapControl {
  * An instance of PanControl represents a map control to pan the
  * map viewport ~100 pixels north, east, west, or south.
  *
- * Example:
+ * ##Example
+ * 
  *    var map = new MapViewport("#container");
  *    // this creates the control and adds it to the
  *    // map's controls pane, and registers
