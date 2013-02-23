@@ -38,7 +38,6 @@ class EPSG3857 extends ProjectedCRS {
       new LatLon(85.0511287798, 180)
   );
 
-  @override
   String get code => "EPSG:3857";
 
   List<String> get aliases => const ["EPSG:900913"];

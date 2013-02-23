@@ -156,7 +156,7 @@ class MapViewport {
     _container.children.add(layer.container);
     layer.attach(this);
     _updateLayerZIndex();
-    render();
+    Timer.run(() => render());
   }
   
   /**
@@ -171,7 +171,7 @@ class MapViewport {
     _container.children.remove(layer.container);
     _layers.remove(layer);
     _updateLayerZIndex();
-    render();
+    Timer.run(() => render());
   }
   
   /// true, if [layer] is part of the layer stack of this map

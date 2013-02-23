@@ -4,7 +4,6 @@ import "dart:html";
 import "dart:async";
 import "dart:math" as math;
 import "dart:collection";
-import "package:meta/meta.dart";
 
 import "map.dart";
 import "core.dart";
