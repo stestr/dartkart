@@ -9,21 +9,22 @@ but it has a similar structure and borrows a lot of ideas from them.
 
 ## Example
 1.  Create a HTML page `sample_map.html` embedding a map
-	```
-	<!DOCTYPE html>
-	<html>
-	  <head>
-	    <style type="text/css">
+	<pre><code>
+	&lt;!DOCTYPE html&gt;
+	&lt;html&gt;
+	  &lt;head&gt;
+	    &lt;style type="text/css"&gt;
 	      #sample-map {height: 400px; width: 400px;}
-	 	 </style>
-	  </head>
-	  <body>
-	    <div id="sample-map"></div>	
-	    <script type="application/dart" src="sample_map.dart"></script>
-	    <script src="packages/browser/dart.js"></script>
-	  </body>
-	</html>
-	```
+	 	 &lt;/style&gt;
+	  &lt;/head&gt;
+	  &lt;body&gt;
+	    &lt;div id="sample-map"&gt;&lt;/div&gt;	
+	    &lt;script type="application/dart" src="sample_map.dart"&gt;&lt;/script&gt;
+	    &lt;script src="packages/browser/dart.js"&gt;&lt;/script&gt;
+	  &lt;/body&gt;
+	&lt;/html&gt;
+	</pre></code>
+	
 2. Create the dart application file `sample_map.dart` 
 
 	```dart		
