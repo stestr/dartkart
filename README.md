@@ -9,7 +9,7 @@ but it has a similar structure and borrows a lot of ideas from them.
 
 ## Example
 1.  Create a HTML page `sample_map.html` embedding a map
-	```html
+	```
 	<!DOCTYPE html>
 	<html>
 	  <head>
