@@ -60,10 +60,8 @@ main() {
       map.removeLayer(layer);
       expect(map.layers.length, 0);
       expect(layer.map, null);
-    });
-  
+    });  
   });
-  
 }
 
 
