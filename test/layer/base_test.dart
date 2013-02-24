@@ -80,6 +80,40 @@ main() {
     });   
   });
   
+  group("properies - visibility -", () {
+    var layer;
+    setUp(() {
+      layer = new TestLayer();      
+    });
+    test("inital visibility is true", () {
+      expect(layer.visible, true);
+    });
+    
+    test("can enable visibility", () {
+      layer.visible = false;
+      layer.onPropertyChanged.listen(expectAsync1((e) {
+        expect(e.name, "visible");
+        expect(e.oldValue, false);
+        expect(e.newValue, true);
+      }));
+      layer.visible = true;
+      expect(layer.visible, true);
+      expect(layer.container.style.visibility, "visible");
+    });    
+    
+    test("can disable visibility", () {
+      layer.visible = true;
+      layer.onPropertyChanged.listen(expectAsync1((e) {
+        expect(e.name, "visible");
+        expect(e.oldValue, true);
+        expect(e.newValue, false);
+      }));
+      layer.visible = false;
+      expect(layer.visible, false);
+      expect(layer.container.style.visibility, "hidden");    
+    });    
+  });
+  
   group("attach / detach -", () {
     var layer;
     var map;
