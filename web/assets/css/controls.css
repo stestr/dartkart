@@ -1,0 +1,136 @@
+/*
+ * CSS used in the map controls
+ */
+
+/* ----------------------------------------------------------------- */
+/* zoom-control                                                      */             
+/* ----------------------------------------------------------------- */
+/*
+ * .zoom-in-nob     class on SVG group for the button '+'
+ * .zoom-out-nob    class on SVG group for the button '-'
+ * .zoom-level      class on SVG rect for an individual zoom level
+ * .hover           class on SVG element if mouse is over
+ * .current         class on SVG rect which represents the current
+ *                  zoom level  
+ */
+.zoom-in-nob rect, 
+.zoom-out-nob rect
+{
+  fill: rgb(200,200,200);
+  stroke: white;
+  stroke-width: 1pt;
+}
+
+.zoom-level {
+  fill: rgb(200,200,200);
+  stroke: rgb(255,255,255);
+  stroke-width: 1.5px;
+}
+
+.zoom-level.current {
+  fill: rgb(50,50,50);
+  stroke: rgb(255,255,255);
+  stroke-width: 1.5px;
+}
+
+
+.zoom-level.hover,
+.zoom-in-nob.hover rect,
+.zoom-out-nob.hover rect
+{
+  fill: red;
+} 
+
+.zoom-in-nob line,
+.zoom-out-nob line {
+  stroke: black;
+  stroke-width: 2px;
+}
+
+.zoom-out-nob.hover line,
+.zoom-in-nob.hover line {
+  stroke: white;
+  stroke-width: 2px;
+}
+
+
+/* ----------------------------------------------------------------- */
+/* scale-indicator-control                                           */             
+/* ----------------------------------------------------------------- */
+.scale-indicator-control {
+   fill: white;     
+ }
+.scale-indicator-control .bar {
+   fill: white;
+   stroke: rgb(126,126,126);
+   stroke-width: 1px;
+}
+.scale-indicator-control .label {
+   font-family: Sans;
+   font-size: 6pt;      
+   stroke: black; 
+ }
+ 
+/* ----------------------------------------------------------------- */
+/* pan-control                                                       */             
+/* ----------------------------------------------------------------- */
+ 
+.pan-control .pan-nob {
+    fill: rgb(200,200,200);
+    stroke: rgb(255,255,255);
+    stroke-width: 2px;
+    
+  }
+ .pan-control .pan-button {
+    fill: rgb(50,50,50);
+    stroke: rgb(126,126,126);
+    stroke-width: 1px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+ }
+
+ .pan-control .pan-button.hover {
+    fill: #ff0000;
+    stroke-width: 2px;
+    stroke: rgb(255,255,255);
+ }
+ 
+/* ----------------------------------------------------------------- */
+/* layer-control                                                     */             
+/* ----------------------------------------------------------------- */
+.layer-control {
+    background: rgb(200,200,200);
+    border-color: rgb(255,255,255);
+    border-width: 2px;
+    border-style: solid;
+    width: 300px;
+    position: absolute;
+    width: 150px;
+    height: 300px;    
+    opacity: 0.8;
+    // top and left are set dynamically
+}
+
+.layer-control tr {
+   overflow-x: scroll;
+   white-space: nowrap;
+}
+
+.layer-control table {
+    width:100%;
+    table-layout:fixed;
+}
+
+.layer-control table td.layer-visibility {
+   width: 15px;  
+}
+
+.layer-control table td.layer-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-size: 8pt;
+    font-family: sans;
+}
+ 
