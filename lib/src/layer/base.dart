@@ -38,6 +38,9 @@ abstract class Layer {
     _container.attributes["id"] = domId;
     _container.classes.add("dartkart-layer");
   }
+  
+  /// replies the unique numeric id for this layer 
+  int get id => _nid;
 
   /// the unique layer id
   String get domId => _container.attributes["id"];
@@ -159,10 +162,3 @@ abstract class Layer {
     _controller.sink.add(new PropertyChangeEvent(property, oldValue,newValue));
   }
 }
-
-
-
-
-
-
-
