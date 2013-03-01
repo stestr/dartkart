@@ -82,6 +82,78 @@ abstract class MapControl {
     if (controlsPane == null) return;
     _build();
     controlsPane.root.children.add(_root);
+    _applyPosition();
+  }
+
+  _normalizePropertyValue(v) {
+    if (v is int) return v.toString();
+    else if (v is String) return v.trim();
+    else
+      throw new ArgumentError("Expected int or String, got $v");
+  }
+
+  Point _position;
+  _applyPosition() {
+    if (_position == null || _root == null) return;
+    _root.style
+      ..left = "${_position.x}px"
+      ..top = "${_position.y}px";
+  }
+
+  /**
+   * Places the control at the position ([x], [y]).
+   */
+  placeAt(int x, int y) {
+    _position = new Point(x,y);
+    _applyPosition();
+  }
+
+
+  /// the top position of this control; null, if the top position
+  /// isn't known (yet), i.e. because the DOM for this map control
+  /// isn't created (yet) or because it isn't attached to a map
+  /// viewport (yet).
+  String get top {
+    if (_root == null || _root.parent == null) return null;
+    return _root.getComputedStyle().top;
+  }
+
+  /**
+   * Sets the top position of this control.
+   *
+   * [value] is either an int or a [String], otherwise
+   * throws an [ArgumentError].
+   *
+   * Throws [StateError] if [root] is null.
+   */
+  set top(value) {
+    if (_root == null) {
+      throw new StateError("can't set top, control's DOM doesn't exist yet");
+    }
+    value = _normalizePropertyValue(value);
+    _root.style.top = value;
+  }
+
+  /// the left position of this control
+  String get left {
+    if (_root == null || _root.parent == null) return null;
+    _root.getComputedStyle().left;
+  }
+
+  /**
+   * Sets the left position of this control.
+   *
+   * [value] is either an int or a [String], otherwise
+   * throws an [ArgumentError].
+   *
+   * Throws [StateError] if [root] is null.
+   */
+  set left(value) {
+    if (_root == null) {
+      throw new StateError("can't set top, control's DOM doesn't exist yet");
+    }
+    value = _normalizePropertyValue(value);
+    _root.style.left = value;
   }
 
   _build();
