@@ -4,20 +4,20 @@ part of dartkart.map;
  * A layer event emitted by a [MapViewport]
  */
 class LayerEvent {
-  /// layer has been added 
+  /// layer has been added
   static const ADDED = 0;
-  /// layer has been removed 
+  /// layer has been removed
   static const REMOVED = 1;
-  /// layer has been moved   
+  /// layer has been moved
   static const MOVED = 2;
-  
-  /// the map viewport emitting the event 
+
+  /// the map viewport emitting the event
   final MapViewport map;
-  /// the layer 
+  /// the layer
   final Layer layer;
   /// the type of event (either [ADDED], [REMOVED], or [MOVED]
   final type;
-  
+
   /// Creates an event of type [type] emitted by [map] for [layer]
   const LayerEvent(this.map, this.layer, this.type);
   const LayerEvent.added(map, layer): this(map, layer, ADDED);
@@ -140,55 +140,55 @@ class MapViewport {
   }
 
   /**
-   * Renders the map.  
+   * Renders the map.
    */
   render() {
-    _layers.forEach((l)=> l.render()); 
+    _layers.forEach((l)=> l.render());
   }
-  
+
   /* ----------------------- layer handling -------------------------- */
   final List<Layer> _layers = [];
-  final StreamController<LayerEvent> _layerEvents = 
+  final StreamController<LayerEvent> _layerEvents =
       new StreamController<LayerEvent>.broadcast();
 
   /// update the z-indexes of the layer. Reflects the ordering in
   /// the layer stack. The layer with the highest index is renderer
-  /// on top, the layer with index 0 is rendered at the bottom. 
+  /// on top, the layer with index 0 is rendered at the bottom.
   _updateLayerZIndex() {
     var reversed = _layers.reversed.toList();
     for (int i=0; i<layers.length; i++) {
       reversed[i].container.style.zIndex = (i * -100).toString();
     }
   }
-  
+
   /**
-   * Adds a [layer] to the map. 
-   * 
+   * Adds a [layer] to the map.
+   *
    * [layer] is appended to the list of layers of this map. It therefore
    * has the highest layer index and becomes rendered on top of the layer
-   * stack of this map. 
-   * 
+   * stack of this map.
+   *
    * Throws [ArgumentError] if [layer] is null. [layer] is ignored if it
    * is already attached to this map.
-   * 
+   *
    * ##Example
    *    var source= "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png";
-   *    map.addLayer(new OsmLayer(tileSource: source));  
+   *    map.addLayer(new OsmLayer(tileSource: source));
    */
   addLayer(Layer layer) {
     if (layer == null) throw new ArgumentError("layer must not be null");
     if (hasLayer(layer)) return;
-    _layers.add(layer);   
+    _layers.add(layer);
     _root.children.add(layer.container);
     layer.attach(this);
     _updateLayerZIndex();
     Timer.run(() => render());
     _layerEvents.add(new LayerEvent.added(this, layer));
   }
-  
+
   /**
    * Removes [layer] from the stack of layers of this map.
-   * 
+   *
    * Ignores [layer] if it is null or if it isn't attached to this map.
    */
   removeLayer(Layer layer) {
@@ -201,16 +201,16 @@ class MapViewport {
     Timer.run(() => render());
     _layerEvents.add(new LayerEvent.removed(this, layer));
   }
-  
+
   /// true, if [layer] is part of the layer stack of this map
   bool hasLayer(Layer layer) => _layers.contains(layer);
-  
+
   /// an unmodifiable list of layers of this map. Empty, if
-  /// no layes are defined. 
+  /// no layes are defined.
   List<Layer> get layers => new UnmodifiableListView(_layers);
-  
+
   /**
-   * Moves the [layer] to the top. 
+   * Moves the [layer] to the top.
    */
   moveToTop(Layer layer) {
     if (!hasLayer(layer)) return;
@@ -221,7 +221,7 @@ class MapViewport {
   }
 
   /**
-   * Moves the [layer] to the bottom. 
+   * Moves the [layer] to the bottom.
    */
   moveToBottom(Layer layer) {
     if (!hasLayer(layer)) return;
@@ -230,10 +230,10 @@ class MapViewport {
     _updateLayerZIndex();
     _layerEvents.add(new LayerEvent.moved(this, layer));
   }
-  
+
   /**
    * Moves the [layer] to the position [index] in the
-   * layer stack. 
+   * layer stack.
    */
   moveTo(Layer layer, int index) {
     if (!hasLayer(layer)) return;
@@ -244,20 +244,20 @@ class MapViewport {
     _updateLayerZIndex();
     _layerEvents.add(new LayerEvent.moved(this, layer));
   }
-  
+
   /**
    * Stream of layer change events.
-   * 
+   *
    * ## Example
-   * 
+   *
    *   map.onLayersChanged
    *     .where((LayerEvent e) => e.type == LayerEvent.ADDED))
    *     .listen((LayerEvent e) {
-   *         print("layer added - cur num layers: ${map.layers.length}");      
-   *      }); 
+   *         print("layer added - cur num layers: ${map.layers.length}");
+   *      });
    */
   Stream<LayerEvent> get onLayersChanged => _layerEvents.stream;
-  
+
   /* ----------------------- zooming       --------------------------- */
   int _zoom = 0;
 
@@ -272,7 +272,7 @@ class MapViewport {
   set zoom(int value) {
     if (value < 0) throw new ArgumentError("zoom >= 0 expected, got $value");
     if (value == _zoom) return;
-    var event = new PropertyChangeEvent("zoom", _zoom, value);
+    var event = new PropertyChangeEvent(this,"zoom", _zoom, value);
     _zoom = value;
     render();
     _events.sink.add(event);
@@ -291,7 +291,7 @@ class MapViewport {
     var oldZoom = _zoom;
     _zoom+= delta;
     render();
-    var event = new PropertyChangeEvent("zoom", oldZoom, _zoom);
+    var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
     _events.sink.add(event);
   }
 
@@ -306,7 +306,7 @@ class MapViewport {
     var oldZoom = _zoom;
     _zoom = math.max(0, _zoom - delta);
     render();
-    var event = new PropertyChangeEvent("zoom", oldZoom, _zoom);
+    var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
     _events.sink.add(event);
   }
 
@@ -337,7 +337,7 @@ class MapViewport {
     var old = _center;
     _center = value;
     render();
-    _events.sink.add(new PropertyChangeEvent("center", old, _center));
+    _events.sink.add(new PropertyChangeEvent(this,"center", old, _center));
   }
 
   /* --------------------- panning ---------------------------------- */
@@ -369,10 +369,10 @@ class MapViewport {
   /* ----------------------- controls pane ------------------------ */
   ControlsPane _controlsPane;
 
-  /// the pane with the interactive map controls 
+  /// the pane with the interactive map controls
   ControlsPane get controlsPane => _controlsPane;
 
-  /// sets the [pane] for the interactive map controls 
+  /// sets the [pane] for the interactive map controls
   set controlsPane(ControlsPane pane) {
     if (pane == _controlsPane) return; // don't add twice
     if (_controlsPane != null) {
