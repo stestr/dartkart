@@ -30,7 +30,7 @@ main() {
    */
   Timer.run(() {
     map.addLayer(osmLayer);
-    Timer.run(() {
+    new Timer( new Duration(milliseconds: 10), () {
       map.addLayer(wmsLayer);
     });
   });
