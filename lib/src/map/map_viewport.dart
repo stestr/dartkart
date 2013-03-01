@@ -4,20 +4,20 @@ part of dartkart.map;
  * A layer event emitted by a [MapViewport]
  */
 class LayerEvent {
-  /// layer has been added 
+  /// layer has been added
   static const ADDED = 0;
-  /// layer has been removed 
+  /// layer has been removed
   static const REMOVED = 1;
-  /// layer has been moved   
+  /// layer has been moved
   static const MOVED = 2;
-  
-  /// the map viewport emitting the event 
+
+  /// the map viewport emitting the event
   final MapViewport map;
-  /// the layer 
+  /// the layer
   final Layer layer;
   /// the type of event (either [ADDED], [REMOVED], or [MOVED]
   final type;
-  
+
   /// Creates an event of type [type] emitted by [map] for [layer]
   const LayerEvent(this.map, this.layer, this.type);
   const LayerEvent.added(map, layer): this(map, layer, ADDED);
@@ -27,15 +27,14 @@ class LayerEvent {
 
 class MapViewport {
 
-  DivElement _container;
+  DivElement _root;
 
-  get container => _container;
+  /// the root DOM element of the map viewport
+  Element get root => _root;
 
   //TODO: make configurable.
   final ProjectedCRS _crs = new EPSG3857();
   ProjectedCRS get crs => _crs;
-
-
 
   /**
    * Creates a map.
@@ -46,14 +45,15 @@ class MapViewport {
    */
   MapViewport(container) {
     if (container is String) container = query(container);
-    _container = container;
+    _root = container;
     attachEventListeners();
     controlsPane = new ControlsPane();
+    window.onResize.listen((evt) => layout());
   }
 
   attachEventListeners() {
     //TODO: remind subscription; solve detach
-    _container.onMouseWheel.listen(_onMouseWheel);
+    _root.onMouseWheel.listen(_onMouseWheel);
     new DragController(this);
     new DoubleClickController(this);
   }
@@ -103,7 +103,7 @@ class MapViewport {
 
   /// the viewport size
   Point get viewportSize =>
-      new Point(_container.clientWidth, _container.clientHeight);
+      new Point(_root.clientWidth, _root.clientHeight);
 
   /// the size of the current map zoom plane
   Point get zoomPlaneSize {
@@ -117,7 +117,7 @@ class MapViewport {
       var p = new Point(e.offsetLeft, e.offsetTop);
       return e.parent == null ? p : p + offset(e.parent);
     }
-    return offset(_container);
+    return offset(_root);
   }
 
   /**
@@ -141,77 +141,77 @@ class MapViewport {
   }
 
   /**
-   * Renders the map.  
+   * Renders the map.
    */
   render() {
-    _layers.forEach((l)=> l.render()); 
+    _layers.forEach((l)=> l.render());
   }
-  
+
   /* ----------------------- layer handling -------------------------- */
   final List<Layer> _layers = [];
-  final StreamController<LayerEvent> _layerEvents = 
+  final StreamController<LayerEvent> _layerEvents =
       new StreamController<LayerEvent>.broadcast();
 
   /// update the z-indexes of the layer. Reflects the ordering in
   /// the layer stack. The layer with the highest index is renderer
-  /// on top, the layer with index 0 is rendered at the bottom. 
+  /// on top, the layer with index 0 is rendered at the bottom.
   _updateLayerZIndex() {
     var reversed = _layers.reversed.toList();
     for (int i=0; i<layers.length; i++) {
       reversed[i].container.style.zIndex = (i * -100).toString();
     }
   }
-  
+
   /**
-   * Adds a [layer] to the map. 
-   * 
+   * Adds a [layer] to the map.
+   *
    * [layer] is appended to the list of layers of this map. It therefore
    * has the highest layer index and becomes rendered on top of the layer
-   * stack of this map. 
-   * 
+   * stack of this map.
+   *
    * Throws [ArgumentError] if [layer] is null. [layer] is ignored if it
    * is already attached to this map.
-   * 
+   *
    * ##Example
    *    var source= "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png";
-   *    map.addLayer(new OsmLayer(tileSource: source));  
+   *    map.addLayer(new OsmLayer(tileSource: source));
    */
   addLayer(Layer layer) {
     if (layer == null) throw new ArgumentError("layer must not be null");
     if (hasLayer(layer)) return;
-    _layers.add(layer);   
-    _container.children.add(layer.container);
+    _layers.add(layer);
+    _root.children.add(layer.container);
     layer.attach(this);
     _updateLayerZIndex();
-    Timer.run(() => render());
+    render();
     _layerEvents.add(new LayerEvent.added(this, layer));
   }
-  
+
   /**
    * Removes [layer] from the stack of layers of this map.
-   * 
+   *
    * Ignores [layer] if it is null or if it isn't attached to this map.
    */
   removeLayer(Layer layer) {
     if (layer == null) return;
     if (!hasLayer(layer)) return;
     layer.detach();
-    _container.children.remove(layer.container);
+    _root.children.remove(layer.container);
     _layers.remove(layer);
     _updateLayerZIndex();
-    Timer.run(() => render());
+    render();
     _layerEvents.add(new LayerEvent.removed(this, layer));
   }
-  
+
   /// true, if [layer] is part of the layer stack of this map
   bool hasLayer(Layer layer) => _layers.contains(layer);
-  
+
   /// an unmodifiable list of layers of this map. Empty, if
-  /// no layes are defined. 
+  /// no layes are defined.
   List<Layer> get layers => new UnmodifiableListView(_layers);
-  
+
   /**
-   * Moves the [layer] to the top. 
+   * Moves the [layer] to the top.
    */
   moveToTop(Layer layer) {
     if (!hasLayer(layer)) return;
@@ -222,7 +222,7 @@ class MapViewport {
   }
 
   /**
-   * Moves the [layer] to the bottom. 
+   * Moves the [layer] to the bottom.
    */
   moveToBottom(Layer layer) {
     if (!hasLayer(layer)) return;
@@ -231,10 +231,10 @@ class MapViewport {
     _updateLayerZIndex();
     _layerEvents.add(new LayerEvent.moved(this, layer));
   }
-  
+
   /**
    * Moves the [layer] to the position [index] in the
-   * layer stack. 
+   * layer stack.
    */
   moveTo(Layer layer, int index) {
     if (!hasLayer(layer)) return;
@@ -245,20 +245,20 @@ class MapViewport {
     _updateLayerZIndex();
     _layerEvents.add(new LayerEvent.moved(this, layer));
   }
-  
+
   /**
    * Stream of layer change events.
-   * 
+   *
    * ## Example
-   * 
+   *
    *   map.onLayersChanged
    *     .where((LayerEvent e) => e.type == LayerEvent.ADDED))
    *     .listen((LayerEvent e) {
-   *         print("layer added - cur num layers: ${map.layers.length}");      
-   *      }); 
+   *         print("layer added - cur num layers: ${map.layers.length}");
+   *      });
    */
   Stream<LayerEvent> get onLayersChanged => _layerEvents.stream;
-  
+
   /* ----------------------- zooming       --------------------------- */
   int _zoom = 0;
 
@@ -273,7 +273,7 @@ class MapViewport {
   set zoom(int value) {
     if (value < 0) throw new ArgumentError("zoom >= 0 expected, got $value");
     if (value == _zoom) return;
-    var event = new PropertyChangeEvent("zoom", _zoom, value);
+    var event = new PropertyChangeEvent(this,"zoom", _zoom, value);
     _zoom = value;
     render();
     _events.sink.add(event);
@@ -292,7 +292,7 @@ class MapViewport {
     var oldZoom = _zoom;
     _zoom+= delta;
     render();
-    var event = new PropertyChangeEvent("zoom", oldZoom, _zoom);
+    var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
     _events.sink.add(event);
   }
 
@@ -307,7 +307,7 @@ class MapViewport {
     var oldZoom = _zoom;
     _zoom = math.max(0, _zoom - delta);
     render();
-    var event = new PropertyChangeEvent("zoom", oldZoom, _zoom);
+    var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
     _events.sink.add(event);
   }
 
@@ -338,7 +338,7 @@ class MapViewport {
     var old = _center;
     _center = value;
     render();
-    _events.sink.add(new PropertyChangeEvent("center", old, _center));
+    _events.sink.add(new PropertyChangeEvent(this,"center", old, _center));
   }
 
   /* --------------------- panning ---------------------------------- */
@@ -370,19 +370,23 @@ class MapViewport {
   /* ----------------------- controls pane ------------------------ */
   ControlsPane _controlsPane;
 
+  /// the pane with the interactive map controls
   ControlsPane get controlsPane => _controlsPane;
 
+  /// sets the [pane] for the interactive map controls
   set controlsPane(ControlsPane pane) {
     if (pane == _controlsPane) return; // don't add twice
     if (_controlsPane != null) {
       _controlsPane.detach();
-      _container.children.remove(_controlsPane.container);
+      _root.children.remove(_controlsPane.root);
     }
     _controlsPane = pane;
     if (_controlsPane != null) {
-      _container.children.add(_controlsPane.container);
       _controlsPane.attach(this);
-      _controlsPane.container.style.zIndex = "100";
+      // render the controls pane on top of the map layers.
+      // The z-index for the top most layer is 0.
+      _controlsPane.root.style.zIndex = "100";
+      _root.children.add(_controlsPane.root);
     }
   }
 
@@ -426,12 +430,28 @@ class MapViewport {
     }
     return _centerEvents;
   }
+
+  /**
+   * Layouts the map viewport. This method ensures that the layers and
+   * and the controls pane all have the same size and that their left
+   * upper corner stack up at the relative position (0,0) of this
+   * map viewport.
+   *
+   * This method is invoked if the browser is resized. Invoke it
+   * manually, if your application moves or resizes the view port.
+   */
+  layout() {
+    if (_controlsPane != null) {
+      _controlsPane.layout();
+    }
+    _layers.forEach((l) => l.layout());
+  }
 }
 
 class DoubleClickController {
   final map;
   DoubleClickController(this.map) {
-    var stream = new MouseGestureStream.from(map.container).stream;
+    var stream = new MouseGestureStream.from(map.root).stream;
     stream.where((p) => p.type == MouseGesturePrimitive.DOUBLE_CLICK)
       .listen((p) => _onDoubleClick(p.event));
   }
@@ -444,7 +464,7 @@ class DragController {
   Point _centerOnZoomPlane;
 
   DragController(this.map) {
-    var stream = new MouseGestureStream.from(map.container).stream;
+    var stream = new MouseGestureStream.from(map.root).stream;
     stream.where((p) => p.isDragPrimitive).listen((p) {
       switch(p.type) {
         case MouseGesturePrimitive.DRAG_START: _onDragStart(p.event); break;
@@ -457,12 +477,12 @@ class DragController {
   _onDragStart(evt) {
     _dragStart = new Point(evt.offsetX, evt.offsetY);
     _centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
-    map.container.style.cursor = "move";
+    map.root.style.cursor = "move";
   }
 
   _onDragEnd(evt) {
     _dragStart = null;
-    map.container.style.cursor = "default";
+    map.root.style.cursor = "default";
   }
 
   _onDrag(evt) {
@@ -535,7 +555,6 @@ class MouseGestureStream {
   }
 
   _rawMouseClick(evt) {
-    evt.preventDefault();
     if (deferredEvent == null) {
       var ts = new DateTime.now().millisecondsSinceEpoch;
       if (ts - _lastMouseDownTimestamp > 150) {
@@ -552,9 +571,7 @@ class MouseGestureStream {
     }
   }
 
-
   _rawMouseMove(evt){
-    evt.preventDefault();
     if (_mouseDown) {
        if (!_isDragging) {
          _controler.sink.add(new MouseGesturePrimitive.dragStart(evt));
@@ -569,14 +586,12 @@ class MouseGestureStream {
   }
 
   _rawMouseDown(MouseEvent evt) {
-    evt.preventDefault();
     _mouseDown = true;
     _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
     _lastMouseDownPos = new Point(evt.offsetX, evt.offsetY);
   }
 
   _rawMouseUp(MouseEvent evt) {
-    evt.preventDefault();
     if (_isDragging) {
       _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
     }
