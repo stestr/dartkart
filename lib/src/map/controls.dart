@@ -71,10 +71,10 @@ abstract class MapControl {
     // already attached ?
     if (_map != null) {
       if (_map == map) {
-        return;  // don't attach again 
+        return;  // don't attach again
       } else {
         detach(); // detach the currently attached, then attach the new one
-      }      
+      }
     }
     this._map = map;
     var controlsPane = _map.controlsPane;
@@ -391,7 +391,7 @@ class ZoomControl extends MapControl{
 }
 
 //TODO: listen to layer change events
-//TODO: listen to layer name changes 
+//TODO: listen to layer name changes
 class LayerControl extends MapControl {
   static const _TEMPLATE = """
   <div class="layer-control">
@@ -399,29 +399,38 @@ class LayerControl extends MapControl {
   </table>
   </div>
   """;
-  
+
+  final Map<int, StreamSubscription> _layerSubscriptions
+    = new Map<int, StreamSubscription>();
+
   static const _ROW_TEMPLATE = """
   <tr>
    <td class="layer-visibility"><input type="checkbox"></td>
    <td class="layer-name"><span title=""></span></td>   
   </tr>
   """;
-  
+
+  detach() {
+    super.detach();
+    _layerSubscriptions.keys.forEach((id) {
+      _layerSubscriptions[id].cancel();
+    });
+    _layerSubscriptions.clear();
+  }
+
   Element _buildLayerRow(Layer layer) {
+    //TODO: replace with a kind of builder.  Element.html will probably disapear
     var tr = new Element.html(_ROW_TEMPLATE);
     var span = tr.query("td.layer-name").query("span");
     span.innerHtml = layer.name;
     span.attributes["title"] = layer.name; // tooltip
     var cb = tr.query("input");
-    if (layer.visible) {
-      cb.attributes["checked"] = "checked";
-    } else {
-      cb.attributes.remove("checked");
-    }
+    _cbSetChecked(cb, layer.visible);
     cb.dataset["layerId"] = layer.id.toString();
+    tr.dataset["layerId"] = layer.id.toString();
     return tr;
   }
-  
+
   _buildHtml() {
     _root = new Element.html(_TEMPLATE);
     var size = _map.viewportSize;
@@ -429,27 +438,111 @@ class LayerControl extends MapControl {
     _root.style
       ..left = "${left}px"
       ..top = "20px";
-      
+
     var rows = _map.layers.map((l) => _buildLayerRow(l));
     var table = _root.query("table");
     table.children.clear();
     table.children.addAll(rows);
   }
-  
+
   _wireEventListeners() {
-    _subscriptions.addAll(
-       _root.queryAll("input").map((cb) => cb.onClick.listen(_toggleLayerVisibility))
+    // click events in the layer control
+    _subscriptions.add(
+       _root.onClick.listen(_handleClick)
     );
+
+    // layer events (add, remove, move) in the map viewport
+    _subscriptions.add(
+        _map.onLayersChanged.listen(_handleLayerEvent)
+    );
+
+    // layer properties (name, visible) in a layer
+    _map.layers.forEach((l) {
+      _layerSubscriptions[l.id] =
+          l.onPropertyChanged.listen(_handleLayerPropertyChange);
+    });
   }
-  
+
+  _handleClick(evt) {
+    var target = evt.target;
+    if (evt.target is InputElement) {
+      _toggleLayerVisibility(evt);
+    }
+  }
+
+  _layerTr(lid) => _root
+      .queryAll("tr")
+      .firstMatching((e)=>e.dataset["layerId"] == lid.toString());
+
+  _handleLayerEvent(LayerEvent evt) {
+    handleAdded(LayerEvent evt) {
+      var tr = _buildLayerRow(evt.layer);
+      _root.query("table").children.add(tr);
+      _layerSubscriptions[evt.layer.id] =
+          evt.layer.onPropertyChanged.listen(_handleLayerPropertyChange);
+    }
+    handleRemoved(LayerEvent evt) {
+      var lid = evt.layer.id;
+      var tr = _layerTr(lid);
+      if (tr == null) {
+        print("warning: didn't find table row for layer with id $lid");
+        return;
+      }
+      var table = _root.query("table");
+      table.children.remove(tr);
+      var subscription = _layerSubscriptions[lid];
+      if (subscription != null) {
+        subscription.cancel();
+      }
+    }
+    switch(evt.type) {
+      case LayerEvent.ADDED:
+        handleAdded(evt);
+        break;
+      case LayerEvent.REMOVED:
+        handleRemoved(evt);
+        break;
+      default: /* ignore */
+    }
+  }
+
+  _cbSetChecked(cb, value) {
+    if (value) {
+      cb.attributes["checked"] = "checked";
+    } else {
+      cb.attributes.remove("checked");
+    }
+  }
+
+  _handleLayerPropertyChange(evt) {
+    handleNameChange(evt) {
+      print("handlenameChange");
+      var lid = evt.source.id;
+      var span = _layerTr(lid).query("span");
+      span.innerHtml = evt.newValue;
+    }
+
+    handleVisibleChange(evt) {
+      var lid = evt.source.id;
+      var cb = _layerTr(lid).query("input");
+      _cbSetChecked(cb, evt.newValue);
+    }
+    switch(evt.name) {
+      case "name": handleNameChange(evt); break;
+      case "visible": handleVisibleChange(evt);break;
+      default: /* ignore */
+    }
+  }
+
   _toggleLayerVisibility(evt) {
+    if (evt.target is! InputElement) return;
     var cb = evt.target;
     var lid = cb.dataset["layerId"];
     if (lid == null) return; //TODO: warning
     try {
       lid = int.parse(lid);
     } catch(e) {
-      //TODO: warning 
+      //TODO: warning
       return;
     }
     var layer = _map.layers.firstMatching((l) => l.id == lid);
@@ -458,10 +551,10 @@ class LayerControl extends MapControl {
       return;
     }
     var visible = !layer.visible;
-    layer.visible = visible;    
+    layer.visible = visible;
   }
-  
-  _build() {    
+
+  _build() {
     _buildHtml();
     _wireEventListeners();
   }
