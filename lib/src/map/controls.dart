@@ -25,17 +25,21 @@ class ControlsPane {
   /// must not be null.
   attach(MapViewport viewport) {
     assert(viewport != null);
-    var viewportSize = viewport.viewportSize;
-    var tl = viewport.topLeftInPage;
-    _root.style
-      ..width = "${viewportSize.x}px"
-      ..height = "${viewportSize.y}px"
-      ..position = "absolute"
-      ..top = "${tl.y}px"
-      ..left = "${tl.x}px";
-
+    _viewport = viewport;
+    layout();
     // Don't add the _container to the viewport container,
     // the map viewport takes care of this
+  }
+
+  layout() {
+    var viewportSize = _viewport.viewportSize;
+    var tl = _viewport.topLeftInPage;
+    _root.style
+    ..width = "${viewportSize.x}px"
+    ..height = "${viewportSize.y}px"
+    ..position = "absolute"
+    ..top = "${tl.y}px"
+    ..left = "${tl.x}px";
   }
 }
 

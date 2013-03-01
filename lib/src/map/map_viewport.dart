@@ -48,6 +48,7 @@ class MapViewport {
     _root = container;
     attachEventListeners();
     controlsPane = new ControlsPane();
+    window.onResize.listen((evt) => layout());
   }
 
   attachEventListeners() {
@@ -182,7 +183,7 @@ class MapViewport {
     _root.children.add(layer.container);
     layer.attach(this);
     _updateLayerZIndex();
-    Timer.run(() => render());
+    render();
     _layerEvents.add(new LayerEvent.added(this, layer));
   }
 
@@ -198,7 +199,7 @@ class MapViewport {
     _root.children.remove(layer.container);
     _layers.remove(layer);
     _updateLayerZIndex();
-    Timer.run(() => render());
+    render();
     _layerEvents.add(new LayerEvent.removed(this, layer));
   }
 
@@ -428,6 +429,22 @@ class MapViewport {
       _centerEvents = _events.stream.where((e) => e.name == "center");
     }
     return _centerEvents;
+  }
+
+  /**
+   * Layouts the map viewport. This method ensures that the layers and
+   * and the controls pane all have the same size and that their left
+   * upper corner stack up at the relative position (0,0) of this
+   * map viewport.
+   *
+   * This method is invoked if the browser is resized. Invoke it
+   * manually, if your application moves or resizes the view port.
+   */
+  layout() {
+    if (_controlsPane != null) {
+      _controlsPane.layout();
+    }
+    _layers.forEach((l) => l.layout());
   }
 }
 
