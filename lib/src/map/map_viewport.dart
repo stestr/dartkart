@@ -476,12 +476,12 @@ class DragController {
   _onDragStart(evt) {
     _dragStart = new Point(evt.offsetX, evt.offsetY);
     _centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
-    map.root.style.cursor = "move";
+    evt.target.style.cursor = "move";
   }
 
   _onDragEnd(evt) {
     _dragStart = null;
-    map.root.style.cursor = "default";
+    evt.target.style.cursor = "default";
   }
 
   _onDrag(evt) {
@@ -585,12 +585,14 @@ class MouseGestureStream {
   }
 
   _rawMouseDown(MouseEvent evt) {
+    if (evt.button != 0 /* left */) return;
     _mouseDown = true;
     _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
     _lastMouseDownPos = new Point(evt.offsetX, evt.offsetY);
   }
 
   _rawMouseUp(MouseEvent evt) {
+    if (evt.button != 0 /* left */) return;
     if (_isDragging) {
       _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
     }
@@ -608,10 +610,4 @@ class MouseGestureStream {
     _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
     _subscriptions.add(source.onMouseMove.listen(_rawMouseMove));
   }
-
-
 }
-
-
-
-
