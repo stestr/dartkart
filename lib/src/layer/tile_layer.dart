@@ -330,18 +330,12 @@ abstract class TileLayer extends Layer {
     super.attach(m);
     var viewportSize = map.viewportSize;
     var tl = map.topLeftInPage;
-    layout();
-  }
-
-  layout() {
-    var viewportSize = map.viewportSize;
-    var tl = map.topLeftInPage;
     _container.style
-      ..width = "${viewportSize.x}px"
-      ..height = "${viewportSize.y}px"
+      ..width="100%"
+      ..height="100%"
       ..position = "absolute"
-      ..left = "${tl.x}px"
-      ..top = "${tl.y}px";
+      ..left = "0px"
+      ..top = "0px";
   }
 
   bindTileToUrl(int x, int y, int zoom);

@@ -163,9 +163,4 @@ abstract class Layer {
         new PropertyChangeEvent(this, property, oldValue,newValue)
      );
   }
-
-  /**
-   * Layouts the layer elements
-   */
-  layout();
 }

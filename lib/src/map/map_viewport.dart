@@ -44,11 +44,26 @@ class MapViewport {
    *
    */
   MapViewport(container) {
-    if (container is String) container = query(container);
-    _root = container;
+    if (container == null) {
+      throw new ArgumentError("container must not be null");
+    }
+    if (container is String) {
+      container = query(container);
+      if (container == null) {
+        throw new ArgumentError("didn't find container with id '$container'");
+      }
+    } else if (container is Element) {
+      // OK
+    } else {
+      throw new ArgumentError("expected an Element or a DOM id as String, "
+          "got $container");
+    }
+    _root = new DivElement();
+    _root.classes.add("dartkart-map-viewport");
+    container.children.clear();
+    container.children.add(_root);
     attachEventListeners();
     controlsPane = new ControlsPane();
-    window.onResize.listen((evt) => layout());
   }
 
   attachEventListeners() {
@@ -429,22 +444,6 @@ class MapViewport {
       _centerEvents = _events.stream.where((e) => e.name == "center");
     }
     return _centerEvents;
-  }
-
-  /**
-   * Layouts the map viewport. This method ensures that the layers and
-   * and the controls pane all have the same size and that their left
-   * upper corner stack up at the relative position (0,0) of this
-   * map viewport.
-   *
-   * This method is invoked if the browser is resized. Invoke it
-   * manually, if your application moves or resizes the view port.
-   */
-  layout() {
-    if (_controlsPane != null) {
-      _controlsPane.layout();
-    }
-    _layers.forEach((l) => l.layout());
   }
 }
 
