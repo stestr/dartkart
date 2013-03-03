@@ -1,13 +1,3 @@
-.dartkart-map-viewport,
-.dartkart-map-viewport div,
-.dartkart-map-viewport canvas
-{
-  user-select: none;
-  -khtml-user-select: none;
-  -o-user-select: none;
-  -moz-user-select: -moz-none;
-  -webkit-user-select: none;
-}
 
 .dartkart-map-viewport
 {

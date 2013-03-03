@@ -50,10 +50,6 @@ main() {
   layerControl.attach(map);
   layerControl.root.style.height = "100px";
   layerControl.placeAt(720, 20);
-
-  window.onResize.listen((evt) {
-    map.render();
-  });
 }
 
 
