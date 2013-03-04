@@ -586,6 +586,8 @@ class MouseGestureStream {
 
   _rawMouseDown(MouseEvent evt) {
     if (evt.button != 0 /* left */) return;
+    evt.preventDefault();
+    evt.stopPropagation();
     _mouseDown = true;
     _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
     _lastMouseDownPos = new Point(evt.offsetX, evt.offsetY);
@@ -593,6 +595,8 @@ class MouseGestureStream {
 
   _rawMouseUp(MouseEvent evt) {
     if (evt.button != 0 /* left */) return;
+    evt.preventDefault();
+    evt.stopPropagation();
     if (_isDragging) {
       _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
     }
