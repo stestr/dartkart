@@ -76,26 +76,25 @@ abstract class Renderer {
   renderTile(Point tilePos);
 }
 
+typedef String TileUrlBuilder(int x, int y, int zoom);
+
 class Tile {
   static const LOADING = 0;
   static const READY = 1;
   static const ERROR= 2;
 
-  final int x;
-  final int y;
-  final int width;
-  final int height;
-  String _url;
-  int _state  = LOADING;
+  final Point t;
+  CanvasElement canvas;
+  final TileLayer layer;
   ImageElement _img;
-  CanvasElement _canvas;
-  double _opacity;
+  int _state = LOADING;
 
-  Tile(this.x, this.y, this.width, this.height, this._canvas, this._opacity);
+  Tile(this.t, this.canvas, this.layer);
 
-  detach() => _canvas = null;
+  detach() => canvas = null;
 
-  load(String url) {
+  load() {
+     var url = layer.bindTileToUrl(t.x, t.y, layer.map.zoom);
      _img = _DEFAULT_CACHE.lookup(url,
       onLoad: (e) {
         _state = READY;
@@ -110,24 +109,56 @@ class Tile {
     render();
   }
 
+  Point get imageTopLeft =>
+      layer.map.zoomPlaneToViewport(t * layer.tileSize);
+
   renderReady() {
-    if (_canvas == null) return;
-    var context = _canvas.context2d;
-    context.globalAlpha = _opacity;
-    //context.clearRect(x, y, width, height);
-    context.drawImage(_img, x, y);
+    if (canvas == null) return;
+    var context = canvas.context2d;
+    context.globalAlpha = layer.opacity;
+    var tl = imageTopLeft;
+    var ts = layer.tileSize;
+    //context.clearRect(tl.x, tl.y, ts.x, ts.y);
+    context.drawImage(_img, tl.x, tl.y);
+  }
+
+  ImageElement parentImage() {
+    var z = layer.map.zoom;
+    if (z == 0) return null;
+    z--;
+    var ti = t.x ~/ 2;
+    var tj = t.y ~/ 2;
+    var url = layer.bindTileToUrl(ti, tj, z);
+    var img = _DEFAULT_CACHE.get(url);
+    return img;
   }
 
   renderLoading() {
-    //TODO: render parent tile if available
-    var context = _canvas.context2d;
-    context.clearRect(x, y, width, height);
+    var img = parentImage();
+    if (img == null) {
+      var context = canvas.context2d;
+      var tl = imageTopLeft;
+      var ts = layer.tileSize;
+      context.clearRect(tl.x,tl.y, ts.x /* width */, ts.y /* height */);
+    } else {
+      var tl = imageTopLeft;
+      var ts = layer.tileSize;
+      canvas.context2d.drawImage(img,
+          (t.x % 2) * ts.x ~/ 2,
+          (t.y % 2) * ts.y ~/ 2,
+          ts.x ~/ 2,
+          ts.y ~/ 2,
+          tl.x, tl.y, ts.x, ts.y
+      );
+    }
   }
 
   renderError() {
-    var context = _canvas.context2d;
-    context.globalAlpha = _opacity;
-    var center = new Point(x,y) + (new Point(width, height) / 2).toInt();
+    var context = canvas.context2d;
+    context.globalAlpha = layer.opacity;
+    var ts = layer.tileSize;
+    var tl = imageTopLeft;
+    var center = new Point(tl.x, tl.y) + (new Point(ts.x, ts.y) / 2).toInt();
     context
       ..save()
       ..strokeStyle="rgba(255,0,0,0.5)"
@@ -146,6 +177,7 @@ class Tile {
   }
 
   render() {
+    if (canvas == null) return;
     switch(_state) {
       case LOADING: renderLoading(); break;
       case READY: renderReady(); break;
@@ -230,13 +262,9 @@ class CanvasRenderer extends Renderer {
   }
 
   renderTile(Point tile) {
-    var url = _layer.bindTileToUrl(tile.x, tile.y, _layer.map.zoom);
-    var ts = _layer.tileSize;
-    var tileOnViewport = _layer.map.zoomPlaneToViewport(tile * ts);
-    Tile t = new Tile(tileOnViewport.x, tileOnViewport.y, ts.x,
-        ts.y, _canvas, _layer.opacity);
+    Tile t = new Tile(tile, _canvas, _layer);
     _tiles.add(t);
-    t.load(url);
+    t.load();
   }
 
   /* ---------------------- rendering the tile border - for debugging  --- */
@@ -340,7 +368,10 @@ abstract class TileLayer extends Layer {
 
   bindTileToUrl(int x, int y, int zoom);
 
-  render() => _renderer.render();
+  render() {
+    if (!visible) return;
+    _renderer.render();
+  }
 }
 
 class OsmTileLayer extends TileLayer {
@@ -647,6 +678,21 @@ class TileCache {
 
     img.src = url;
     return img;
+  }
+
+  /**
+   * Replies the tile image for [url] if it is already in the cache
+   * and complete. Otherwise, returns null.
+   */
+  ImageElement get(String url) {
+    var img = _map[url];
+    if (img != null && img.complete) {
+      _access.remove(img);
+      _access.addFirst(img);
+      return img;
+    } else {
+      return null;
+    }
   }
 
   /**
