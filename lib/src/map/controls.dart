@@ -205,10 +205,10 @@ class PanControl extends MapControl{
           _root.query(".pan-button.$cls").onClick.listen(handler)
       );
     }
-    register("pan-north", (e) => _map.panNorth());
-    register("pan-east", (e)=>_map.panEast());
-    register("pan-south", (e)=>_map.panSouth());
-    register("pan-west", (e)=>_map.panWest());
+    register("pan-north", (e) => _map.panNorth(animate: true));
+    register("pan-east", (e)=>_map.panEast(animate: true));
+    register("pan-south", (e)=>_map.panSouth(animate: true));
+    register("pan-west", (e)=>_map.panWest(animate: true));
 
     _root.queryAll(".pan-button").forEach((b) {
       _subscriptions.add(b.onMouseOver.listen((e) => b.classes.add("hover")));

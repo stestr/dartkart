@@ -357,30 +357,62 @@ class MapViewport {
   }
 
   /* --------------------- panning ---------------------------------- */
-  //TODO: panning with animation
-
-  _pan(delta) {
+  _panAnimated(delta){
     delta = new Point.from(delta);
-    var p = mapToZoomPlane(earthToMap(center));
-    p = p + delta;
-    if (p.x <= 0 || p.y <= 0) return;
-    var size = zoomPlaneSize;
-    if (p.x >= size.x || p.y >= size.y) return;
-    var c = mapToEarth(zoomPlaneToMap(p));
-    center = c;
+    var v = 30;
+    var x = 0;
+    var y = 0;
+    step(Timer timer){
+      // slow down on the last 100 pixels
+      if (x > delta.x.abs() - 100 && y > delta.y.abs() - 100) {
+        v = math.max(v - 5, 5);
+      }
+      var dx = math.min(v.toInt(), delta.x.abs());
+      var dy = math.min(v.toInt(), delta.y.abs());
+      x = math.min(x + dx, delta.x.abs());
+      y = math.min(y + dy, delta.y.abs());
+      if (delta.x < 0) dx = -dx;
+      if (delta.y < 0) dy = -dy;
+      _pan(new Point(dx, dy));
+      if (x >= delta.x.abs() && y >= delta.y.abs()) timer.cancel();
+    }
+    new Timer.repeating(new Duration(milliseconds: 100), step);
   }
 
-  /// Pans the viewport num [pixels] to the north
-  panNorth([int pixels=100]) => _pan([0,-pixels]);
+  _pan(delta, {bool animate: false}) {
+    if (animate) {
+      _panAnimated(delta);
+    } else {
+      delta = new Point.from(delta);
+      var p = mapToZoomPlane(earthToMap(center));
+      p = p + delta;
+      if (p.x <= 0 || p.y <= 0) return;
+      var size = zoomPlaneSize;
+      if (p.x >= size.x || p.y >= size.y) return;
+      var c = mapToEarth(zoomPlaneToMap(p));
+      center = c;
+    }
+  }
+
+  /// Pans the viewport num [pixels] to the north.
+  /// Animates panning if [animate] is true.
+  panNorth({int pixels:100, bool animate:false}) =>
+      _pan([0,-pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the south.
-  panSouth([int pixels=100]) => _pan([0,pixels]);
+  /// Animates panning if [animate] is true.
+  panSouth({int pixels:100, bool animate:false}) =>
+      _pan([0,pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the west
-  panWest([int pixels=100]) => _pan([-pixels, 0]);
+  /// Animates panning if [animate] is true.
+  panWest({int pixels:100, bool animate:false}) =>
+      _pan([-pixels, 0], animate: animate);
 
   /// Pans the viewport num [pixels] to the east
-  panEast([int pixels=100]) => _pan([pixels, 0]);
+  /// Animates panning if [animate] is true.
+  panEast({int pixels:100, bool animate:false}) =>
+      _pan([pixels, 0],animate: animate);
 
   /* ----------------------- controls pane ------------------------ */
   ControlsPane _controlsPane;
@@ -613,5 +645,26 @@ class MouseGestureStream {
     _subscriptions.add(source.onMouseDown.listen(_rawMouseDown));
     _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
     _subscriptions.add(source.onMouseMove.listen(_rawMouseMove));
+  }
+}
+
+
+class PanBehaviour {
+  MapViewport _viewport;
+
+  animate(Point delta){
+    var vel = 10;
+    var dx = 0;
+    var dy = 0;
+    step(Timer timer){
+      vel = 0.9 * vel;
+      dx += vel.toInt();
+      dy += vel.toInt();
+      dx = math.min(dx, delta.x);
+      dy = math.min(dx, delta.y);
+      _viewport._pan(new Point(dx, dy));
+      if (dx >= delta.x && dy >= delta.y) timer.cancel();
+    }
+    new Timer.repeating(new Duration(milliseconds: 50), step);
   }
 }

@@ -1,4 +1,4 @@
-name:  dartkart
+name: dartkart
 
 description: >
    dartkart is a framwork for web cartografy in the tradition of the
@@ -15,3 +15,7 @@ dependencies:
    browser: 0.3.7+6
    meta: 0.3.7+6
    unittest: 0.3.7+6
+   args: 0.4.0
+
+
+
