@@ -114,7 +114,7 @@ class Tile {
     if (_canvas == null) return;
     var context = _canvas.context2d;
     context.globalAlpha = _opacity;
-    context.clearRect(x, y, width, height);
+    //context.clearRect(x, y, width, height);
     context.drawImage(_img, x, y);
   }
 

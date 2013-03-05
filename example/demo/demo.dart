@@ -22,18 +22,19 @@ main() {
   wmsLayer.name = "Types of Swiss communities";
   wmsLayer.opacity = 0.4;
 
+  map.addLayer(osmLayer);
   /* hack -
    * addLayer(osmLayer);
    * addLayer(wmsLayer);
    * --> osmlayer isn't displayed initially, only after the first
    * mouse click
    */
-  Timer.run(() {
-    map.addLayer(osmLayer);
-    new Timer( new Duration(milliseconds: 10), () {
-      map.addLayer(wmsLayer);
-    });
-  });
+//  Timer.run(() {
+//    map.addLayer(osmLayer);
+////    new Timer( new Duration(milliseconds: 10), () {
+////      map.addLayer(wmsLayer);
+////    });
+//  });
   var pan = new PanControl();
   pan.attach(map);
   pan.placeAt(20,20);
