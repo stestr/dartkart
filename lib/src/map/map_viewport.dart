@@ -359,7 +359,7 @@ class MapViewport {
   /* --------------------- panning ---------------------------------- */
   pan(delta, {bool animate: false}) {
     if (animate) {
-      new KineticPanBehaviour(this).animate(new Point.from(delta));
+      new PanBehaviour(this).animate(new Point.from(delta));
     } else {
       delta = new Point.from(delta);
       var p = mapToZoomPlane(earthToMap(center));
@@ -629,6 +629,8 @@ class MouseGestureStream {
 class PanBehaviour {
   const double ACCELERATION = -2.0; // px / (100ms)²
   const double SPEED = 20.0;        // px / 100ms
+  const int DELTA_T = 20;           // ms, duration of animation step
+
   final MapViewport viewport;
   PanBehaviour(this.viewport);
 
@@ -679,7 +681,7 @@ class PanBehaviour {
           pan(dx, dy);
         }
       }
-      new Timer.repeating(new Duration(milliseconds: 100), step);
+      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
       return completer.future;
     }
 
@@ -712,7 +714,7 @@ class PanBehaviour {
 
         pan(dx, dy);
       }
-      new Timer.repeating(new Duration(milliseconds: 100), step);
+      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
     }
 
     panLongDistance(panBy).then((rest) {
