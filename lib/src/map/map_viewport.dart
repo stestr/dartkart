@@ -357,31 +357,9 @@ class MapViewport {
   }
 
   /* --------------------- panning ---------------------------------- */
-  _panAnimated(delta){
-    delta = new Point.from(delta);
-    var v = 30;
-    var x = 0;
-    var y = 0;
-    step(Timer timer){
-      // slow down on the last 100 pixels
-      if (x > delta.x.abs() - 100 && y > delta.y.abs() - 100) {
-        v = math.max(v - 5, 5);
-      }
-      var dx = math.min(v.toInt(), delta.x.abs());
-      var dy = math.min(v.toInt(), delta.y.abs());
-      x = math.min(x + dx, delta.x.abs());
-      y = math.min(y + dy, delta.y.abs());
-      if (delta.x < 0) dx = -dx;
-      if (delta.y < 0) dy = -dy;
-      _pan(new Point(dx, dy));
-      if (x >= delta.x.abs() && y >= delta.y.abs()) timer.cancel();
-    }
-    new Timer.repeating(new Duration(milliseconds: 100), step);
-  }
-
-  _pan(delta, {bool animate: false}) {
+  pan(delta, {bool animate: false}) {
     if (animate) {
-      _panAnimated(delta);
+      new KineticPanBehaviour(this).animate(new Point.from(delta));
     } else {
       delta = new Point.from(delta);
       var p = mapToZoomPlane(earthToMap(center));
@@ -397,22 +375,22 @@ class MapViewport {
   /// Pans the viewport num [pixels] to the north.
   /// Animates panning if [animate] is true.
   panNorth({int pixels:100, bool animate:false}) =>
-      _pan([0,-pixels], animate: animate);
+      pan([0,-pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the south.
   /// Animates panning if [animate] is true.
   panSouth({int pixels:100, bool animate:false}) =>
-      _pan([0,pixels], animate: animate);
+      pan([0,pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the west
   /// Animates panning if [animate] is true.
   panWest({int pixels:100, bool animate:false}) =>
-      _pan([-pixels, 0], animate: animate);
+      pan([-pixels, 0], animate: animate);
 
   /// Pans the viewport num [pixels] to the east
   /// Animates panning if [animate] is true.
   panEast({int pixels:100, bool animate:false}) =>
-      _pan([pixels, 0],animate: animate);
+      pan([pixels, 0],animate: animate);
 
   /* ----------------------- controls pane ------------------------ */
   ControlsPane _controlsPane;
@@ -648,23 +626,97 @@ class MouseGestureStream {
   }
 }
 
-
 class PanBehaviour {
-  MapViewport _viewport;
+  const double ACCELERATION = -2.0; // px / (100ms)²
+  const double SPEED = 20.0;        // px / 100ms
+  final MapViewport viewport;
+  PanBehaviour(this.viewport);
 
-  animate(Point delta){
-    var vel = 10;
-    var dx = 0;
-    var dy = 0;
-    step(Timer timer){
-      vel = 0.9 * vel;
-      dx += vel.toInt();
-      dy += vel.toInt();
-      dx = math.min(dx, delta.x);
-      dy = math.min(dx, delta.y);
-      _viewport._pan(new Point(dx, dy));
-      if (dx >= delta.x && dy >= delta.y) timer.cancel();
+  animate(Point panBy) {
+    var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
+    var theta = math.asin(panBy.y / dist);
+    if (panBy.x <= 0) {
+      theta = math.PI - theta;
     }
-    new Timer.repeating(new Duration(milliseconds: 50), step);
+
+    var fx = math.cos(theta);
+    //y-axis is inverted, therefore not
+    //  -math.sin(theta)
+    var fy = math.sin(theta);
+
+    now() => new DateTime.now().millisecondsSinceEpoch;
+
+    pan(dx,dy) {
+      var p = new Point(dx,dy).toInt();
+      if (p != new Point.origin()) viewport.pan(p);
+    }
+
+    bounded(num v, num bound) => bound < 0
+        ? math.max(v, bound)
+        : math.min(v, bound);
+
+    // pan long distance (fast) as much and possible, the complete
+    // the future with the remaining pan distance
+    Future<Point> panLongDistance(Point panBy) {
+      var completer = new Completer<Point>();
+      var pannedX = 0;
+      var pannedY = 0;
+      bool isLongDistance() =>
+              (panBy.x - pannedX).abs() > 100
+          || (panBy.y  - pannedY).abs() > 100;
+
+      // animation step
+      step(Timer timer){
+        if (!isLongDistance()) {
+          timer.cancel();
+          var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+          completer.complete(rest);
+        } else {
+          var dx = bounded(40 * fx, panBy.x).toInt();
+          var dy = bounded(40 * fy, panBy.y).toInt();
+          pannedX += dx;
+          pannedY += dy;
+          pan(dx, dy);
+        }
+      }
+      new Timer.repeating(new Duration(milliseconds: 100), step);
+      return completer.future;
+    }
+
+    // pan a short distance, deaccelerate and make sure the final
+    // point is reached
+    panShortDistance(Point panBy) {
+      panBy = panBy.toInt();
+      var lastX = 0;
+      var lastY = 0;
+      var initialTime = now();
+
+      // animation step
+      step(Timer timer) {
+        // scale time by 100 for kinetics calcuations
+        var t  = (now() - initialTime) / 100;
+        var p = ACCELERATION * math.pow(t,2) / 2 + SPEED * t;
+        var x = bounded(p * fx, panBy.x).toInt();
+        var y = bounded(p * fy, panBy.y).toInt();
+        var v = ACCELERATION * t + SPEED;
+        if (v <= 0 || panBy == new Point(x,y)){
+          // last step - pan to the end point
+          x = panBy.x;
+          y = panBy.y;
+          timer.cancel();
+        }
+        var dx = x - lastX;
+        var dy = y - lastY;
+        lastX = x;
+        lastY = y;
+
+        pan(dx, dy);
+      }
+      new Timer.repeating(new Duration(milliseconds: 100), step);
+    }
+
+    panLongDistance(panBy).then((rest) {
+      panShortDistance(rest);
+    });
   }
 }
