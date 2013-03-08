@@ -1,6 +1,6 @@
 library dartkart.layer;
 
-import "dart:html";
+import "dart:html" hide Point;
 import "dart:async";
 import "dart:math" as math;
 import "dart:collection";
