@@ -1,6 +1,6 @@
 library map_viewport_test;
 
-import "dart:html";
+import "dart:html" hide Point;
 import "dart:math" as math;
 import "dart:svg" hide Point;
 import "dart:async";
@@ -24,18 +24,18 @@ main() {
   group("layer functionality", () {
     var map;
     var container;
-    
+
     setUp(() {
       container = new DivElement();
       container.id = "map";
       query("body").children.add(container);
       map = new MapViewport("#map");
     });
-    
+
     tearDown(() {
       query("body").children.remove(container);
     });
-    
+
     test("- adding a layer", () {
       var layer = new TestLayer();
       map.onLayersChanged.listen(expectAsync1((e) {
@@ -48,9 +48,9 @@ main() {
       expect(map.layers[0], layer);
       expect(layer.map, map);
     });
-    
+
     test("- removing a layer", () {
-      var layer = new TestLayer();      
+      var layer = new TestLayer();
       map.addLayer(layer);
       map.onLayersChanged.listen(expectAsync1((e) {
         expect(e.type, LayerEvent.REMOVED);
@@ -60,7 +60,7 @@ main() {
       map.removeLayer(layer);
       expect(map.layers.length, 0);
       expect(layer.map, null);
-    });  
+    });
   });
 }
 

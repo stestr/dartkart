@@ -1,4 +1,4 @@
-import "dart:html";
+import "dart:html" hide Point;
 import "dart:math" as math;
 import "dart:svg" hide Point;
 import "dart:async";
