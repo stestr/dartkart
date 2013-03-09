@@ -149,7 +149,7 @@ class MapViewport {
    */
   Point pageToViewport(v) {
     if (v is MouseEvent) {
-      v = new Point(v.pageX, v.pageY);
+      v = new Point(v.page.x, v.page.y);
     } else if (v is Point) {} // do nothing
     else throw new ArgumentError("expected MouseEvent or Point, got $v");
     return v - topLeftInPage;
@@ -535,8 +535,8 @@ class MouseGesturePrimitive {
   bool get isDragPrimitive => type == DRAG_START || type == DRAG ||
       type == DRAG_END;
 
-  toString() => "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offsetX},"
-     "y=${event.offsetY}";
+  toString() => "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
+     "y=${event.offset.y}";
 }
 
 class MouseGestureStream {
@@ -600,7 +600,7 @@ class MouseGestureStream {
     evt.stopPropagation();
     _mouseDown = true;
     _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
-    _lastMouseDownPos = new Point(evt.offsetX, evt.offsetY);
+    _lastMouseDownPos = new Point(evt.offset.x, evt.offset.y);
   }
 
   _rawMouseUp(MouseEvent evt) {
