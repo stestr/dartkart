@@ -49,7 +49,7 @@ class Bounds {
   /**
    * Checks whether this bounds contains [other].
    *
-   * [other] is eithe another [Bounds] or a [Point].
+   * [other] is either another [Bounds] or a [Point].
    *
    */
   bool contains(obj) {
