@@ -118,7 +118,7 @@ class MapViewport {
 
   /// the viewport size
   Point get viewportSize =>
-      new Point(_root.clientWidth, _root.clientHeight);
+      new Point(_root.client.width, _root.client.width);
 
   /// the size of the current map zoom plane
   Point get zoomPlaneSize {
@@ -129,7 +129,7 @@ class MapViewport {
   /// the top-left point in "page coordinates"
   Point get topLeftInPage {
     offset(Element e) {
-      var p = new Point(e.offsetLeft, e.offsetTop);
+      var p = new Point(e.offset.left, e.offset.top);
       return e.parent == null ? p : p + offset(e.parent);
     }
     return offset(_root);
