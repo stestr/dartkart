@@ -192,7 +192,7 @@ main() {
   });
 
   group("parse file", () {
-    solo_test("- countries.geo.json ", () {
+    test("- countries.geo.json ", () {
       print("retrieving and parsing 'test/data/countries.geo.json'");
       HttpRequest.getString("${DARTKART_ROOT}/test/data/countries.geo.json").then(
           expectAsync1((data) {
