@@ -153,7 +153,7 @@ class Polygon extends Surface {
     if (exteriorRing == null) throw new ArgumentError(
         "exteriorRing must not be null");
     _exteriorRing = exteriorRing;
-    if (LinearRing != null) {
+    if (interiorRings != null) {
       interiorRings.remove(null);
       _interiorRings.addAll(interiorRings);
     }
@@ -164,6 +164,42 @@ class Polygon extends Surface {
   LineString interiorRingN(int i) => _interiorRings[i];
 }
 
+class Feature {
+  /// the geometry of this feature
+  final Geometry geometry;
+  /// the properties of this feature
+  final Map properties = {};
+
+  /**
+   * Creates a feature with a [geometry] and an
+   * optional map of [properties].
+   */
+  Feature(this.geometry, [Map properties]){
+    if (properties != null){
+      properties.keys.forEach((k) {
+        this.properties[k] = properties[k];
+      });
+    }
+  }
+}
+
+//NOTE: FeatureCollection could extends from list<Feature> but
+// list of features as property is easier
+class FeatureCollection {
+  /**
+   * The list of features.
+   *
+   * You can use the full list interface
+   * to read/write features in this feature collection.
+   */
+  final List<Feature> features = [];
+
+  FeatureCollection(List<Feature> features) {
+    if (features == null) return;
+    features.remove(null);
+    this.features.addAll(features);
+  }
+}
 
 class Point extends Geometry {
 
@@ -332,8 +368,15 @@ class Point extends Geometry {
   Point scale(num scalex, num scaley) => this * [scalex, scaley];
   Point flipY() => new Point(x, -y);
 }
-
-Geometry parseGeoJson(String geoJson) {
+/**
+ * Parses GeoJSON.
+ *
+ * Replies either a [Geometry], a [Feature] or a [FeatureCollection].
+ *
+ *
+ */
+//TODO: more checks, throw FormatException on error
+parseGeoJson(String geoJson) {
   var value = json.parse(geoJson);
   assert(value is Map);
 
@@ -386,6 +429,19 @@ Geometry parseGeoJson(String geoJson) {
         .toList()
       );
 
+  deserializeFeature(Map gj) {
+    var geometry = deserialize(gj["geometry"]);
+    var properties = gj["properties"];
+    return new Feature(geometry, properties);
+  }
+
+  deserializeFeatureCollection(Map gj) {
+    var features = gj["features"]
+      .map((f) => deserializeFeature(f))
+      .toList();
+    return new FeatureCollection(features);
+  }
+
   deserialize = (Map gj) {
     switch(gj["type"]) {
       case "Point":      return deserializePoint(gj);
@@ -395,9 +451,10 @@ Geometry parseGeoJson(String geoJson) {
       case "Polygon":    return deserializePolygon(gj);
       case "MultiPolygon": return deserializeMultipolygon(gj);
       case "GeometryCollection": return deserializeGeometryCollection(gj);
+      case "Feature": return deserializeFeature(gj);
+      case "FeatureCollection" : return deserializeFeatureCollection(gj);
       default: throw new FormatException(
             "unknown GeoJson object type '${gj['type']}");
-      //TODO: "Feature", or "FeatureCollection"
     }
   };
 

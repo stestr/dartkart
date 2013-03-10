@@ -3,10 +3,12 @@ library features_test;
 import "package:unittest/unittest.dart";
 import "package:unittest/html_enhanced_config.dart";
 import "package:dartkart/src/geometry.dart";
+import "dart:html" hide Point;
+import "../test_config.dart";
 
 main() {
   useHtmlEnhancedConfiguration();
-  group("parse", () {
+  group("parse individual object", () {
     test("- Point", () {
       var gjson = """
       {"type": "Point", "coordinates": [1,2]}
@@ -143,6 +145,59 @@ main() {
       expect(o[0] is Point, true);
       expect(o[1] is MultiPoint, true);
       expect(o[2] is LineString, true);
+    });
+
+    test("- Feature", () {
+      var gjson = """
+      {"type": "Feature",
+          "geometry":  {"type": "Point", "coordinates": [1,2]},
+          "properties": {
+             "k1": "string value",
+             "k2": 123
+          }
+      }
+      """;
+      var o = parseGeoJson(gjson);
+      expect(o is Feature, true);
+      o = (o as Feature);
+      expect(o.geometry is Point, true);
+      expect(o.properties["k1"], "string value");
+      expect(o.properties["k2"], 123);
+    });
+
+    test("- FeatureCollection", () {
+      var gjson = """
+      {"type": "FeatureCollection",
+       "features": [
+          {"type": "Feature",
+              "geometry":  {"type": "Point", "coordinates": [1,2]},
+              "properties": {
+                 "k1": "string value",
+                 "k2": 123
+              }
+          },
+          {"type": "Feature",
+              "geometry":  {"type": "MultiPoint", "coordinates": [[1,2], [3,4], [5,6]]}
+          }
+       ]
+      }
+      """;
+      var o = parseGeoJson(gjson);
+      expect(o is FeatureCollection, true);
+      o = (o as FeatureCollection);
+      expect(o.features.length, 2);
+      expect(o.features[0].geometry is Point, true);
+      expect(o.features[1].geometry is MultiPoint, true);
+    });
+  });
+
+  group("parse file", () {
+    solo_test("- countries.geo.json ", () {
+      print("retrieving and parsing 'test/data/countries.geo.json'");
+      HttpRequest.getString("${DARTKART_ROOT}/test/data/countries.geo.json").then(
+          expectAsync1((data) {
+        var objs = parseGeoJson(data);
+      }));
     });
   });
 }
