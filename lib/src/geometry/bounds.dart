@@ -27,6 +27,11 @@ class Bounds {
   Point get min => _min;
   Point get max => _max;
 
+  Point get lowerLeft => _min;
+  Point get upperLeft => new Point(_min.x, min.y + height);
+  Point get upperRight => _max;
+  Point get lowerRight => new Point(_min.x + width, min.y);
+
   /**
    * Creates a bounds from another value [other].
    *
