@@ -118,7 +118,7 @@ class MapViewport {
 
   /// the viewport size
   Point get viewportSize =>
-      new Point(_root.client.width, _root.client.width);
+      new Point(_root.client.width, _root.client.height);
 
   /// the size of the current map zoom plane
   Point get zoomPlaneSize {
