@@ -367,8 +367,9 @@ class MapViewport {
       if (p.x <= 0 || p.y <= 0) return;
       var size = zoomPlaneSize;
       if (p.x >= size.x || p.y >= size.y) return;
-      var c = mapToEarth(zoomPlaneToMap(p));
-      center = c;
+      var c = zoomPlaneToMap(p);
+      if (!crs.projectedBounds.contains(c)) return;
+      center = mapToEarth(c);
     }
   }
 
@@ -498,7 +499,11 @@ class DragController {
     assert(_dragStart != null);
     var cur = new Point(evt.offsetX, evt.offsetY);
     var c = _centerOnZoomPlane + (_dragStart - cur);
-    map.center = map.mapToEarth(map.zoomPlaneToMap(c));
+    c = map.zoomPlaneToMap(c);
+    // don't drag if inverse projection of new center isn't
+    // possible
+    if (! map.crs.projectedBounds.contains(c)) return;
+    map.center = map.mapToEarth(c);
     map.render();
   }
 }
