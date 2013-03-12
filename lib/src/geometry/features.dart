@@ -59,6 +59,36 @@ class Curve extends Geometry  {
 class LineString extends Curve {
    LineString(List<Point> points) : super(points);
 
+   /**
+    * Creates a _Line_ with the points [points].
+    *
+    * A _Line_ has exactly two non-identical nodes.
+    * Throws [ArgumentError] if [points] doesn't consist of
+    * exactly two non-identical points.
+    */
+   LineString.line(List<Point> points) : super(points){
+     if (!isLine) throw new ArgumentError(
+       "A Line must have exactly two non-identical points, "
+       "got ${length} points"
+     );
+   }
+
+   /**
+    * Creates a _LinearRing_ from [points].
+    *
+    * A _LinearRing_ must consist of 4 or more points and the
+    * first and the last point must be identical.
+    */
+   //TODO: in addition, LinearRings should be 'simple', i.e. its segments
+   // shouldn't cross each other
+   LineString.linearRing(List<Point> points):super(points) {
+      if (!isLinearRing) throw new ArgumentError(
+         "A LinearRing must consist of 4 or more points "
+         "and the first and the last point must be identical. "
+         "Got ${points.join(',')}"
+      );
+   }
+
    /// Returns the specified Point N in this LineString.
    Point pointN(int i) => this[i];
 
@@ -68,28 +98,14 @@ class LineString extends Curve {
    /// The number of Points in this LineString.
    int get numPoints => _points.length;
    int get length => numPoints;
+
+   /// true, if this is a _Line_
+   bool get isLine => length == 2 && startPoint != endPoint;
+
+   /// true, if this is a _LinearRing__
+   bool get isLinearRing => length >= 4 && startPoint == endPoint;
 }
 
-/**
- * A Line is a LineString with exactly 2 Points.
- */
-// TODO: complete later
-class Line extends LineString {
-  Line(List<Point> points) : super(points) {
-    //TODO: make sure it has only two points
-  }
-}
-
-
-/**
- * A LinearRing is a LineString that is both closed and simple.
- */
-//TODO: complete later
-class LinearRing extends LineString {
-  LinearRing(List<Point> points) : super(points) {
-    //TODO: make sure this is a simple, closed line string
-  }
-}
 
 /**
  * A GeometryCollection is a geometric object that is a collection of some
@@ -142,25 +158,38 @@ class MultiPoint extends GeometryCollection {
 
 
 class Polygon extends Surface {
-  LinearRing _exteriorRing;
-  List<LinearRing> _interiorRings = [];
+  LineString _exteriorRing;
+  List<LineString> _interiorRings = [];
 
   /**
    * Creates a polygon from an [exteriorRing] and an (optional)
    * list [interiorRings] of interior rings.
    */
-  Polygon(LinearRing exteriorRing, [List<LinearRing> interiorRings]) {
+  Polygon(LineString exteriorRing, [List<LineString> interiorRings]) {
     if (exteriorRing == null) throw new ArgumentError(
         "exteriorRing must not be null");
+    if (!exteriorRing.isLinearRing) throw new ArgumentError(
+        "exteriorRing must be a LinearRing");
     _exteriorRing = exteriorRing;
     if (interiorRings != null) {
       interiorRings.remove(null);
+      for (int i=0; i< interiorRings.length; i++) {
+        if (!interiorRings[i].isLinearRing) throw new ArgumentError(
+          "interor ring $i isn't a LinearRing"
+        );
+      }
       _interiorRings.addAll(interiorRings);
     }
   }
 
-  LinearRing get exteriorRing => _exteriorRing;
+  /// the exterior ring as [LineString] with [LineString.isLinearRing] true
+  LineString get exteriorRing => _exteriorRing;
+
+  /// the number of interior rings. May be 0.
   int get numInteriorRing => _interiorRings.length;
+
+  /// the i-th interior ring. A [LineString] with [LineString.isLinearRing]
+  /// true
   LineString interiorRingN(int i) => _interiorRings[i];
 }
 
@@ -402,7 +431,7 @@ parseGeoJson(String geoJson) {
   polygonFromCoordinates(coords) {
     var rings = coords
     .map((l) => poslist(l))
-    .map((poslist) => new LinearRing(poslist))
+    .map((poslist) => new LineString.linearRing(poslist))
     .toList();
     var externalRing = rings[0];
     var internalRings = rings.length <= 1
