@@ -6,7 +6,7 @@ description: >
    them nor does it provide the full functionality of either of them,
    but it has a similar structure and borrows a lot of ideas from them.
 
-version: 0.0.2
+version: 0.0.3
 
 authors:
   - Karl Guggisberg <karl.guggisberg@guggis.ch>
