@@ -129,6 +129,9 @@ class GeometryCollection extends Geometry {
   int get length => numGeometries;
   Geometry geometryN(int i) => _geometries[i];
   Geometry operator [](int i) => geometryN(i);
+
+  /// an (unmodifiable) list of geomtries of this collection
+  List<Geometry> get geometries => new UnmodifiableListView(_geometries);
 }
 
 class MultiSurface extends GeometryCollection {
@@ -482,8 +485,10 @@ parseGeoJson(String geoJson) {
       case "GeometryCollection": return deserializeGeometryCollection(gj);
       case "Feature": return deserializeFeature(gj);
       case "FeatureCollection" : return deserializeFeatureCollection(gj);
-      default: throw new FormatException(
-            "unknown GeoJson object type '${gj['type']}");
+      default:
+        throw new FormatException(
+            "unknown GeoJson object type '${gj['type']}"
+        );
     }
   };
 

@@ -1,8 +1,9 @@
 library dartkart.map;
 
-import "dart:html" hide Point;
+import "dart:html" hide Point, Rect;
+import "dart:html" as html show Rect;
 import "dart:math" as math;
-import "dart:svg" hide Point;
+import "dart:svg" hide Point, Rect;
 import "dart:async";
 import "dart:collection";
 

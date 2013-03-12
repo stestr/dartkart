@@ -110,7 +110,7 @@ class MapViewport {
     return (centerOnZoomPlane + delta).toInt();
   }
 
-  /// Transforms geographic coordinates [ll] to projrected coordinates
+  /// Transforms geographic coordinates [ll] to projected coordinates
   Point earthToMap(LatLon ll) => _crs.project(ll);
 
   /// Transforms projected coordinates [p] to geographic coordinates
@@ -133,6 +133,31 @@ class MapViewport {
       return e.parent == null ? p : p + offset(e.parent);
     }
     return offset(_root);
+  }
+
+  /**
+   * The bounding box of the viewport in which we are currently rending
+   * part of the map.
+   *
+   * The screen bounding box depends on the current zoom level ant the
+   * current map center. In most cases, in partiuclar on zoom levels > 2,
+   * it is equal to the extend of the map viewport. In lower zoom levels,
+   * where the zoom plane is smaller than the map viewport, or if the
+   * center is moved very far east, west, north, or south, it only covers
+   * part of the viewport.
+   *
+   */
+  Bounds get screenBoundingBox {
+    var vpSize = viewportSize;
+    var vpCenter = (viewportSize / 2).toInt();
+    var zpSize = zoomPlaneSize;
+    var zpCenter = mapToZoomPlane(earthToMap(center));
+    var zp = zoomPlaneSize;
+    var x = math.max(0, vpCenter.x - zpCenter.x);
+    var y = math.max(0, vpCenter.y - zpCenter.y);
+    var width = math.min(vpSize.x, vpCenter.x  + (zpSize.x - zpCenter.x));
+    var height = math.min(vpSize.y, vpCenter.y  + (zpSize.y - zpCenter.y));
+    return new Bounds([x,y], [x+width, y+height]);
   }
 
   /**

@@ -271,11 +271,10 @@ class ScaleIndicatorControl extends MapControl {
   _build() {
     _root = new Element.tag("div");
     var svg = new SvgElement.svg(SVG_CONTENT);
-    var tl = _map.topLeftInPage;
     var size = _map.viewportSize;
-    var y = tl.y  + size.y - 100;
+    var y = size.y - 100;
     _root.style
-      ..position = "absolute"
+      ..position = "relative"
       ..left = "20px"
       ..top = "${y}px"
       ..width="200px"
@@ -416,15 +415,11 @@ class ZoomControl extends MapControl{
     control.children.add(zoomOutNob);
     levels.forEach((l) => control.children.add(l));
     _root.children.add(svg);
-
-    var tl = _map.topLeftInPage;
-    var y = tl.y  + 100;
-
     _root.style
-        ..position = "absolute"
+        ..position = "relative"
         ..left = "20px"
-        ..top = "${y}px"
-        ..width="200px"
+        ..top = "100px"
+        ..width ="200px"
         ..height = "100px";
   }
 

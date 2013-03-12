@@ -12,13 +12,13 @@ main() {
       expect(p.x, 1);
       expect(p.y, 2);
     });
-    
+
     test("- from a list [1,2] should work", () {
       var p = new Point.from([1,2]);
       expect(p.x, 1);
       expect(p.y, 2);
     });
-    
+
     test("- from a map {} should work", () {
       var p = new Point.from({"x": 1, "y": 2});
       expect(p.x, 1);
@@ -34,8 +34,8 @@ main() {
       expect(identical(p,p1), false, reason: "p1 should be a copy");
     });
   });
-  
- 
+
+
   group("integer division", () {
     test("- with rhs als Point should workd", () {
       var p1 = new Point(10,8);
@@ -54,7 +54,7 @@ main() {
       expect(p3, equals(new Point(1,2)));
     });
   });
-  
+
   group("multiply", () {
     test("- with rhs as Point should work", () {
       var p1 = new Point(1,2);
@@ -68,7 +68,7 @@ main() {
       expect(p3, equals(new Point(3,6)));
     });
   });
-  
+
   group("minus", () {
     test("- with rhs as Point should work", () {
       var p1 = new Point(1,10);
@@ -82,7 +82,7 @@ main() {
       expect(p3, equals(new Point(-2,-1)));
     });
   });
-  
+
   group("plus", () {
     test("- with rhs as Point should work", () {
       var p1 = new Point(1,10);
@@ -102,9 +102,3 @@ main() {
     });
   });
 }
-
-
-
-
-
-
