@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Test SimpleFeatureLayer</title>
+    <style type="text/css">
+      body {
+        padding: 10px;
+        margin: 0;
+        outline: 0;
+        border: 0;
+        font-face: Sans-Serif;
+      }
+
+      #sample-map {
+        border-color: black;
+        border-style: solid;
+        border-width: 1pt;
+        height: 600px;
+        width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      * {
+        stroke: black;
+        stroke-width: 100cm;
+        fill: lightGray;
+      }
+
+  </style>
+  <link rel="stylesheet" href="../../web/assets/css/controls.css" type="text/css"/>
+  </head>
+
+  <body>
+    <h1>Demo - SimpleFeatureLayer with a world countries</h1>
+    <div id="sample-map"></div>
+
+    <script type="application/dart" src="test_simplefeaturelayer.dart"></script>
+    <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

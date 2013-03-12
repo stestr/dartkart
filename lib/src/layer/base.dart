@@ -1,6 +1,5 @@
 part of dartkart.layer;
 
-
 /**
  * This is the abstract base class for a layer in dartkart.
  *
@@ -163,9 +162,4 @@ abstract class Layer {
         new PropertyChangeEvent(this, property, oldValue,newValue)
      );
   }
-
-  /**
-   * Layouts the layer elements
-   */
-  layout();
 }

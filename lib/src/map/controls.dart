@@ -26,20 +26,14 @@ class ControlsPane {
   attach(MapViewport viewport) {
     assert(viewport != null);
     _viewport = viewport;
-    layout();
+    _root.style
+      ..width = "100%"
+      ..height = "100%"
+      ..position = "absolute"
+      ..top = "0px"
+      ..left = "0px";
     // Don't add the _container to the viewport container,
     // the map viewport takes care of this
-  }
-
-  layout() {
-    var viewportSize = _viewport.viewportSize;
-    var tl = _viewport.topLeftInPage;
-    _root.style
-    ..width = "${viewportSize.x}px"
-    ..height = "${viewportSize.y}px"
-    ..position = "absolute"
-    ..top = "${tl.y}px"
-    ..left = "${tl.x}px";
   }
 }
 
@@ -211,10 +205,10 @@ class PanControl extends MapControl{
           _root.query(".pan-button.$cls").onClick.listen(handler)
       );
     }
-    register("pan-north", (e) => _map.panNorth());
-    register("pan-east", (e)=>_map.panEast());
-    register("pan-south", (e)=>_map.panSouth());
-    register("pan-west", (e)=>_map.panWest());
+    register("pan-north", (e) => _map.panNorth(animate: true));
+    register("pan-east", (e)=>_map.panEast(animate: true));
+    register("pan-south", (e)=>_map.panSouth(animate: true));
+    register("pan-west", (e)=>_map.panWest(animate: true));
 
     _root.queryAll(".pan-button").forEach((b) {
       _subscriptions.add(b.onMouseOver.listen((e) => b.classes.add("hover")));
@@ -277,11 +271,10 @@ class ScaleIndicatorControl extends MapControl {
   _build() {
     _root = new Element.tag("div");
     var svg = new SvgElement.svg(SVG_CONTENT);
-    var tl = _map.topLeftInPage;
     var size = _map.viewportSize;
-    var y = tl.y  + size.y - 100;
+    var y = size.y - 100;
     _root.style
-      ..position = "absolute"
+      ..position = "relative"
       ..left = "20px"
       ..top = "${y}px"
       ..width="200px"
@@ -422,15 +415,11 @@ class ZoomControl extends MapControl{
     control.children.add(zoomOutNob);
     levels.forEach((l) => control.children.add(l));
     _root.children.add(svg);
-
-    var tl = _map.topLeftInPage;
-    var y = tl.y  + 100;
-
     _root.style
-        ..position = "absolute"
+        ..position = "relative"
         ..left = "20px"
-        ..top = "${y}px"
-        ..width="200px"
+        ..top = "100px"
+        ..width ="200px"
         ..height = "100px";
   }
 

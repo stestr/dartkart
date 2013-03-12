@@ -1,4 +1,4 @@
-name:  dartkart
+name: dartkart
 
 description: >
    dartkart is a framwork for web cartografy in the tradition of the
@@ -6,7 +6,7 @@ description: >
    them nor does it provide the full functionality of either of them,
    but it has a similar structure and borrows a lot of ideas from them.
 
-version: 0.0.2
+version: 0.0.3
 
 authors:
   - Karl Guggisberg <karl.guggisberg@guggis.ch>
@@ -15,3 +15,4 @@ dependencies:
    browser: 0.3.7+6
    meta: 0.3.7+6
    unittest: 0.3.7+6
+   args: 0.4.0

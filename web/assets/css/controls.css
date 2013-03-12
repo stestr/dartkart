@@ -1,9 +1,19 @@
+
+.dartkart-map-viewport
+{
+  position: relative;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+}
+
 /*
  * CSS used in the map controls
  */
 
 /* ----------------------------------------------------------------- */
-/* zoom-control                                                      */             
+/* zoom-control                                                      */
 /* ----------------------------------------------------------------- */
 /*
  * .zoom-in-nob     class on SVG group for the button '+'
@@ -11,9 +21,9 @@
  * .zoom-level      class on SVG rect for an individual zoom level
  * .hover           class on SVG element if mouse is over
  * .current         class on SVG rect which represents the current
- *                  zoom level  
+ *                  zoom level
  */
-.zoom-in-nob rect, 
+.zoom-in-nob rect,
 .zoom-out-nob rect
 {
   fill: rgb(200,200,200);
@@ -39,7 +49,7 @@
 .zoom-out-nob.hover rect
 {
   fill: red;
-} 
+}
 
 .zoom-in-nob line,
 .zoom-out-nob line {
@@ -55,10 +65,10 @@
 
 
 /* ----------------------------------------------------------------- */
-/* scale-indicator-control                                           */             
+/* scale-indicator-control                                           */
 /* ----------------------------------------------------------------- */
 .scale-indicator-control {
-   fill: white;     
+   fill: white;
  }
 .scale-indicator-control .bar {
    fill: white;
@@ -67,19 +77,19 @@
 }
 .scale-indicator-control .label {
    font-family: Sans;
-   font-size: 6pt;      
-   stroke: black; 
+   font-size: 6pt;
+   stroke: black;
  }
- 
+
 /* ----------------------------------------------------------------- */
-/* pan-control                                                       */             
+/* pan-control                                                       */
 /* ----------------------------------------------------------------- */
- 
+
 .pan-control .pan-nob {
     fill: rgb(200,200,200);
     stroke: rgb(255,255,255);
     stroke-width: 2px;
-    
+
   }
  .pan-control .pan-button {
     fill: rgb(50,50,50);
@@ -94,9 +104,9 @@
     stroke-width: 2px;
     stroke: rgb(255,255,255);
  }
- 
+
 /* ----------------------------------------------------------------- */
-/* layer-control                                                     */             
+/* layer-control                                                     */
 /* ----------------------------------------------------------------- */
 .layer-control {
     background: rgb(200,200,200);
@@ -106,7 +116,7 @@
     width: 300px;
     position: absolute;
     width: 150px;
-    height: 300px;    
+    height: 300px;
     opacity: 0.8;
     // top and left are set dynamically
 }
@@ -122,7 +132,7 @@
 }
 
 .layer-control table td.layer-visibility {
-   width: 15px;  
+   width: 15px;
 }
 
 .layer-control table td.layer-name {
@@ -133,4 +143,3 @@
     font-size: 8pt;
     font-family: sans;
 }
- 

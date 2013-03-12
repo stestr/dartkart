@@ -44,11 +44,26 @@ class MapViewport {
    *
    */
   MapViewport(container) {
-    if (container is String) container = query(container);
-    _root = container;
+    if (container == null) {
+      throw new ArgumentError("container must not be null");
+    }
+    if (container is String) {
+      container = query(container);
+      if (container == null) {
+        throw new ArgumentError("didn't find container with id '$container'");
+      }
+    } else if (container is Element) {
+      // OK
+    } else {
+      throw new ArgumentError("expected an Element or a DOM id as String, "
+          "got $container");
+    }
+    _root = new DivElement();
+    _root.classes.add("dartkart-map-viewport");
+    container.children.clear();
+    container.children.add(_root);
     attachEventListeners();
     controlsPane = new ControlsPane();
-    window.onResize.listen((evt) => layout());
   }
 
   attachEventListeners() {
@@ -95,7 +110,7 @@ class MapViewport {
     return (centerOnZoomPlane + delta).toInt();
   }
 
-  /// Transforms geographic coordinates [ll] to projrected coordinates
+  /// Transforms geographic coordinates [ll] to projected coordinates
   Point earthToMap(LatLon ll) => _crs.project(ll);
 
   /// Transforms projected coordinates [p] to geographic coordinates
@@ -103,7 +118,7 @@ class MapViewport {
 
   /// the viewport size
   Point get viewportSize =>
-      new Point(_root.clientWidth, _root.clientHeight);
+      new Point(_root.client.width, _root.client.height);
 
   /// the size of the current map zoom plane
   Point get zoomPlaneSize {
@@ -114,10 +129,35 @@ class MapViewport {
   /// the top-left point in "page coordinates"
   Point get topLeftInPage {
     offset(Element e) {
-      var p = new Point(e.offsetLeft, e.offsetTop);
+      var p = new Point(e.offset.left, e.offset.top);
       return e.parent == null ? p : p + offset(e.parent);
     }
     return offset(_root);
+  }
+
+  /**
+   * The bounding box of the viewport in which we are currently rending
+   * part of the map.
+   *
+   * The screen bounding box depends on the current zoom level ant the
+   * current map center. In most cases, in partiuclar on zoom levels > 2,
+   * it is equal to the extend of the map viewport. In lower zoom levels,
+   * where the zoom plane is smaller than the map viewport, or if the
+   * center is moved very far east, west, north, or south, it only covers
+   * part of the viewport.
+   *
+   */
+  Bounds get screenBoundingBox {
+    var vpSize = viewportSize;
+    var vpCenter = (viewportSize / 2).toInt();
+    var zpSize = zoomPlaneSize;
+    var zpCenter = mapToZoomPlane(earthToMap(center));
+    var zp = zoomPlaneSize;
+    var x = math.max(0, vpCenter.x - zpCenter.x);
+    var y = math.max(0, vpCenter.y - zpCenter.y);
+    var width = math.min(vpSize.x, vpCenter.x  + (zpSize.x - zpCenter.x));
+    var height = math.min(vpSize.y, vpCenter.y  + (zpSize.y - zpCenter.y));
+    return new Bounds([x,y], [x+width, y+height]);
   }
 
   /**
@@ -134,7 +174,7 @@ class MapViewport {
    */
   Point pageToViewport(v) {
     if (v is MouseEvent) {
-      v = new Point(v.pageX, v.pageY);
+      v = new Point(v.page.x, v.page.y);
     } else if (v is Point) {} // do nothing
     else throw new ArgumentError("expected MouseEvent or Point, got $v");
     return v - topLeftInPage;
@@ -342,30 +382,41 @@ class MapViewport {
   }
 
   /* --------------------- panning ---------------------------------- */
-  //TODO: panning with animation
-
-  _pan(delta) {
-    delta = new Point.from(delta);
-    var p = mapToZoomPlane(earthToMap(center));
-    p = p + delta;
-    if (p.x <= 0 || p.y <= 0) return;
-    var size = zoomPlaneSize;
-    if (p.x >= size.x || p.y >= size.y) return;
-    var c = mapToEarth(zoomPlaneToMap(p));
-    center = c;
+  pan(delta, {bool animate: false}) {
+    if (animate) {
+      new PanBehaviour(this).animate(new Point.from(delta));
+    } else {
+      delta = new Point.from(delta);
+      var p = mapToZoomPlane(earthToMap(center));
+      p = p + delta;
+      if (p.x <= 0 || p.y <= 0) return;
+      var size = zoomPlaneSize;
+      if (p.x >= size.x || p.y >= size.y) return;
+      var c = zoomPlaneToMap(p);
+      if (!crs.projectedBounds.contains(c)) return;
+      center = mapToEarth(c);
+    }
   }
 
-  /// Pans the viewport num [pixels] to the north
-  panNorth([int pixels=100]) => _pan([0,-pixels]);
+  /// Pans the viewport num [pixels] to the north.
+  /// Animates panning if [animate] is true.
+  panNorth({int pixels:100, bool animate:false}) =>
+      pan([0,-pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the south.
-  panSouth([int pixels=100]) => _pan([0,pixels]);
+  /// Animates panning if [animate] is true.
+  panSouth({int pixels:100, bool animate:false}) =>
+      pan([0,pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the west
-  panWest([int pixels=100]) => _pan([-pixels, 0]);
+  /// Animates panning if [animate] is true.
+  panWest({int pixels:100, bool animate:false}) =>
+      pan([-pixels, 0], animate: animate);
 
   /// Pans the viewport num [pixels] to the east
-  panEast([int pixels=100]) => _pan([pixels, 0]);
+  /// Animates panning if [animate] is true.
+  panEast({int pixels:100, bool animate:false}) =>
+      pan([pixels, 0],animate: animate);
 
   /* ----------------------- controls pane ------------------------ */
   ControlsPane _controlsPane;
@@ -430,22 +481,6 @@ class MapViewport {
     }
     return _centerEvents;
   }
-
-  /**
-   * Layouts the map viewport. This method ensures that the layers and
-   * and the controls pane all have the same size and that their left
-   * upper corner stack up at the relative position (0,0) of this
-   * map viewport.
-   *
-   * This method is invoked if the browser is resized. Invoke it
-   * manually, if your application moves or resizes the view port.
-   */
-  layout() {
-    if (_controlsPane != null) {
-      _controlsPane.layout();
-    }
-    _layers.forEach((l) => l.layout());
-  }
 }
 
 class DoubleClickController {
@@ -477,19 +512,23 @@ class DragController {
   _onDragStart(evt) {
     _dragStart = new Point(evt.offsetX, evt.offsetY);
     _centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
-    map.root.style.cursor = "move";
+    evt.target.style.cursor = "move";
   }
 
   _onDragEnd(evt) {
     _dragStart = null;
-    map.root.style.cursor = "default";
+    evt.target.style.cursor = "default";
   }
 
   _onDrag(evt) {
     assert(_dragStart != null);
     var cur = new Point(evt.offsetX, evt.offsetY);
     var c = _centerOnZoomPlane + (_dragStart - cur);
-    map.center = map.mapToEarth(map.zoomPlaneToMap(c));
+    c = map.zoomPlaneToMap(c);
+    // don't drag if inverse projection of new center isn't
+    // possible
+    if (! map.crs.projectedBounds.contains(c)) return;
+    map.center = map.mapToEarth(c);
     map.render();
   }
 }
@@ -526,8 +565,8 @@ class MouseGesturePrimitive {
   bool get isDragPrimitive => type == DRAG_START || type == DRAG ||
       type == DRAG_END;
 
-  toString() => "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offsetX},"
-     "y=${event.offsetY}";
+  toString() => "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
+     "y=${event.offset.y}";
 }
 
 class MouseGestureStream {
@@ -586,12 +625,18 @@ class MouseGestureStream {
   }
 
   _rawMouseDown(MouseEvent evt) {
+    if (evt.button != 0 /* left */) return;
+    evt.preventDefault();
+    evt.stopPropagation();
     _mouseDown = true;
     _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
-    _lastMouseDownPos = new Point(evt.offsetX, evt.offsetY);
+    _lastMouseDownPos = new Point(evt.offset.x, evt.offset.y);
   }
 
   _rawMouseUp(MouseEvent evt) {
+    if (evt.button != 0 /* left */) return;
+    evt.preventDefault();
+    evt.stopPropagation();
     if (_isDragging) {
       _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
     }
@@ -609,10 +654,101 @@ class MouseGestureStream {
     _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
     _subscriptions.add(source.onMouseMove.listen(_rawMouseMove));
   }
-
-
 }
 
+class PanBehaviour {
+  const double ACCELERATION = -2.0; // px / (100ms)²
+  const double SPEED = 20.0;        // px / 100ms
+  const int DELTA_T = 20;           // ms, duration of animation step
 
+  final MapViewport viewport;
+  PanBehaviour(this.viewport);
 
+  animate(Point panBy) {
+    var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
+    var theta = math.asin(panBy.y / dist);
+    if (panBy.x <= 0) {
+      theta = math.PI - theta;
+    }
 
+    var fx = math.cos(theta);
+    //y-axis is inverted, therefore not
+    //  -math.sin(theta)
+    var fy = math.sin(theta);
+
+    now() => new DateTime.now().millisecondsSinceEpoch;
+
+    pan(dx,dy) {
+      var p = new Point(dx,dy).toInt();
+      if (p != new Point.origin()) viewport.pan(p);
+    }
+
+    bounded(num v, num bound) => bound < 0
+        ? math.max(v, bound)
+        : math.min(v, bound);
+
+    // pan long distance (fast) as much and possible, the complete
+    // the future with the remaining pan distance
+    Future<Point> panLongDistance(Point panBy) {
+      var completer = new Completer<Point>();
+      var pannedX = 0;
+      var pannedY = 0;
+      bool isLongDistance() =>
+              (panBy.x - pannedX).abs() > 100
+          || (panBy.y  - pannedY).abs() > 100;
+
+      // animation step
+      step(Timer timer){
+        if (!isLongDistance()) {
+          timer.cancel();
+          var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+          completer.complete(rest);
+        } else {
+          var dx = bounded(40 * fx, panBy.x).toInt();
+          var dy = bounded(40 * fy, panBy.y).toInt();
+          pannedX += dx;
+          pannedY += dy;
+          pan(dx, dy);
+        }
+      }
+      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
+      return completer.future;
+    }
+
+    // pan a short distance, deaccelerate and make sure the final
+    // point is reached
+    panShortDistance(Point panBy) {
+      panBy = panBy.toInt();
+      var lastX = 0;
+      var lastY = 0;
+      var initialTime = now();
+
+      // animation step
+      step(Timer timer) {
+        // scale time by 100 for kinetics calcuations
+        var t  = (now() - initialTime) / 100;
+        var p = ACCELERATION * math.pow(t,2) / 2 + SPEED * t;
+        var x = bounded(p * fx, panBy.x).toInt();
+        var y = bounded(p * fy, panBy.y).toInt();
+        var v = ACCELERATION * t + SPEED;
+        if (v <= 0 || panBy == new Point(x,y)){
+          // last step - pan to the end point
+          x = panBy.x;
+          y = panBy.y;
+          timer.cancel();
+        }
+        var dx = x - lastX;
+        var dy = y - lastY;
+        lastX = x;
+        lastY = y;
+
+        pan(dx, dy);
+      }
+      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
+    }
+
+    panLongDistance(panBy).then((rest) {
+      panShortDistance(rest);
+    });
+  }
+}
