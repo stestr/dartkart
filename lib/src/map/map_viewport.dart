@@ -711,7 +711,7 @@ class PanBehaviour {
           pan(dx, dy);
         }
       }
-      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
+      new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
       return completer.future;
     }
 
@@ -744,7 +744,7 @@ class PanBehaviour {
 
         pan(dx, dy);
       }
-      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
+      new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
     }
 
     panLongDistance(panBy).then((rest) {
