@@ -361,7 +361,7 @@ class ZoomControl extends MapControl{
   _onZoomChanged(evt) {
     var levels = _root.queryAll(".zoom-level");
     levels.forEach((l) => l.classes.remove("current"));
-    levels.firstMatching((el) => el.dataset["zoom"] == "${evt.newValue}")
+    levels.firstWhere((el) => el.dataset["zoom"] == "${evt.newValue}")
           .classes.add("current");
   }
 
@@ -537,7 +537,7 @@ class LayerControl extends MapControl {
 
   _layerTr(lid) => _root
       .queryAll("tr")
-      .firstMatching((e)=>e.dataset["layerId"] == lid.toString());
+      .firstWhere((e)=>e.dataset["layerId"] == lid.toString());
 
   _handleLayerEvent(LayerEvent evt) {
     handleAdded(LayerEvent evt) {
@@ -610,7 +610,7 @@ class LayerControl extends MapControl {
       //TODO: warning
       return;
     }
-    var layer = _map.layers.firstMatching((l) => l.id == lid);
+    var layer = _map.layers.firstWhere((l) => l.id == lid);
     if (layer == null) {
       //TODO: warning
       return;
