@@ -80,7 +80,7 @@ abstract class MapControl {
     if (controlsPane == null) return;
     _build();
     controlsPane.root.children.add(_root);
-    _applyPosition();
+    applyPosition();
   }
 
   _normalizePropertyValue(v) {
@@ -90,12 +90,29 @@ abstract class MapControl {
       throw new ArgumentError("Expected int or String, got $v");
   }
 
+  /**
+   * the default position of the control if no position has been
+   * set explicitly using [placeAt].
+   *
+   * Override in subclasses.
+   */
+  Point get defaultPosition;
+
   Point _position;
-  _applyPosition() {
-    if (_position == null || _root == null) return;
+
+  /**
+   * Applies the current position to the appropriate DOM element.
+   */
+  applyPosition() {
+    if (_root == null) return;
+    var pos = _position == null ? defaultPosition : _position;
+    if (pos == null) {
+      //TODO: log a warning ?
+      return;
+    }
     _root.style
-      ..left = "${_position.x}px"
-      ..top = "${_position.y}px";
+      ..left = "${pos.x}px"
+      ..top = "${pos.y}px";
   }
 
   /**
@@ -103,57 +120,8 @@ abstract class MapControl {
    */
   placeAt(int x, int y) {
     _position = new Point(x,y);
-    _applyPosition();
+    applyPosition();
   }
-
-
-  /// the top position of this control; null, if the top position
-  /// isn't known (yet), i.e. because the DOM for this map control
-  /// isn't created (yet) or because it isn't attached to a map
-  /// viewport (yet).
-  String get top {
-    if (_root == null || _root.parent == null) return null;
-    return _root.getComputedStyle().top;
-  }
-
-  /**
-   * Sets the top position of this control.
-   *
-   * [value] is either an int or a [String], otherwise
-   * throws an [ArgumentError].
-   *
-   * Throws [StateError] if [root] is null.
-   */
-  set top(value) {
-    if (_root == null) {
-      throw new StateError("can't set top, control's DOM doesn't exist yet");
-    }
-    value = _normalizePropertyValue(value);
-    _root.style.top = value;
-  }
-
-  /// the left position of this control
-  String get left {
-    if (_root == null || _root.parent == null) return null;
-    _root.getComputedStyle().left;
-  }
-
-  /**
-   * Sets the left position of this control.
-   *
-   * [value] is either an int or a [String], otherwise
-   * throws an [ArgumentError].
-   *
-   * Throws [StateError] if [root] is null.
-   */
-  set left(value) {
-    if (_root == null) {
-      throw new StateError("can't set top, control's DOM doesn't exist yet");
-    }
-    value = _normalizePropertyValue(value);
-    _root.style.left = value;
-  }
-
   _build();
 }
 
@@ -174,6 +142,8 @@ abstract class MapControl {
  *
  */
 class PanControl extends MapControl{
+  static var _DEFAULT_POS = new Point(20,20);
+
   static const SVG_CONTENT = """
   <svg
    xmlns:svg="http://www.w3.org/2000/svg"
@@ -232,6 +202,9 @@ class PanControl extends MapControl{
     _buildSvg();
     _wireEventHandlers();
   }
+
+  @override
+  get defaultPosition => _DEFAULT_POS;
 
   PanControl();
 }
@@ -324,6 +297,17 @@ class ScaleIndicatorControl extends MapControl {
     var ft = m * 3.28084;
     _root.query(".scale-kilometers text").text = _formatMeterDistance(m);
     _root.query(".scale-miles text").text = _formatMilesDistance(ft);
+  }
+
+  var _defaultPosition = null;
+
+  @override
+  get defaultPosition {
+    if (_defaultPosition == null && map != null) {
+      var vs = map.viewportSize;
+      _defaultPosition = new Point(20, vs.y - 100);
+    }
+    return _defaultPosition;
   }
 }
 
@@ -453,6 +437,10 @@ class ZoomControl extends MapControl{
 
     _subscriptions.add(_map.onZoomChanged.listen(_onZoomChanged));
   }
+
+  static var _DEFAULT_POS = new Point(60,150);
+  @override
+  get defaultPosition => _DEFAULT_POS;
 }
 
 //TODO: listen to layer change events
@@ -622,6 +610,16 @@ class LayerControl extends MapControl {
   _build() {
     _buildHtml();
     _wireEventListeners();
+  }
+
+  var _defaultPosition = null;
+  @override
+  get defaultPosition {
+    if (_defaultPosition == null && map != null) {
+      var vs = map.viewportSize;
+      _defaultPosition = new Point(vs.x-200, 20);
+    }
+    return _defaultPosition;
   }
 }
 
