@@ -109,14 +109,14 @@ class Tile {
     render();
   }
 
-  Point get imageTopLeft =>
+  Point get topLeftInViewport =>
       layer.map.zoomPlaneToViewport(t * layer.tileSize);
 
   renderReady() {
     if (canvas == null) return;
     var context = canvas.context2d;
     context.globalAlpha = layer.opacity;
-    var tl = imageTopLeft;
+    var tl = topLeftInViewport;
     var ts = layer.tileSize;
     //context.clearRect(tl.x, tl.y, ts.x, ts.y);
     context.drawImage(_img, tl.x, tl.y);
@@ -137,19 +137,23 @@ class Tile {
     var img = parentImage();
     if (img == null) {
       var context = canvas.context2d;
-      var tl = imageTopLeft;
+      var tl = topLeftInViewport;
       var ts = layer.tileSize;
       context.clearRect(tl.x,tl.y, ts.x /* width */, ts.y /* height */);
     } else {
-      var tl = imageTopLeft;
+      var tl = topLeftInViewport;
       var ts = layer.tileSize;
-      canvas.context2d.drawImage(img,
+      // the quadrant of the parent tile to be rendered (scaled by 2)
+      // in place of the current tile
+      var src = new html.Rect(
           (t.x % 2) * ts.x ~/ 2,
           (t.y % 2) * ts.y ~/ 2,
           ts.x ~/ 2,
-          ts.y ~/ 2,
-          tl.x, tl.y, ts.x, ts.y
+          ts.y ~/ 2
       );
+      // the rectangle where the current tile is rendered
+      var dest = new html.Rect(tl.x, tl.y, ts.x, ts.y);
+      canvas.context2d.drawImageAtScale(img,dest,sourceRect:src);
     }
   }
 
@@ -157,7 +161,7 @@ class Tile {
     var context = canvas.context2d;
     context.globalAlpha = layer.opacity;
     var ts = layer.tileSize;
-    var tl = imageTopLeft;
+    var tl = topLeftInViewport;
     var center = new Point(tl.x, tl.y) + (new Point(ts.x, ts.y) / 2).toInt();
     context
       ..save()
@@ -523,7 +527,7 @@ class WMSLayer extends TileLayer {
 
   /// sets the service URL
   set serviceUrl(String value) {
-    if (value.endsWith("?")) {
+    if (value != null && value.endsWith("?")) {
       value = value.substring(0, value.length -1);
     }
     _serviceUrl = value;
@@ -711,7 +715,7 @@ class TileCache {
     if (obj is String) {
       obj = _map[obj];
     } else if (obj is ImageElement) {
-      obj = _map.values.firstMatching((img) => img == obj);
+      obj = _map.values.firstWhere((img) => img == obj);
     } else {
       throw new ArgumentError("expected a String or an ImageElement, "
           "got $obj"
