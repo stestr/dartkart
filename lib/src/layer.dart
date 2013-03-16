@@ -1,6 +1,7 @@
 library dartkart.layer;
 
 import "dart:html" hide Point;
+import "dart:html" as html show Rect;
 import "dart:svg" hide Point, ImageElement;
 import "dart:async";
 import "dart:math" as math;
