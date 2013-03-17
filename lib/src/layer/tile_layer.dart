@@ -89,10 +89,25 @@ class Tile {
   ImageElement _img;
   int _state = LOADING;
 
+  /**
+   * Creates a tile at tile coordinates [t] = (ti, tj)
+   * for the layer [layer]. It will be rendered on
+   * [canvas].
+   *
+   */
   Tile(this.t, this.canvas, this.layer);
 
+  /**
+   * Detach the tile from the map viewport.
+   *
+   * A detached tile whose image becomes available isn't
+   * rendered anymore.
+   */
   detach() => canvas = null;
 
+  /**
+   * Trigger loading of the tile image.
+   */
   load() {
      var url = layer.bindTileToUrl(t.x, t.y, layer.map.zoom);
      _img = _DEFAULT_CACHE.lookup(url,
@@ -118,7 +133,7 @@ class Tile {
     context.globalAlpha = layer.opacity;
     var tl = topLeftInViewport;
     var ts = layer.tileSize;
-    //context.clearRect(tl.x, tl.y, ts.x, ts.y);
+    context.clearRect(tl.x, tl.y, ts.x, ts.y);
     context.drawImage(_img, tl.x, tl.y);
   }
 
@@ -240,28 +255,32 @@ class CanvasRenderer extends Renderer {
     if (_layer.map == null) {
       _canvas = null;
       _context = null;
-      return;
-    }
-    if (_layer.map != null && _canvas != null) {
-      _clear();
     } else {
-      _canvas = new Element.tag("canvas");
-      _layer.container.children.add(_canvas);
-      var viewportSize = _layer.map.viewportSize;
-      var tl = _layer.map.topLeftInPage;
-      _canvas
-        ..width=viewportSize.x
-        ..height=viewportSize.y;
-
-      _canvas.style
-          ..width="${viewportSize.x}px"
-          ..height="${viewportSize.y}px"
+      if (_canvas == null) {
+        _canvas = new Element.tag("canvas");
+        _layer.container.children.add(_canvas);
+        _canvas.style
+          ..width="100%"
+          ..height="100%"
           ..top="0px"
           ..left="0px"
           ..position="relative"
           ..zIndex = "inherit";
-      _context = _canvas.context2d;
+        _context = _canvas.context2d;
+      }
+      _updateSize();
       _clear();
+    }
+  }
+
+  _updateSize() {
+    var vs = _layer.map.viewportSize;
+    // make sure the _canvas size is equal to the map
+    // size
+    if (vs.x != _canvas.width || vs.y != _canvas.height) {
+      _canvas
+        ..width=vs.x
+        ..height=vs.y;
     }
   }
 
@@ -680,6 +699,10 @@ class TileCache {
       });
     }
 
+    //TODO: temporary- replace later
+    img.onAbort.listen((e) {
+      print("Image loading -> aborted ...");
+    });
     img.src = url;
     return img;
   }

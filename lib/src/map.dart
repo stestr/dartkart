@@ -6,6 +6,7 @@ import "dart:math" as math;
 import "dart:svg" hide Point, Rect;
 import "dart:async";
 import "dart:collection";
+import "package:meta/meta.dart";
 
 import "layer.dart";
 import "geometry.dart";

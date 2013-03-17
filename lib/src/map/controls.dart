@@ -1,13 +1,15 @@
 part of dartkart.map;
 
 /**
- * The container class for [MapControl]s. There's exatly one [ControlsPane] in
+ * The container class for [MapControl]s. There's exactly one [ControlsPane] in
  * a [MapViewport].
  *
  */
 class ControlsPane {
   MapViewport _viewport;
   DivElement _root;
+
+  final List<MapControl> controls = [];
 
   ControlsPane() {
     _root = new Element.tag("div");
@@ -35,8 +37,15 @@ class ControlsPane {
     // Don't add the _container to the viewport container,
     // the map viewport takes care of this
   }
+
+  layout() {
+    controls.forEach((c) => c.layout());
+  }
 }
 
+/**
+ * The abstract base class for map controls.
+ */
 abstract class MapControl {
   MapViewport _map;
   /// the map this control is attached to, or null
@@ -52,6 +61,18 @@ abstract class MapControl {
   Element get root => _root;
 
   /**
+   * Creates a new map control attached to [viewport].
+   *
+   * If [viewport] is missing, the control isn't attached yet.
+   * Use [attach] to attach it.
+   */
+  MapControl([MapViewport viewport]) {
+    if (viewport != null) {
+      attach(viewport);
+    }
+  }
+
+  /**
    * Detaches this control from the map viewport it is currently
    * attached to (if any).
    */
@@ -64,21 +85,25 @@ abstract class MapControl {
     _subscriptions.clear();
   }
 
-  attach(MapViewport map) {
-    if (map == null) throw new ArgumentError("map must not be null");
+  /**
+   * Attaches this control to the map [viewport].
+   */
+  attach(MapViewport viewport) {
+    if (viewport == null) throw new ArgumentError("viewport must not be null");
     // already attached ?
     if (_map != null) {
-      if (_map == map) {
+      if (_map == viewport) {
         return;  // don't attach again
       } else {
         detach(); // detach the currently attached, then attach the new one
       }
     }
-    this._map = map;
+    this._map = viewport;
     var controlsPane = _map.controlsPane;
     //TODO: log a warning?
     if (controlsPane == null) return;
     _build();
+    controlsPane.controls.add(this);
     controlsPane.root.children.add(_root);
     applyPosition();
   }
@@ -122,7 +147,14 @@ abstract class MapControl {
     _position = new Point(x,y);
     applyPosition();
   }
+
   _build();
+
+  /**
+   * Invoke this to force to (re-)layout the map control in the current
+   * map viewport.
+   */
+  layout() {}
 }
 
 /**
@@ -169,6 +201,8 @@ class PanControl extends MapControl{
   </svg>
   """;
 
+
+
   _wireEventHandlers() {
     register(cls, handler) {
       _subscriptions.add(
@@ -206,7 +240,7 @@ class PanControl extends MapControl{
   @override
   get defaultPosition => _DEFAULT_POS;
 
-  PanControl();
+  PanControl([MapViewport viewport]) : super(viewport);
 }
 
 /**
@@ -239,7 +273,8 @@ class ScaleIndicatorControl extends MapControl {
   </svg>
   """;
 
-  ScaleIndicatorControl();
+  @override
+  ScaleIndicatorControl([MapViewport map]): super(map);
 
   _build() {
     _root = new Element.tag("div");
@@ -299,15 +334,23 @@ class ScaleIndicatorControl extends MapControl {
     _root.query(".scale-miles text").text = _formatMilesDistance(ft);
   }
 
-  var _defaultPosition = null;
 
   @override
   get defaultPosition {
-    if (_defaultPosition == null && map != null) {
+    if (map != null) {
       var vs = map.viewportSize;
-      _defaultPosition = new Point(20, vs.y - 100);
+      if (vs.x != 0 && vs.y != 0) {
+        return new Point(20, vs.y - 150);
+      } else {
+        return null;
+      }
     }
-    return _defaultPosition;
+    return null;
+  }
+
+  @override
+  layout() {
+    applyPosition();
   }
 }
 
@@ -327,7 +370,8 @@ class ZoomControl extends MapControl{
   </svg>
   """;
 
-  ZoomControl();
+  @override
+  ZoomControl([MapViewport map]) : super(map);
 
   _zoomIn(evt) => _map.zoomIn();
   _zoomOut(evt) => _map.zoomOut();
@@ -443,8 +487,98 @@ class ZoomControl extends MapControl{
   get defaultPosition => _DEFAULT_POS;
 }
 
-//TODO: listen to layer change events
-//TODO: listen to layer name changes
+/**
+ * This is a simple zoom control element. It displays two
+ * buttons [:+:] and [:-:] to increase and decrease the
+ * current zoom level respectively
+ */
+class SimpleZoomControl extends MapControl{
+
+  static const SVG_CONTENT = """<svg
+  xmlns:svg="http://www.w3.org/2000/svg"
+  xmlns="http://www.w3.org/2000/svg"
+  version="1.1">
+  <!-- for styles see CSS file in the assets directory -->
+  <g class="simple-zoom-control">
+    <!-- content is created dynamically -->
+  </g>
+  </svg>
+  """;
+
+  @override
+  SimpleZoomControl([MapViewport map]) : super(map);
+
+  _zoomIn(evt) => _map.zoomIn();
+  _zoomOut(evt) => _map.zoomOut();
+
+  _build() {
+    _buildSvg();
+    _wireEventHandlers();
+  }
+
+  _buildSvg() {
+    _root = new Element.tag("div");
+    var svg = new SvgElement.svg(SVG_CONTENT);
+    svg.attributes["width"] = "40";
+    svg.attributes["height"] = "250";
+
+    var control = svg.query(".simple-zoom-control");
+
+    var zoomInNob = new SvgElement.svg("""
+      <g class="zoom-in-nob">
+      <rect x="0" y="0" width="20" height="20">
+        <title>Zoom in</title>
+      </rect>
+      <line x1="10" y1="3" x2="10" y2="17" />
+      <line x1="3" y1="10" x2="17" y2="10" />
+      </g>
+      """
+    );
+
+    var zoomOutNob = new SvgElement.svg("""
+        <g transform="translate(0, 22)" class="zoom-out-nob">
+          <rect x="0" y="0" width="20" height="20">
+           <title>Zoom out</title>
+          </rect>
+          <line x1="3" y1="10" x2="17" y2="10"/>
+        </g>
+        """
+    );
+
+    control.children.add(zoomInNob);
+    control.children.add(zoomOutNob);
+    _root.children.add(svg);
+    _root.style
+        ..position = "relative"
+        ..width = "100px"
+        ..height = "100px";
+  }
+
+  _wireEventHandlers() {
+    _onMouseOver(evt) {
+      var parent = evt.target.parent;
+      parent.classes.add("hover");
+    }
+    _onMouseOut(evt) {
+      var parent = evt.target.parent;
+      parent.classes.remove("hover");
+    }
+
+    [_root.query(".zoom-in-nob"), _root.query(".zoom-out-nob")]
+    .forEach((el) {
+      _subscriptions.add(el.onMouseOver.listen(_onMouseOver));
+      _subscriptions.add(el.onMouseOut.listen(_onMouseOut));
+    });
+    _subscriptions.add(_root.query(".zoom-in-nob").onClick.listen(_zoomIn));
+    _subscriptions.add(_root.query(".zoom-out-nob").onClick.listen(_zoomOut));
+  }
+
+  static var _DEFAULT_POS = new Point(10,20);
+
+  @override
+  get defaultPosition => _DEFAULT_POS;
+}
+
 class LayerControl extends MapControl {
   static const _TEMPLATE = """
   <div class="layer-control">
@@ -452,6 +586,9 @@ class LayerControl extends MapControl {
   </table>
   </div>
   """;
+
+  @override
+  LayerControl([MapViewport map]) : super(map);
 
   final Map<int, StreamSubscription> _layerSubscriptions
     = new Map<int, StreamSubscription>();
@@ -569,7 +706,6 @@ class LayerControl extends MapControl {
 
   _handleLayerPropertyChange(evt) {
     handleNameChange(evt) {
-      print("handlenameChange");
       var lid = evt.source.id;
       var span = _layerTr(lid).query("span");
       span.innerHtml = evt.newValue;

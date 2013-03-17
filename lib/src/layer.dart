@@ -1,3 +1,8 @@
+/**
+ * The library *dartkart.layer* provides various types of layers which
+ * can be added to a [MapViewport].
+ *
+ */
 library dartkart.layer;
 
 import "dart:html" hide Point;
