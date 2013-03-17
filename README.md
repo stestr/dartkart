@@ -6,8 +6,11 @@ JavaScript libraries [OpenLayers](http://www.openlayers.org) and
 them nor does it provide the full functionality of either of them, 
 but it has a similar structure and borrows a lot of ideas from them.
 
-## Example
-See the demo in the examples directory.
+## Examples and Demos
+See [demos](http://gubaer.github.com/dartkart/demo.html)
+
+## Documentation 
+See [API docs](http://gubaer.github.com/dartkart/docs)
 
 ## Status
 This is work in progress. APIs and documentation are unstable. 
@@ -18,9 +21,11 @@ Currently supported:
     is currently fixed) supporting a stack of layers
   - a basic tile layer for OpenStreetMap map tiles
   - a basic tile layer for WMS sources (provided they accept the SRS
-	EPSG:4326)	
+	EPSG:4326)
+  - a vector layer displaying Simple Features as SVG	
   - a couple of map controls for panning and zooming the map, for
     displaying the map scale and for a list of layers. 
+  
 
 More to come later (hopefully ...)
 

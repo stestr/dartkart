@@ -12,15 +12,15 @@ abstract class Geometry {
  * of Points, with the subtype of Curve specifying the form of the
  * interpolation between Points.
  */
-//TODO make it an iterable
-class Curve extends Geometry  {
+abstract class Curve extends Geometry  {
   List<Point> _points = [];
 
   Curve(List<Point> points) {
     if (points == null) throw new ArgumentError("points must not be null");
     if (points.any((p) => p == null))  throw new ArgumentError(
-        "points must contain nulls");
-    if (points.isEmpty) throw new ArgumentError("points must not be empty");
+        "points must not contain nulls");
+    if (points.length < 2) throw new ArgumentError(
+        "requires at least 2 points, got ${points.length}");
     _points.addAll(points);
   }
 
@@ -33,7 +33,7 @@ class Curve extends Geometry  {
   /// true, if [startPoint] is equal to [endPoint]
   bool get isClosed => startPoint == endPoint;
 
-  ///  The length of this Curve in its associated spatial reference
+  /// the length of this Curve in its associated spatial reference
   /// not yet implemented
   int get spatialLength {
     throw new UnimplementedError();
@@ -57,6 +57,7 @@ class Curve extends Geometry  {
  * Each consecutive pair of Points defines a Line segment.
  */
 class LineString extends Curve {
+
    LineString(List<Point> points) : super(points);
 
    /**
@@ -115,8 +116,7 @@ class LineString extends Curve {
  * Reference System. This is also the Spatial Reference System for the
  * GeometryCollection.
  */
-//TODO: make it an iterable
-class GeometryCollection extends Geometry {
+class GeometryCollection extends Geometry{
   List<Geometry> _geometries = [];
 
   GeometryCollection(Collection<Geometry> geometries) {
@@ -404,8 +404,6 @@ class Point extends Geometry {
  * Parses GeoJSON.
  *
  * Replies either a [Geometry], a [Feature] or a [FeatureCollection].
- *
- *
  */
 //TODO: more checks, throw FormatException on error
 parseGeoJson(String geoJson) {

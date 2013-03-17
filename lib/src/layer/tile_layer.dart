@@ -89,10 +89,25 @@ class Tile {
   ImageElement _img;
   int _state = LOADING;
 
+  /**
+   * Creates a tile at tile coordinates [t] = (ti, tj)
+   * for the layer [layer]. It will be rendered on
+   * [canvas].
+   *
+   */
   Tile(this.t, this.canvas, this.layer);
 
+  /**
+   * Detach the tile from the map viewport.
+   *
+   * A detached tile whose image becomes available isn't
+   * rendered anymore.
+   */
   detach() => canvas = null;
 
+  /**
+   * Trigger loading of the tile image.
+   */
   load() {
      var url = layer.bindTileToUrl(t.x, t.y, layer.map.zoom);
      _img = _DEFAULT_CACHE.lookup(url,
@@ -109,16 +124,16 @@ class Tile {
     render();
   }
 
-  Point get imageTopLeft =>
+  Point get topLeftInViewport =>
       layer.map.zoomPlaneToViewport(t * layer.tileSize);
 
   renderReady() {
     if (canvas == null) return;
     var context = canvas.context2d;
     context.globalAlpha = layer.opacity;
-    var tl = imageTopLeft;
+    var tl = topLeftInViewport;
     var ts = layer.tileSize;
-    //context.clearRect(tl.x, tl.y, ts.x, ts.y);
+    context.clearRect(tl.x, tl.y, ts.x, ts.y);
     context.drawImage(_img, tl.x, tl.y);
   }
 
@@ -137,19 +152,23 @@ class Tile {
     var img = parentImage();
     if (img == null) {
       var context = canvas.context2d;
-      var tl = imageTopLeft;
+      var tl = topLeftInViewport;
       var ts = layer.tileSize;
       context.clearRect(tl.x,tl.y, ts.x /* width */, ts.y /* height */);
     } else {
-      var tl = imageTopLeft;
+      var tl = topLeftInViewport;
       var ts = layer.tileSize;
-      canvas.context2d.drawImage(img,
+      // the quadrant of the parent tile to be rendered (scaled by 2)
+      // in place of the current tile
+      var src = new html.Rect(
           (t.x % 2) * ts.x ~/ 2,
           (t.y % 2) * ts.y ~/ 2,
           ts.x ~/ 2,
-          ts.y ~/ 2,
-          tl.x, tl.y, ts.x, ts.y
+          ts.y ~/ 2
       );
+      // the rectangle where the current tile is rendered
+      var dest = new html.Rect(tl.x, tl.y, ts.x, ts.y);
+      canvas.context2d.drawImageAtScale(img,dest,sourceRect:src);
     }
   }
 
@@ -157,7 +176,7 @@ class Tile {
     var context = canvas.context2d;
     context.globalAlpha = layer.opacity;
     var ts = layer.tileSize;
-    var tl = imageTopLeft;
+    var tl = topLeftInViewport;
     var center = new Point(tl.x, tl.y) + (new Point(ts.x, ts.y) / 2).toInt();
     context
       ..save()
@@ -236,28 +255,32 @@ class CanvasRenderer extends Renderer {
     if (_layer.map == null) {
       _canvas = null;
       _context = null;
-      return;
-    }
-    if (_layer.map != null && _canvas != null) {
-      _clear();
     } else {
-      _canvas = new Element.tag("canvas");
-      _layer.container.children.add(_canvas);
-      var viewportSize = _layer.map.viewportSize;
-      var tl = _layer.map.topLeftInPage;
-      _canvas
-        ..width=viewportSize.x
-        ..height=viewportSize.y;
-
-      _canvas.style
-          ..width="${viewportSize.x}px"
-          ..height="${viewportSize.y}px"
+      if (_canvas == null) {
+        _canvas = new Element.tag("canvas");
+        _layer.container.children.add(_canvas);
+        _canvas.style
+          ..width="100%"
+          ..height="100%"
           ..top="0px"
           ..left="0px"
           ..position="relative"
           ..zIndex = "inherit";
-      _context = _canvas.context2d;
+        _context = _canvas.context2d;
+      }
+      _updateSize();
       _clear();
+    }
+  }
+
+  _updateSize() {
+    var vs = _layer.map.viewportSize;
+    // make sure the _canvas size is equal to the map
+    // size
+    if (vs.x != _canvas.width || vs.y != _canvas.height) {
+      _canvas
+        ..width=vs.x
+        ..height=vs.y;
     }
   }
 
@@ -523,7 +546,7 @@ class WMSLayer extends TileLayer {
 
   /// sets the service URL
   set serviceUrl(String value) {
-    if (value.endsWith("?")) {
+    if (value != null && value.endsWith("?")) {
       value = value.substring(0, value.length -1);
     }
     _serviceUrl = value;
@@ -676,6 +699,10 @@ class TileCache {
       });
     }
 
+    //TODO: temporary- replace later
+    img.onAbort.listen((e) {
+      print("Image loading -> aborted ...");
+    });
     img.src = url;
     return img;
   }
@@ -711,7 +738,7 @@ class TileCache {
     if (obj is String) {
       obj = _map[obj];
     } else if (obj is ImageElement) {
-      obj = _map.values.firstMatching((img) => img == obj);
+      obj = _map.values.firstWhere((img) => img == obj);
     } else {
       throw new ArgumentError("expected a String or an ImageElement, "
           "got $obj"

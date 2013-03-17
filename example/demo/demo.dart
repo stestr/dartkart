@@ -34,22 +34,10 @@ main() {
       map.addLayer(wmsLayer);
     });
   });
-  var pan = new PanControl();
-  pan.attach(map);
-  pan.placeAt(20,20);
-
-  var zoom = new ZoomControl();
-  zoom.attach(map);
-  zoom.placeAt(60, 150);
-
-  var scale = new ScaleIndicatorControl();
-  scale.attach(map);
-  scale.placeAt(20, 500);
-
-  var layerControl = new LayerControl();
-  layerControl.attach(map);
-  layerControl.root.style.height = "100px";
-  layerControl.placeAt(720, 20);
+  //new PanControl(map);
+  new SimpleZoomControl(map);
+  //new ScaleIndicatorControl(map);
+  //new LayerControl(map);
 }
 
 

@@ -26,13 +26,13 @@
 .zoom-in-nob rect,
 .zoom-out-nob rect
 {
-  fill: rgb(200,200,200);
+  fill: rgb(150,150,150);
   stroke: white;
   stroke-width: 1pt;
 }
 
 .zoom-level {
-  fill: rgb(200,200,200);
+  fill: rgb(150,150,150);
   stroke: rgb(255,255,255);
   stroke-width: 1.5px;
 }
@@ -86,7 +86,7 @@
 /* ----------------------------------------------------------------- */
 
 .pan-control .pan-nob {
-    fill: rgb(200,200,200);
+    fill: rgb(150,150,150);
     stroke: rgb(255,255,255);
     stroke-width: 2px;
 
@@ -109,7 +109,7 @@
 /* layer-control                                                     */
 /* ----------------------------------------------------------------- */
 .layer-control {
-    background: rgb(200,200,200);
+    background: rgb(150,150,150);
     border-color: rgb(255,255,255);
     border-width: 2px;
     border-style: solid;
@@ -142,4 +142,12 @@
     width: 100%;
     font-size: 8pt;
     font-family: sans;
+}
+
+.layer-control table td {
+  background: rgb(230,230,230);
+  padding: 3px;
+  border-style: solid;
+  border-color: rgb(200,200,200);
+  border-width: 1px;
 }

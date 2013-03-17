@@ -69,8 +69,8 @@ class MapViewport {
   attachEventListeners() {
     //TODO: remind subscription; solve detach
     _root.onMouseWheel.listen(_onMouseWheel);
-    new DragController(this);
-    new DoubleClickController(this);
+    new _DragController(this);
+    new _DoubleClickController(this);
   }
 
   /// Transforms projected coordinates [p] to coordinates in the current map
@@ -185,6 +185,7 @@ class MapViewport {
    */
   render() {
     _layers.forEach((l)=> l.render());
+    _controlsPane.layout();
   }
 
   /* ----------------------- layer handling -------------------------- */
@@ -353,10 +354,13 @@ class MapViewport {
 
   /* ----------------------- event handlers --------------------------- */
   _onMouseWheel(WheelEvent evt) {
+    // sign of deltaY is reversed in firefox
     if (evt.deltaY < 0) {
-      zoomOut();
+      var zoom = isFirefox ? zoomIn : zoomOut;
+      zoom();
     } else if (evt.deltaY > 0) {
-      zoomIn();
+      var zoom = isFirefox ? zoomOut : zoomIn;
+      zoom();
     }
   }
 
@@ -483,9 +487,9 @@ class MapViewport {
   }
 }
 
-class DoubleClickController {
+class _DoubleClickController {
   final map;
-  DoubleClickController(this.map) {
+  _DoubleClickController(this.map) {
     var stream = new MouseGestureStream.from(map.root).stream;
     stream.where((p) => p.type == MouseGesturePrimitive.DOUBLE_CLICK)
       .listen((p) => _onDoubleClick(p.event));
@@ -493,12 +497,13 @@ class DoubleClickController {
   _onDoubleClick(evt) => map.zoomIn();
 }
 
-class DragController {
+class _DragController {
   final map;
   Point _dragStart;
+  Point _dragLast;
   Point _centerOnZoomPlane;
 
-  DragController(this.map) {
+  _DragController(this.map) {
     var stream = new MouseGestureStream.from(map.root).stream;
     stream.where((p) => p.isDragPrimitive).listen((p) {
       switch(p.type) {
@@ -510,7 +515,8 @@ class DragController {
   }
 
   _onDragStart(evt) {
-    _dragStart = new Point(evt.offsetX, evt.offsetY);
+    _dragStart = new Point(evt.screen.x, evt.screen.y);
+    _dragLast = new Point.from(_dragStart);
     _centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
     evt.target.style.cursor = "move";
   }
@@ -522,7 +528,13 @@ class DragController {
 
   _onDrag(evt) {
     assert(_dragStart != null);
-    var cur = new Point(evt.offsetX, evt.offsetY);
+    var cur;
+    cur = new Point(evt.screen.x, evt.screen.y);
+    // |cur - last| < 5
+    var dx = cur.x - _dragLast.x;
+    var dy = cur.y - _dragLast.y;
+    if (dx*dx  + dy*dy <= 25) return;
+
     var c = _centerOnZoomPlane + (_dragStart - cur);
     c = map.zoomPlaneToMap(c);
     // don't drag if inverse projection of new center isn't
@@ -711,7 +723,7 @@ class PanBehaviour {
           pan(dx, dy);
         }
       }
-      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
+      new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
       return completer.future;
     }
 
@@ -744,7 +756,7 @@ class PanBehaviour {
 
         pan(dx, dy);
       }
-      new Timer.repeating(new Duration(milliseconds: DELTA_T), step);
+      new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
     }
 
     panLongDistance(panBy).then((rest) {
