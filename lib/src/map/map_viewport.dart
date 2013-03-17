@@ -515,7 +515,7 @@ class _DragController {
   }
 
   _onDragStart(evt) {
-    _dragStart = new Point(evt.offsetX, evt.offsetY);
+    _dragStart = new Point(evt.screen.x, evt.screen.y);
     _dragLast = new Point.from(_dragStart);
     _centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
     evt.target.style.cursor = "move";
@@ -528,7 +528,8 @@ class _DragController {
 
   _onDrag(evt) {
     assert(_dragStart != null);
-    var cur = new Point(evt.offsetX, evt.offsetY);
+    var cur;
+    cur = new Point(evt.screen.x, evt.screen.y);
     // |cur - last| < 5
     var dx = cur.x - _dragLast.x;
     var dy = cur.y - _dragLast.y;
