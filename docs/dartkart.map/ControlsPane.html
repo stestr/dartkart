@@ -1,0 +1,195 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>ControlsPane class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="ControlsPane">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/ControlsPane.html">ControlsPane</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><div class="icon-class"></div><strong>ControlsPane</strong></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>ControlsPane</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>The container class for <a class="crossref" href="../dartkart.map/MapControl.html">MapControl</a>s. There's exactly one <a class="crossref" href="../dartkart.map/ControlsPane.html#ControlsPane">ControlsPane</a> in
+a <a class="crossref" href="../dartkart.map/MapViewport.html">MapViewport</a>.</p>
+<pre class="source">
+class ControlsPane {
+ MapViewport _viewport;
+ DivElement _root;
+
+ final List&lt;MapControl&gt; controls = [];
+
+ ControlsPane() {
+   _root = new Element.tag("div");
+ }
+
+ /// the root DOM element for this control
+ DivElement get root =&gt; _root;
+
+ /// Detach this pane from the map viewport.
+ detach() {
+   _viewport = null;
+ }
+
+ /// Attach this control pane to the [viewport]. [viewport]
+ /// must not be null.
+ attach(MapViewport viewport) {
+   assert(viewport != null);
+   _viewport = viewport;
+   _root.style
+     ..width = "100%"
+     ..height = "100%"
+     ..position = "absolute"
+     ..top = "0px"
+     ..left = "0px";
+   // Don't add the _container to the viewport container,
+   // the map viewport takes care of this
+ }
+
+ layout() {
+   controls.forEach((c) =&gt; c.layout());
+ }
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="ControlsPane">
+<button class="show-code">Code</button>
+new <strong>ControlsPane</strong>() <a class="anchor-link" href="#ControlsPane"
+              title="Permalink to ControlsPane.ControlsPane">#</a></h4>
+<div class="doc">
+<pre class="source">
+ControlsPane() {
+ _root = new Element.tag("div");
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="controls">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/List.html">List</a>&lt;<a href="../dartkart.map/MapControl.html">MapControl</a>&gt;         <strong>controls</strong> <a class="anchor-link"
+            href="#controls"
+            title="Permalink to ControlsPane.controls">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+controls = []
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="root">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/DivElement.html">DivElement</a>         <strong>root</strong> <a class="anchor-link"
+            href="#root"
+            title="Permalink to ControlsPane.root">#</a>
+        </h4>
+        <div class="doc">
+<p>the root DOM element for this control</p>
+<pre class="source">
+DivElement get root =&gt; _root;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
+              title="Permalink to ControlsPane.attach">#</a></h4>
+<div class="doc">
+<p>Attach this control pane to the 
+<span class="param">viewport</span>. 
+<span class="param">viewport</span>
+must not be null.</p>
+<pre class="source">
+attach(MapViewport viewport) {
+ assert(viewport != null);
+ _viewport = viewport;
+ _root.style
+   ..width = "100%"
+   ..height = "100%"
+   ..position = "absolute"
+   ..top = "0px"
+   ..left = "0px";
+ // Don't add the _container to the viewport container,
+ // the map viewport takes care of this
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to ControlsPane.detach">#</a></h4>
+<div class="doc">
+<p>Detach this pane from the map viewport.</p>
+<pre class="source">
+detach() {
+ _viewport = null;
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="layout">
+<button class="show-code">Code</button>
+<strong>layout</strong>() <a class="anchor-link" href="#layout"
+              title="Permalink to ControlsPane.layout">#</a></h4>
+<div class="doc">
+<pre class="source">
+layout() {
+ controls.forEach((c) =&gt; c.layout());
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.568</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

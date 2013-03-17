@@ -1,0 +1,1254 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>MapViewport class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="MapViewport">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MapViewport.html">MapViewport</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><div class="icon-class"></div><strong>MapViewport</strong></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>MapViewport</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class MapViewport {
+
+ DivElement _root;
+
+ /// the root DOM element of the map viewport
+ Element get root =&gt; _root;
+
+ //TODO: make configurable.
+ final ProjectedCRS _crs = new EPSG3857();
+ ProjectedCRS get crs =&gt; _crs;
+
+ /**
+  * Creates a map.
+  *
+  * [container] is either an [Element] or a string with with
+  * a CSS selector.
+  *
+  */
+ MapViewport(container) {
+   if (container == null) {
+     throw new ArgumentError("container must not be null");
+   }
+   if (container is String) {
+     container = query(container);
+     if (container == null) {
+       throw new ArgumentError("didn't find container with id '$container'");
+     }
+   } else if (container is Element) {
+     // OK
+   } else {
+     throw new ArgumentError("expected an Element or a DOM id as String, "
+         "got $container");
+   }
+   _root = new DivElement();
+   _root.classes.add("dartkart-map-viewport");
+   container.children.clear();
+   container.children.add(_root);
+   attachEventListeners();
+   controlsPane = new ControlsPane();
+ }
+
+ attachEventListeners() {
+   //TODO: remind subscription; solve detach
+   _root.onMouseWheel.listen(_onMouseWheel);
+   new _DragController(this);
+   new _DoubleClickController(this);
+ }
+
+ /// Transforms projected coordinates [p] to coordinates in the current map
+ /// zoom plane
+ Point mapToZoomPlane(Point p) {
+   var zp = zoomPlaneSize;
+   var w = _crs.projectedBounds.width;
+   var h = _crs.projectedBounds.height;
+   return p.flipY()
+    .translate(w/2, h/2)
+    .scale(zp.x / w, zp.y / h)
+    .toInt();
+ }
+
+ /// Transforms coordinates [p] in the current map zoom plane to
+ /// projected coordinates
+ Point zoomPlaneToMap(Point p) {
+   var zp = zoomPlaneSize;
+   var w = _crs.projectedBounds.width;
+   var h = _crs.projectedBounds.height;
+   return p.scale(w/ zp.x, h/ zp.y)
+       .translate(-w/2, -h/2)
+       .flipY();
+ }
+
+ /// Transforms coordinates in the current map zoom plane to viewport
+ /// coordinates
+ Point zoomPlaneToViewport(Point p) {
+  var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
+  return ((viewportSize / 2) + (p - centerOnZoomPlane)).toInt();
+ }
+
+ /// viewport coordinates to coordinates in the current map zoom plane
+ Point viewportToZoomPlane(Point p) {
+   var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
+   var delta = p - (viewportSize / 2);
+   return (centerOnZoomPlane + delta).toInt();
+ }
+
+ /// Transforms geographic coordinates [ll] to projected coordinates
+ Point earthToMap(LatLon ll) =&gt; _crs.project(ll);
+
+ /// Transforms projected coordinates [p] to geographic coordinates
+ LatLon mapToEarth(Point p) =&gt; _crs.unproject(p);
+
+ /// the viewport size
+ Point get viewportSize =&gt;
+     new Point(_root.client.width, _root.client.height);
+
+ /// the size of the current map zoom plane
+ Point get zoomPlaneSize {
+   var dim = (1 &lt;&lt; zoom) * 256;
+   return new Point(dim, dim);
+ }
+
+ /// the top-left point in "page coordinates"
+ Point get topLeftInPage {
+   offset(Element e) {
+     var p = new Point(e.offset.left, e.offset.top);
+     return e.parent == null ? p : p + offset(e.parent);
+   }
+   return offset(_root);
+ }
+
+ /**
+  * The bounding box of the viewport in which we are currently rending
+  * part of the map.
+  *
+  * The screen bounding box depends on the current zoom level ant the
+  * current map center. In most cases, in partiuclar on zoom levels &gt; 2,
+  * it is equal to the extend of the map viewport. In lower zoom levels,
+  * where the zoom plane is smaller than the map viewport, or if the
+  * center is moved very far east, west, north, or south, it only covers
+  * part of the viewport.
+  *
+  */
+ Bounds get screenBoundingBox {
+   var vpSize = viewportSize;
+   var vpCenter = (viewportSize / 2).toInt();
+   var zpSize = zoomPlaneSize;
+   var zpCenter = mapToZoomPlane(earthToMap(center));
+   var zp = zoomPlaneSize;
+   var x = math.max(0, vpCenter.x - zpCenter.x);
+   var y = math.max(0, vpCenter.y - zpCenter.y);
+   var width = math.min(vpSize.x, vpCenter.x  + (zpSize.x - zpCenter.x));
+   var height = math.min(vpSize.y, vpCenter.y  + (zpSize.y - zpCenter.y));
+   return new Bounds([x,y], [x+width, y+height]);
+ }
+
+ /**
+  * Transforms page coordinates to viewport coordinates.
+  *
+  * [v] is either
+  *   * a [Point]
+  *   * a [MouseEvent] - uses the coordinates (pageX, pageY)
+  *
+  *  The result are viewport coordinates for the map viewport where
+  *    * (0,0) is the upper left corner of the map viewport
+  *    * x runs to the right
+  *    * y runs down
+  */
+ Point pageToViewport(v) {
+   if (v is MouseEvent) {
+     v = new Point(v.page.x, v.page.y);
+   } else if (v is Point) {} // do nothing
+   else throw new ArgumentError("expected MouseEvent or Point, got $v");
+   return v - topLeftInPage;
+ }
+
+ /**
+  * Renders the map.
+  */
+ render() {
+   _layers.forEach((l)=&gt; l.render());
+   _controlsPane.layout();
+ }
+
+ /* ----------------------- layer handling -------------------------- */
+ final List&lt;Layer&gt; _layers = [];
+ final StreamController&lt;LayerEvent&gt; _layerEvents =
+     new StreamController&lt;LayerEvent&gt;.broadcast();
+
+ /// update the z-indexes of the layer. Reflects the ordering in
+ /// the layer stack. The layer with the highest index is renderer
+ /// on top, the layer with index 0 is rendered at the bottom.
+ _updateLayerZIndex() {
+   var reversed = _layers.reversed.toList();
+   for (int i=0; i&lt;layers.length; i++) {
+     reversed[i].container.style.zIndex = (i * -100).toString();
+   }
+ }
+
+ /**
+  * Adds a [layer] to the map.
+  *
+  * [layer] is appended to the list of layers of this map. It therefore
+  * has the highest layer index and becomes rendered on top of the layer
+  * stack of this map.
+  *
+  * Throws [ArgumentError] if [layer] is null. [layer] is ignored if it
+  * is already attached to this map.
+  *
+  * ##Example
+  *    var source= "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  *    map.addLayer(new OsmLayer(tileSource: source));
+  */
+ addLayer(Layer layer) {
+   if (layer == null) throw new ArgumentError("layer must not be null");
+   if (hasLayer(layer)) return;
+   _layers.add(layer);
+   _root.children.add(layer.container);
+   layer.attach(this);
+   _updateLayerZIndex();
+   render();
+   _layerEvents.add(new LayerEvent.added(this, layer));
+ }
+
+ /**
+  * Removes [layer] from the stack of layers of this map.
+  *
+  * Ignores [layer] if it is null or if it isn't attached to this map.
+  */
+ removeLayer(Layer layer) {
+   if (layer == null) return;
+   if (!hasLayer(layer)) return;
+   layer.detach();
+   _root.children.remove(layer.container);
+   _layers.remove(layer);
+   _updateLayerZIndex();
+   render();
+   _layerEvents.add(new LayerEvent.removed(this, layer));
+ }
+
+ /// true, if [layer] is part of the layer stack of this map
+ bool hasLayer(Layer layer) =&gt; _layers.contains(layer);
+
+ /// an unmodifiable list of layers of this map. Empty, if
+ /// no layes are defined.
+ List&lt;Layer&gt; get layers =&gt; new UnmodifiableListView(_layers);
+
+ /**
+  * Moves the [layer] to the top.
+  */
+ moveToTop(Layer layer) {
+   if (!hasLayer(layer)) return;
+   _layers.remove(layer);
+   _layers.add(layer);
+   _updateLayerZIndex();
+   _layerEvents.add(new LayerEvent.moved(this, layer));
+ }
+
+ /**
+  * Moves the [layer] to the bottom.
+  */
+ moveToBottom(Layer layer) {
+   if (!hasLayer(layer)) return;
+   _layers.remove(layer);
+   _layers.insertRange(0, 1, layer);
+   _updateLayerZIndex();
+   _layerEvents.add(new LayerEvent.moved(this, layer));
+ }
+
+ /**
+  * Moves the [layer] to the position [index] in the
+  * layer stack.
+  */
+ moveTo(Layer layer, int index) {
+   if (!hasLayer(layer)) return;
+   index = math.max(index, 0);
+   index = math.min(index, _layers.length);
+   _layers.remove(layer);
+   _layers.insertRange(index, 1, layer);
+   _updateLayerZIndex();
+   _layerEvents.add(new LayerEvent.moved(this, layer));
+ }
+
+ /**
+  * Stream of layer change events.
+  *
+  * ## Example
+  *
+  *   map.onLayersChanged
+  *     .where((LayerEvent e) =&gt; e.type == LayerEvent.ADDED))
+  *     .listen((LayerEvent e) {
+  *         print("layer added - cur num layers: ${map.layers.length}");
+  *      });
+  */
+ Stream&lt;LayerEvent&gt; get onLayersChanged =&gt; _layerEvents.stream;
+
+ /* ----------------------- zooming       --------------------------- */
+ int _zoom = 0;
+
+ /// the current zoom level
+ int get zoom =&gt; _zoom;
+
+ /**
+  * Set the zoom level [zoom].
+  *
+  * [zoom] &gt;= 0 expected, otherwise throws an [ArgumentError].
+  */
+ set zoom(int value) {
+   if (value &lt; 0) throw new ArgumentError("zoom &gt;= 0 expected, got $value");
+   if (value == _zoom) return;
+   var event = new PropertyChangeEvent(this,"zoom", _zoom, value);
+   _zoom = value;
+   render();
+   _events.sink.add(event);
+ }
+
+ /**
+  * Zoom in by [delta] zoom levels.
+  *
+  * Throws [ArgumentError] if [delta] &lt; 0. Fires a zoom change event.
+  */
+ zoomIn([int delta=1]) {
+   if (delta &lt; 0) throw new ArgumentError("delta &gt;= 0 expected, got $delta");
+   if (delta == 0) return;
+
+   //TODO: check for max zoom level
+   var oldZoom = _zoom;
+   _zoom+= delta;
+   render();
+   var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
+   _events.sink.add(event);
+ }
+
+ /**
+  * Zoom out by [delta] zoom levels.
+  *
+  * Throws [ArgumentError] if [delta] &lt; 0. Fires a zoom change event.
+  */
+ zoomOut([int delta=1]) {
+   if (delta &lt; 0) throw new ArgumentError("delta &gt;= 0 expected, got $delta");
+   if (delta == 0) return;
+   var oldZoom = _zoom;
+   _zoom = math.max(0, _zoom - delta);
+   render();
+   var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
+   _events.sink.add(event);
+ }
+
+ /* ----------------------- event handlers --------------------------- */
+ _onMouseWheel(WheelEvent evt) {
+   if (evt.deltaY &lt; 0) {
+     zoomOut();
+   } else if (evt.deltaY &gt; 0) {
+     zoomIn();
+   }
+ }
+
+ /* --------------------- map center ---------------------------------- */
+ LatLon _center = new LatLon.origin();
+
+ /// the current map center in geographic coordinates
+ LatLon get center =&gt; _center;
+
+ /**
+  * Sets the current map [center].
+  *
+  * [center] must not be null. Broadcasts a [PropertyChangeEvent] if
+  * the center is changed, see [onCenterChanged].
+  */
+ set center(LatLon value) {
+   if (value == null) throw new ArgumentError("center must not be null");
+   if (_center == value) return;
+   var old = _center;
+   _center = value;
+   render();
+   _events.sink.add(new PropertyChangeEvent(this,"center", old, _center));
+ }
+
+ /* --------------------- panning ---------------------------------- */
+ pan(delta, {bool animate: false}) {
+   if (animate) {
+     new PanBehaviour(this).animate(new Point.from(delta));
+   } else {
+     delta = new Point.from(delta);
+     var p = mapToZoomPlane(earthToMap(center));
+     p = p + delta;
+     if (p.x &lt;= 0 || p.y &lt;= 0) return;
+     var size = zoomPlaneSize;
+     if (p.x &gt;= size.x || p.y &gt;= size.y) return;
+     var c = zoomPlaneToMap(p);
+     if (!crs.projectedBounds.contains(c)) return;
+     center = mapToEarth(c);
+   }
+ }
+
+ /// Pans the viewport num [pixels] to the north.
+ /// Animates panning if [animate] is true.
+ panNorth({int pixels:100, bool animate:false}) =&gt;
+     pan([0,-pixels], animate: animate);
+
+ /// Pans the viewport num [pixels] to the south.
+ /// Animates panning if [animate] is true.
+ panSouth({int pixels:100, bool animate:false}) =&gt;
+     pan([0,pixels], animate: animate);
+
+ /// Pans the viewport num [pixels] to the west
+ /// Animates panning if [animate] is true.
+ panWest({int pixels:100, bool animate:false}) =&gt;
+     pan([-pixels, 0], animate: animate);
+
+ /// Pans the viewport num [pixels] to the east
+ /// Animates panning if [animate] is true.
+ panEast({int pixels:100, bool animate:false}) =&gt;
+     pan([pixels, 0],animate: animate);
+
+ /* ----------------------- controls pane ------------------------ */
+ ControlsPane _controlsPane;
+
+ /// the pane with the interactive map controls
+ ControlsPane get controlsPane =&gt; _controlsPane;
+
+ /// sets the [pane] for the interactive map controls
+ set controlsPane(ControlsPane pane) {
+   if (pane == _controlsPane) return; // don't add twice
+   if (_controlsPane != null) {
+     _controlsPane.detach();
+     _root.children.remove(_controlsPane.root);
+   }
+   _controlsPane = pane;
+   if (_controlsPane != null) {
+     _controlsPane.attach(this);
+     // render the controls pane on top of the map layers.
+     // The z-index for the top most layer is 0.
+     _controlsPane.root.style.zIndex = "100";
+     _root.children.add(_controlsPane.root);
+   }
+ }
+
+ /* ----------------------- controls pane ------------------------ */
+ StreamController _events = new StreamController.broadcast();
+ Stream _zoomEvents;
+ Stream _centerEvents;
+ /**
+  * The streams of zoom change events.
+  *
+  * Listen on this stream to get notified about changes of the zoom
+  * level.
+  *
+  * Example:
+  *    map.onZoomChanged.listen((e) {
+  *       print("zoom changed: old=${e.oldValue}, new=${e.newValue}");
+  *    });
+  */
+ Stream&lt;PropertyChangeEvent&gt; get onZoomChanged {
+   if (_zoomEvents == null) {
+     _zoomEvents = _events.stream.where((e) =&gt; e.name == "zoom");
+   }
+   return _zoomEvents;
+ }
+
+ /**
+  * The streams of center change events.
+  *
+  * Listen on this stream to get notified when the map center is
+  * changed.
+  *
+  * Example:
+  *    // oldValue and newValue are LonLats
+  *    map.onCenterChanged.listen((e) {
+  *       print("zoom changed: old=${e.oldValue}, new=${e.newValue}");
+  *    });
+  */
+ Stream&lt;PropertyChangeEvent&gt; get onCenterChanged {
+   if (_centerEvents == null) {
+     _centerEvents = _events.stream.where((e) =&gt; e.name == "center");
+   }
+   return _centerEvents;
+ }
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="MapViewport">
+<button class="show-code">Code</button>
+new <strong>MapViewport</strong>(container) <a class="anchor-link" href="#MapViewport"
+              title="Permalink to MapViewport.MapViewport">#</a></h4>
+<div class="doc">
+<p>Creates a map.</p>
+<p>
+<span class="param">container</span> is either an <code>Element</code> or a string with with
+a CSS selector.</p>
+<pre class="source">
+MapViewport(container) {
+ if (container == null) {
+   throw new ArgumentError("container must not be null");
+ }
+ if (container is String) {
+   container = query(container);
+   if (container == null) {
+     throw new ArgumentError("didn't find container with id '$container'");
+   }
+ } else if (container is Element) {
+   // OK
+ } else {
+   throw new ArgumentError("expected an Element or a DOM id as String, "
+       "got $container");
+ }
+ _root = new DivElement();
+ _root.classes.add("dartkart-map-viewport");
+ container.children.clear();
+ container.children.add(_root);
+ attachEventListeners();
+ controlsPane = new ControlsPane();
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="method"><h4 id="center">
+<button class="show-code">Code</button>
+<a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>get center</strong> <a class="anchor-link" href="#center"
+              title="Permalink to MapViewport.get center">#</a></h4>
+<div class="doc">
+<p>the current map center in geographic coordinates</p>
+<pre class="source">
+LatLon get center =&gt; _center;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="center=">
+<button class="show-code">Code</button>
+<strong>set center</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> value) <a class="anchor-link" href="#center="
+              title="Permalink to MapViewport.set center">#</a></h4>
+<div class="doc">
+<p>Sets the current map <a class="crossref" href="../dartkart.map/MapViewport.html#center">center</a>.</p>
+<p><a class="crossref" href="../dartkart.map/MapViewport.html#center">center</a> must not be null. Broadcasts a <code>PropertyChangeEvent</code> if
+the center is changed, see <a class="crossref" href="../dartkart.map/MapViewport.html#onCenterChanged">onCenterChanged</a>.</p>
+<pre class="source">
+set center(LatLon value) {
+ if (value == null) throw new ArgumentError("center must not be null");
+ if (_center == value) return;
+ var old = _center;
+ _center = value;
+ render();
+ _events.sink.add(new PropertyChangeEvent(this,"center", old, _center));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="controlsPane">
+<button class="show-code">Code</button>
+<a href="../dartkart.map/ControlsPane.html">ControlsPane</a> <strong>get controlsPane</strong> <a class="anchor-link" href="#controlsPane"
+              title="Permalink to MapViewport.get controlsPane">#</a></h4>
+<div class="doc">
+<p>the pane with the interactive map controls</p>
+<pre class="source">
+ControlsPane get controlsPane =&gt; _controlsPane;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="controlsPane=">
+<button class="show-code">Code</button>
+<strong>set controlsPane</strong>(<a href="../dartkart.map/ControlsPane.html">ControlsPane</a> pane) <a class="anchor-link" href="#controlsPane="
+              title="Permalink to MapViewport.set controlsPane">#</a></h4>
+<div class="doc">
+<p>sets the 
+<span class="param">pane</span> for the interactive map controls</p>
+<pre class="source">
+set controlsPane(ControlsPane pane) {
+ if (pane == _controlsPane) return; // don't add twice
+ if (_controlsPane != null) {
+   _controlsPane.detach();
+   _root.children.remove(_controlsPane.root);
+ }
+ _controlsPane = pane;
+ if (_controlsPane != null) {
+   _controlsPane.attach(this);
+   // render the controls pane on top of the map layers.
+   // The z-index for the top most layer is 0.
+   _controlsPane.root.style.zIndex = "100";
+   _root.children.add(_controlsPane.root);
+ }
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="crs">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geo/ProjectedCRS.html">ProjectedCRS</a>         <strong>crs</strong> <a class="anchor-link"
+            href="#crs"
+            title="Permalink to MapViewport.crs">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+ProjectedCRS get crs =&gt; _crs;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="layers">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/List.html">List</a>&lt;<a href="../dartkart.layer/Layer.html">Layer</a>&gt;         <strong>layers</strong> <a class="anchor-link"
+            href="#layers"
+            title="Permalink to MapViewport.layers">#</a>
+        </h4>
+        <div class="doc">
+<p>an unmodifiable list of layers of this map. Empty, if
+no layes are defined.</p>
+<pre class="source">
+List&lt;Layer&gt; get layers =&gt; new UnmodifiableListView(_layers);
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onCenterChanged">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a href="../dartkart.core/PropertyChangeEvent.html">PropertyChangeEvent</a>&gt;         <strong>onCenterChanged</strong> <a class="anchor-link"
+            href="#onCenterChanged"
+            title="Permalink to MapViewport.onCenterChanged">#</a>
+        </h4>
+        <div class="doc">
+<p>The streams of center change events.</p>
+<p>Listen on this stream to get notified when the map center is
+changed.</p>
+<p>Example:
+   // oldValue and newValue are LonLats
+   map.onCenterChanged.listen((e) {</p>
+<pre><code>  print("zoom changed: old=${e.oldValue}, new=${e.newValue}");
+</code></pre>
+<p>   });</p>
+<pre class="source">
+Stream&lt;PropertyChangeEvent&gt; get onCenterChanged {
+ if (_centerEvents == null) {
+   _centerEvents = _events.stream.where((e) =&gt; e.name == "center");
+ }
+ return _centerEvents;
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onLayersChanged">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a href="../dartkart.map/LayerEvent.html">LayerEvent</a>&gt;         <strong>onLayersChanged</strong> <a class="anchor-link"
+            href="#onLayersChanged"
+            title="Permalink to MapViewport.onLayersChanged">#</a>
+        </h4>
+        <div class="doc">
+<p>Stream of layer change events.</p>
+<h2>Example</h2>
+<p>  map.onLayersChanged</p>
+<pre><code>.where((LayerEvent e) =&gt; e.type == LayerEvent.ADDED))
+.listen((LayerEvent e) {
+    print("layer added - cur num layers: ${map.layers.length}");
+ });
+</code></pre>
+<pre class="source">
+Stream&lt;LayerEvent&gt; get onLayersChanged =&gt; _layerEvents.stream;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onZoomChanged">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a href="../dartkart.core/PropertyChangeEvent.html">PropertyChangeEvent</a>&gt;         <strong>onZoomChanged</strong> <a class="anchor-link"
+            href="#onZoomChanged"
+            title="Permalink to MapViewport.onZoomChanged">#</a>
+        </h4>
+        <div class="doc">
+<p>The streams of zoom change events.</p>
+<p>Listen on this stream to get notified about changes of the zoom
+level.</p>
+<p>Example:
+   map.onZoomChanged.listen((e) {</p>
+<pre><code>  print("zoom changed: old=${e.oldValue}, new=${e.newValue}");
+</code></pre>
+<p>   });</p>
+<pre class="source">
+Stream&lt;PropertyChangeEvent&gt; get onZoomChanged {
+ if (_zoomEvents == null) {
+   _zoomEvents = _events.stream.where((e) =&gt; e.name == "zoom");
+ }
+ return _zoomEvents;
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="root">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/Element.html">Element</a>         <strong>root</strong> <a class="anchor-link"
+            href="#root"
+            title="Permalink to MapViewport.root">#</a>
+        </h4>
+        <div class="doc">
+<p>the root DOM element of the map viewport</p>
+<pre class="source">
+Element get root =&gt; _root;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="screenBoundingBox">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Bounds.html">Bounds</a>         <strong>screenBoundingBox</strong> <a class="anchor-link"
+            href="#screenBoundingBox"
+            title="Permalink to MapViewport.screenBoundingBox">#</a>
+        </h4>
+        <div class="doc">
+<p>The bounding box of the viewport in which we are currently rending
+part of the map.</p>
+<p>The screen bounding box depends on the current zoom level ant the
+current map center. In most cases, in partiuclar on zoom levels > 2,
+it is equal to the extend of the map viewport. In lower zoom levels,
+where the zoom plane is smaller than the map viewport, or if the
+center is moved very far east, west, north, or south, it only covers
+part of the viewport.</p>
+<pre class="source">
+Bounds get screenBoundingBox {
+ var vpSize = viewportSize;
+ var vpCenter = (viewportSize / 2).toInt();
+ var zpSize = zoomPlaneSize;
+ var zpCenter = mapToZoomPlane(earthToMap(center));
+ var zp = zoomPlaneSize;
+ var x = math.max(0, vpCenter.x - zpCenter.x);
+ var y = math.max(0, vpCenter.y - zpCenter.y);
+ var width = math.min(vpSize.x, vpCenter.x  + (zpSize.x - zpCenter.x));
+ var height = math.min(vpSize.y, vpCenter.y  + (zpSize.y - zpCenter.y));
+ return new Bounds([x,y], [x+width, y+height]);
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="topLeftInPage">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>topLeftInPage</strong> <a class="anchor-link"
+            href="#topLeftInPage"
+            title="Permalink to MapViewport.topLeftInPage">#</a>
+        </h4>
+        <div class="doc">
+<p>the top-left point in "page coordinates"</p>
+<pre class="source">
+Point get topLeftInPage {
+ offset(Element e) {
+   var p = new Point(e.offset.left, e.offset.top);
+   return e.parent == null ? p : p + offset(e.parent);
+ }
+ return offset(_root);
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="viewportSize">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>viewportSize</strong> <a class="anchor-link"
+            href="#viewportSize"
+            title="Permalink to MapViewport.viewportSize">#</a>
+        </h4>
+        <div class="doc">
+<p>the viewport size</p>
+<pre class="source">
+Point get viewportSize =&gt;
+   new Point(_root.client.width, _root.client.height);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="zoom">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/int.html">int</a> <strong>get zoom</strong> <a class="anchor-link" href="#zoom"
+              title="Permalink to MapViewport.get zoom">#</a></h4>
+<div class="doc">
+<p>the current zoom level</p>
+<pre class="source">
+int get zoom =&gt; _zoom;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="zoom=">
+<button class="show-code">Code</button>
+<strong>set zoom</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> value) <a class="anchor-link" href="#zoom="
+              title="Permalink to MapViewport.set zoom">#</a></h4>
+<div class="doc">
+<p>Set the zoom level <a class="crossref" href="../dartkart.map/MapViewport.html#zoom">zoom</a>.</p>
+<p><a class="crossref" href="../dartkart.map/MapViewport.html#zoom">zoom</a> >= 0 expected, otherwise throws an <code>ArgumentError</code>.</p>
+<pre class="source">
+set zoom(int value) {
+ if (value &lt; 0) throw new ArgumentError("zoom &gt;= 0 expected, got $value");
+ if (value == _zoom) return;
+ var event = new PropertyChangeEvent(this,"zoom", _zoom, value);
+ _zoom = value;
+ render();
+ _events.sink.add(event);
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="zoomPlaneSize">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>zoomPlaneSize</strong> <a class="anchor-link"
+            href="#zoomPlaneSize"
+            title="Permalink to MapViewport.zoomPlaneSize">#</a>
+        </h4>
+        <div class="doc">
+<p>the size of the current map zoom plane</p>
+<pre class="source">
+Point get zoomPlaneSize {
+ var dim = (1 &lt;&lt; zoom) * 256;
+ return new Point(dim, dim);
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="addLayer">
+<button class="show-code">Code</button>
+<strong>addLayer</strong>(<a href="../dartkart.layer/Layer.html">Layer</a> layer) <a class="anchor-link" href="#addLayer"
+              title="Permalink to MapViewport.addLayer">#</a></h4>
+<div class="doc">
+<p>Adds a 
+<span class="param">layer</span> to the map.</p>
+<p>
+<span class="param">layer</span> is appended to the list of layers of this map. It therefore
+has the highest layer index and becomes rendered on top of the layer
+stack of this map.</p>
+<p>Throws <code>ArgumentError</code> if 
+<span class="param">layer</span> is null. 
+<span class="param">layer</span> is ignored if it
+is already attached to this map.</p>
+<h2>Example</h2>
+<p>   var source= "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png";
+   map.addLayer(new OsmLayer(tileSource: source));</p>
+<pre class="source">
+addLayer(Layer layer) {
+ if (layer == null) throw new ArgumentError("layer must not be null");
+ if (hasLayer(layer)) return;
+ _layers.add(layer);
+ _root.children.add(layer.container);
+ layer.attach(this);
+ _updateLayerZIndex();
+ render();
+ _layerEvents.add(new LayerEvent.added(this, layer));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="attachEventListeners">
+<button class="show-code">Code</button>
+<strong>attachEventListeners</strong>() <a class="anchor-link" href="#attachEventListeners"
+              title="Permalink to MapViewport.attachEventListeners">#</a></h4>
+<div class="doc">
+<pre class="source">
+attachEventListeners() {
+ //TODO: remind subscription; solve detach
+ _root.onMouseWheel.listen(_onMouseWheel);
+ new _DragController(this);
+ new _DoubleClickController(this);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="earthToMap">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point.html">Point</a> <strong>earthToMap</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#earthToMap"
+              title="Permalink to MapViewport.earthToMap">#</a></h4>
+<div class="doc">
+<p>Transforms geographic coordinates 
+<span class="param">ll</span> to projected coordinates</p>
+<pre class="source">
+Point earthToMap(LatLon ll) =&gt; _crs.project(ll);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="hasLayer">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> <strong>hasLayer</strong>(<a href="../dartkart.layer/Layer.html">Layer</a> layer) <a class="anchor-link" href="#hasLayer"
+              title="Permalink to MapViewport.hasLayer">#</a></h4>
+<div class="doc">
+<p>true, if 
+<span class="param">layer</span> is part of the layer stack of this map</p>
+<pre class="source">
+bool hasLayer(Layer layer) =&gt; _layers.contains(layer);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="mapToEarth">
+<button class="show-code">Code</button>
+<a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>mapToEarth</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#mapToEarth"
+              title="Permalink to MapViewport.mapToEarth">#</a></h4>
+<div class="doc">
+<p>Transforms projected coordinates 
+<span class="param">p</span> to geographic coordinates</p>
+<pre class="source">
+LatLon mapToEarth(Point p) =&gt; _crs.unproject(p);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="mapToZoomPlane">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point.html">Point</a> <strong>mapToZoomPlane</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#mapToZoomPlane"
+              title="Permalink to MapViewport.mapToZoomPlane">#</a></h4>
+<div class="doc">
+<p>Transforms projected coordinates 
+<span class="param">p</span> to coordinates in the current map
+zoom plane</p>
+<pre class="source">
+Point mapToZoomPlane(Point p) {
+ var zp = zoomPlaneSize;
+ var w = _crs.projectedBounds.width;
+ var h = _crs.projectedBounds.height;
+ return p.flipY()
+  .translate(w/2, h/2)
+  .scale(zp.x / w, zp.y / h)
+  .toInt();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="moveTo">
+<button class="show-code">Code</button>
+<strong>moveTo</strong>(<a href="../dartkart.layer/Layer.html">Layer</a> layer, <a href="http://api.dartlang.org/dart_core/int.html">int</a> index) <a class="anchor-link" href="#moveTo"
+              title="Permalink to MapViewport.moveTo">#</a></h4>
+<div class="doc">
+<p>Moves the 
+<span class="param">layer</span> to the position 
+<span class="param">index</span> in the
+layer stack.</p>
+<pre class="source">
+moveTo(Layer layer, int index) {
+ if (!hasLayer(layer)) return;
+ index = math.max(index, 0);
+ index = math.min(index, _layers.length);
+ _layers.remove(layer);
+ _layers.insertRange(index, 1, layer);
+ _updateLayerZIndex();
+ _layerEvents.add(new LayerEvent.moved(this, layer));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="moveToBottom">
+<button class="show-code">Code</button>
+<strong>moveToBottom</strong>(<a href="../dartkart.layer/Layer.html">Layer</a> layer) <a class="anchor-link" href="#moveToBottom"
+              title="Permalink to MapViewport.moveToBottom">#</a></h4>
+<div class="doc">
+<p>Moves the 
+<span class="param">layer</span> to the bottom.</p>
+<pre class="source">
+moveToBottom(Layer layer) {
+ if (!hasLayer(layer)) return;
+ _layers.remove(layer);
+ _layers.insertRange(0, 1, layer);
+ _updateLayerZIndex();
+ _layerEvents.add(new LayerEvent.moved(this, layer));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="moveToTop">
+<button class="show-code">Code</button>
+<strong>moveToTop</strong>(<a href="../dartkart.layer/Layer.html">Layer</a> layer) <a class="anchor-link" href="#moveToTop"
+              title="Permalink to MapViewport.moveToTop">#</a></h4>
+<div class="doc">
+<p>Moves the 
+<span class="param">layer</span> to the top.</p>
+<pre class="source">
+moveToTop(Layer layer) {
+ if (!hasLayer(layer)) return;
+ _layers.remove(layer);
+ _layers.add(layer);
+ _updateLayerZIndex();
+ _layerEvents.add(new LayerEvent.moved(this, layer));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="pageToViewport">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point.html">Point</a> <strong>pageToViewport</strong>(v) <a class="anchor-link" href="#pageToViewport"
+              title="Permalink to MapViewport.pageToViewport">#</a></h4>
+<div class="doc">
+<p>Transforms page coordinates to viewport coordinates.</p>
+<p>
+<span class="param">v</span> is either
+  * a <code>Point</code>
+  * a <code>MouseEvent</code> - uses the coordinates (pageX, pageY)</p>
+<p> The result are viewport coordinates for the map viewport where
+   * (0,0) is the upper left corner of the map viewport
+   * x runs to the right
+   * y runs down</p>
+<pre class="source">
+Point pageToViewport(v) {
+ if (v is MouseEvent) {
+   v = new Point(v.page.x, v.page.y);
+ } else if (v is Point) {} // do nothing
+ else throw new ArgumentError("expected MouseEvent or Point, got $v");
+ return v - topLeftInPage;
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="pan">
+<button class="show-code">Code</button>
+<strong>pan</strong>(delta, {<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> animate: false}) <a class="anchor-link" href="#pan"
+              title="Permalink to MapViewport.pan">#</a></h4>
+<div class="doc">
+<pre class="source">
+pan(delta, {bool animate: false}) {
+ if (animate) {
+   new PanBehaviour(this).animate(new Point.from(delta));
+ } else {
+   delta = new Point.from(delta);
+   var p = mapToZoomPlane(earthToMap(center));
+   p = p + delta;
+   if (p.x &lt;= 0 || p.y &lt;= 0) return;
+   var size = zoomPlaneSize;
+   if (p.x &gt;= size.x || p.y &gt;= size.y) return;
+   var c = zoomPlaneToMap(p);
+   if (!crs.projectedBounds.contains(c)) return;
+   center = mapToEarth(c);
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="panEast">
+<button class="show-code">Code</button>
+<strong>panEast</strong>({<a href="http://api.dartlang.org/dart_core/int.html">int</a> pixels: 100, <a href="http://api.dartlang.org/dart_core/bool.html">bool</a> animate: false}) <a class="anchor-link" href="#panEast"
+              title="Permalink to MapViewport.panEast">#</a></h4>
+<div class="doc">
+<p>Pans the viewport num 
+<span class="param">pixels</span> to the east
+Animates panning if 
+<span class="param">animate</span> is true.</p>
+<pre class="source">
+panEast({int pixels:100, bool animate:false}) =&gt;
+   pan([pixels, 0],animate: animate);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="panNorth">
+<button class="show-code">Code</button>
+<strong>panNorth</strong>({<a href="http://api.dartlang.org/dart_core/int.html">int</a> pixels: 100, <a href="http://api.dartlang.org/dart_core/bool.html">bool</a> animate: false}) <a class="anchor-link" href="#panNorth"
+              title="Permalink to MapViewport.panNorth">#</a></h4>
+<div class="doc">
+<p>Pans the viewport num 
+<span class="param">pixels</span> to the north.
+Animates panning if 
+<span class="param">animate</span> is true.</p>
+<pre class="source">
+panNorth({int pixels:100, bool animate:false}) =&gt;
+   pan([0,-pixels], animate: animate);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="panSouth">
+<button class="show-code">Code</button>
+<strong>panSouth</strong>({<a href="http://api.dartlang.org/dart_core/int.html">int</a> pixels: 100, <a href="http://api.dartlang.org/dart_core/bool.html">bool</a> animate: false}) <a class="anchor-link" href="#panSouth"
+              title="Permalink to MapViewport.panSouth">#</a></h4>
+<div class="doc">
+<p>Pans the viewport num 
+<span class="param">pixels</span> to the south.
+Animates panning if 
+<span class="param">animate</span> is true.</p>
+<pre class="source">
+panSouth({int pixels:100, bool animate:false}) =&gt;
+   pan([0,pixels], animate: animate);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="panWest">
+<button class="show-code">Code</button>
+<strong>panWest</strong>({<a href="http://api.dartlang.org/dart_core/int.html">int</a> pixels: 100, <a href="http://api.dartlang.org/dart_core/bool.html">bool</a> animate: false}) <a class="anchor-link" href="#panWest"
+              title="Permalink to MapViewport.panWest">#</a></h4>
+<div class="doc">
+<p>Pans the viewport num 
+<span class="param">pixels</span> to the west
+Animates panning if 
+<span class="param">animate</span> is true.</p>
+<pre class="source">
+panWest({int pixels:100, bool animate:false}) =&gt;
+   pan([-pixels, 0], animate: animate);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="removeLayer">
+<button class="show-code">Code</button>
+<strong>removeLayer</strong>(<a href="../dartkart.layer/Layer.html">Layer</a> layer) <a class="anchor-link" href="#removeLayer"
+              title="Permalink to MapViewport.removeLayer">#</a></h4>
+<div class="doc">
+<p>Removes 
+<span class="param">layer</span> from the stack of layers of this map.</p>
+<p>Ignores 
+<span class="param">layer</span> if it is null or if it isn't attached to this map.</p>
+<pre class="source">
+removeLayer(Layer layer) {
+ if (layer == null) return;
+ if (!hasLayer(layer)) return;
+ layer.detach();
+ _root.children.remove(layer.container);
+ _layers.remove(layer);
+ _updateLayerZIndex();
+ render();
+ _layerEvents.add(new LayerEvent.removed(this, layer));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="render">
+<button class="show-code">Code</button>
+<strong>render</strong>() <a class="anchor-link" href="#render"
+              title="Permalink to MapViewport.render">#</a></h4>
+<div class="doc">
+<p>Renders the map.</p>
+<pre class="source">
+render() {
+ _layers.forEach((l)=&gt; l.render());
+ _controlsPane.layout();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="viewportToZoomPlane">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point.html">Point</a> <strong>viewportToZoomPlane</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#viewportToZoomPlane"
+              title="Permalink to MapViewport.viewportToZoomPlane">#</a></h4>
+<div class="doc">
+<p>viewport coordinates to coordinates in the current map zoom plane</p>
+<pre class="source">
+Point viewportToZoomPlane(Point p) {
+ var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
+ var delta = p - (viewportSize / 2);
+ return (centerOnZoomPlane + delta).toInt();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="zoomIn">
+<button class="show-code">Code</button>
+<strong>zoomIn</strong>([<a href="http://api.dartlang.org/dart_core/int.html">int</a> delta = 1]) <a class="anchor-link" href="#zoomIn"
+              title="Permalink to MapViewport.zoomIn">#</a></h4>
+<div class="doc">
+<p>Zoom in by 
+<span class="param">delta</span> zoom levels.</p>
+<p>Throws <code>ArgumentError</code> if 
+<span class="param">delta</span> &lt; 0. Fires a zoom change event.</p>
+<pre class="source">
+zoomIn([int delta=1]) {
+ if (delta &lt; 0) throw new ArgumentError("delta &gt;= 0 expected, got $delta");
+ if (delta == 0) return;
+
+ //TODO: check for max zoom level
+ var oldZoom = _zoom;
+ _zoom+= delta;
+ render();
+ var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
+ _events.sink.add(event);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="zoomOut">
+<button class="show-code">Code</button>
+<strong>zoomOut</strong>([<a href="http://api.dartlang.org/dart_core/int.html">int</a> delta = 1]) <a class="anchor-link" href="#zoomOut"
+              title="Permalink to MapViewport.zoomOut">#</a></h4>
+<div class="doc">
+<p>Zoom out by 
+<span class="param">delta</span> zoom levels.</p>
+<p>Throws <code>ArgumentError</code> if 
+<span class="param">delta</span> &lt; 0. Fires a zoom change event.</p>
+<pre class="source">
+zoomOut([int delta=1]) {
+ if (delta &lt; 0) throw new ArgumentError("delta &gt;= 0 expected, got $delta");
+ if (delta == 0) return;
+ var oldZoom = _zoom;
+ _zoom = math.max(0, _zoom - delta);
+ render();
+ var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
+ _events.sink.add(event);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="zoomPlaneToMap">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point.html">Point</a> <strong>zoomPlaneToMap</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#zoomPlaneToMap"
+              title="Permalink to MapViewport.zoomPlaneToMap">#</a></h4>
+<div class="doc">
+<p>Transforms coordinates 
+<span class="param">p</span> in the current map zoom plane to
+projected coordinates</p>
+<pre class="source">
+Point zoomPlaneToMap(Point p) {
+ var zp = zoomPlaneSize;
+ var w = _crs.projectedBounds.width;
+ var h = _crs.projectedBounds.height;
+ return p.scale(w/ zp.x, h/ zp.y)
+     .translate(-w/2, -h/2)
+     .flipY();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="zoomPlaneToViewport">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point.html">Point</a> <strong>zoomPlaneToViewport</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#zoomPlaneToViewport"
+              title="Permalink to MapViewport.zoomPlaneToViewport">#</a></h4>
+<div class="doc">
+<p>Transforms coordinates in the current map zoom plane to viewport
+coordinates</p>
+<pre class="source">
+Point zoomPlaneToViewport(Point p) {
+var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
+return ((viewportSize / 2) + (p - centerOnZoomPlane)).toInt();
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.599</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

@@ -1,0 +1,338 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>SimpleZoomControl class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="SimpleZoomControl">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/SimpleZoomControl.html">SimpleZoomControl</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><div class="icon-class"></div><strong>SimpleZoomControl</strong></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>SimpleZoomControl</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>This is a simple zoom control element. It displays two
+buttons <code>+</code> and <code>-</code> to increase and decrease the
+current zoom level respectively</p>
+<pre class="source">
+class SimpleZoomControl extends MapControl{
+
+ static const SVG_CONTENT = """&lt;svg
+ xmlns:svg="http://www.w3.org/2000/svg"
+ xmlns="http://www.w3.org/2000/svg"
+ version="1.1"&gt;
+ &lt;!-- for styles see CSS file in the assets directory --&gt;
+ &lt;g class="simple-zoom-control"&gt;
+   &lt;!-- content is created dynamically --&gt;
+ &lt;/g&gt;
+ &lt;/svg&gt;
+ """;
+
+ @override
+ SimpleZoomControl([MapViewport map]) : super(map);
+
+ _zoomIn(evt) =&gt; _map.zoomIn();
+ _zoomOut(evt) =&gt; _map.zoomOut();
+
+ _build() {
+   _buildSvg();
+   _wireEventHandlers();
+ }
+
+ _buildSvg() {
+   _root = new Element.tag("div");
+   var svg = new SvgElement.svg(SVG_CONTENT);
+   svg.attributes["width"] = "40";
+   svg.attributes["height"] = "250";
+
+   var control = svg.query(".simple-zoom-control");
+
+   var zoomInNob = new SvgElement.svg("""
+     &lt;g class="zoom-in-nob"&gt;
+     &lt;rect x="0" y="0" width="20" height="20"&gt;
+       &lt;title&gt;Zoom in&lt;/title&gt;
+     &lt;/rect&gt;
+     &lt;line x1="10" y1="3" x2="10" y2="17" /&gt;
+     &lt;line x1="3" y1="10" x2="17" y2="10" /&gt;
+     &lt;/g&gt;
+     """
+   );
+
+   var zoomOutNob = new SvgElement.svg("""
+       &lt;g transform="translate(0, 22)" class="zoom-out-nob"&gt;
+         &lt;rect x="0" y="0" width="20" height="20"&gt;
+          &lt;title&gt;Zoom out&lt;/title&gt;
+         &lt;/rect&gt;
+         &lt;line x1="3" y1="10" x2="17" y2="10"/&gt;
+       &lt;/g&gt;
+       """
+   );
+
+   control.children.add(zoomInNob);
+   control.children.add(zoomOutNob);
+   _root.children.add(svg);
+   _root.style
+       ..position = "relative"
+       ..width = "100px"
+       ..height = "100px";
+ }
+
+ _wireEventHandlers() {
+   _onMouseOver(evt) {
+     var parent = evt.target.parent;
+     parent.classes.add("hover");
+   }
+   _onMouseOut(evt) {
+     var parent = evt.target.parent;
+     parent.classes.remove("hover");
+   }
+
+   [_root.query(".zoom-in-nob"), _root.query(".zoom-out-nob")]
+   .forEach((el) {
+     _subscriptions.add(el.onMouseOver.listen(_onMouseOver));
+     _subscriptions.add(el.onMouseOut.listen(_onMouseOut));
+   });
+   _subscriptions.add(_root.query(".zoom-in-nob").onClick.listen(_zoomIn));
+   _subscriptions.add(_root.query(".zoom-out-nob").onClick.listen(_zoomOut));
+ }
+
+ static var _DEFAULT_POS = new Point(10,20);
+
+ @override
+ get defaultPosition =&gt; _DEFAULT_POS;
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.map/MapControl.html">MapControl</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>SimpleZoomControl</strong></span></p>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="SVG_CONTENT">
+<button class="show-code">Code</button>
+const         <strong>SVG_CONTENT</strong> <a class="anchor-link"
+            href="#SVG_CONTENT"
+            title="Permalink to SimpleZoomControl.SVG_CONTENT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+SVG_CONTENT = """&lt;svg
+xmlns:svg="http://www.w3.org/2000/svg"
+xmlns="http://www.w3.org/2000/svg"
+version="1.1"&gt;
+&lt;!-- for styles see CSS file in the assets directory --&gt;
+&lt;g class="simple-zoom-control"&gt;
+&lt;!-- content is created dynamically --&gt;
+&lt;/g&gt;
+&lt;/svg&gt;
+"""
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="SimpleZoomControl">
+<button class="show-code">Code</button>
+new <strong>SimpleZoomControl</strong>([<a href="../dartkart.map/MapViewport.html">MapViewport</a> map]) <a class="anchor-link" href="#SimpleZoomControl"
+              title="Permalink to SimpleZoomControl.SimpleZoomControl">#</a></h4>
+<div class="doc">
+<pre class="source">
+@override
+SimpleZoomControl([MapViewport map]) : super(map);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="defaultPosition">
+<button class="show-code">Code</button>
+final         <strong>defaultPosition</strong> <a class="anchor-link"
+            href="#defaultPosition"
+            title="Permalink to SimpleZoomControl.defaultPosition">#</a>
+        </h4>
+        <div class="doc">
+<div class="inherited">
+<p>the default position of the control if no position has been
+set explicitly using <code>placeAt</code>.</p>
+<p>Override in subclasses.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div></div>
+<pre class="source">
+@override
+get defaultPosition =&gt; _DEFAULT_POS;
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="map">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>map</strong> <a class="anchor-link"
+            href="#map"
+            title="Permalink to SimpleZoomControl.map">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>the map this control is attached to, or null</p>
+<pre class="source">
+MapViewport get map =&gt; _map;
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="root">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/Element.html">Element</a>         <strong>root</strong> <a class="anchor-link"
+            href="#root"
+            title="Permalink to SimpleZoomControl.root">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>the root DOM element for this map control</p>
+<pre class="source">
+Element get root =&gt; _root;
+</pre>
+</div>
+</div>
+</div>
+<div class="inherited">
+<h3>Methods</h3>
+<div class="method inherited"><h4 id="applyPosition">
+<button class="show-code">Code</button>
+<strong>applyPosition</strong>() <a class="anchor-link" href="#applyPosition"
+              title="Permalink to SimpleZoomControl.applyPosition">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Applies the current position to the appropriate DOM element.</p>
+<pre class="source">
+applyPosition() {
+ if (_root == null) return;
+ var pos = _position == null ? defaultPosition : _position;
+ if (pos == null) {
+   //TODO: log a warning ?
+   return;
+ }
+ _root.style
+   ..left = "${pos.x}px"
+   ..top = "${pos.y}px";
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
+              title="Permalink to SimpleZoomControl.attach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Attaches this control to the map 
+<span class="param">viewport</span>.</p>
+<pre class="source">
+attach(MapViewport viewport) {
+ if (viewport == null) throw new ArgumentError("viewport must not be null");
+ // already attached ?
+ if (_map != null) {
+   if (_map == viewport) {
+     return;  // don't attach again
+   } else {
+     detach(); // detach the currently attached, then attach the new one
+   }
+ }
+ this._map = viewport;
+ var controlsPane = _map.controlsPane;
+ //TODO: log a warning?
+ if (controlsPane == null) return;
+ _build();
+ controlsPane.controls.add(this);
+ controlsPane.root.children.add(_root);
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to SimpleZoomControl.detach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Detaches this control from the map viewport it is currently
+attached to (if any).</p>
+<pre class="source">
+detach() {
+ if (_map == null) return;
+ if (_root == null) return;
+ if (_map._controlsPane == null) return;
+ _map.controlsPane.root.children.remove(_root);
+ _subscriptions.forEach((s) =&gt; s.cancel());
+ _subscriptions.clear();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="layout">
+<button class="show-code">Code</button>
+<strong>layout</strong>() <a class="anchor-link" href="#layout"
+              title="Permalink to SimpleZoomControl.layout">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Invoke this to force to (re-)layout the map control in the current
+map viewport.</p>
+<pre class="source">
+layout() {}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="placeAt">
+<button class="show-code">Code</button>
+<strong>placeAt</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y) <a class="anchor-link" href="#placeAt"
+              title="Permalink to SimpleZoomControl.placeAt">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Places the control at the position (
+<span class="param">x</span>, 
+<span class="param">y</span>).</p>
+<pre class="source">
+placeAt(int x, int y) {
+ _position = new Point(x,y);
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.546</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

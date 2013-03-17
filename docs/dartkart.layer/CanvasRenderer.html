@@ -1,0 +1,283 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>CanvasRenderer class / dartkart.layer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.layer" data-type="CanvasRenderer">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.layer.html">dartkart.layer</a> &rsaquo; <a href="../dartkart.layer/CanvasRenderer.html">CanvasRenderer</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><ul class="icon">
+<li><div class="icon-class"></div><strong>CanvasRenderer</strong></li>
+<li><a href="../dartkart.layer/ImgGridRenderer.html"><div class="icon-class"></div>ImgGridRenderer</a></li>
+<li><a href="../dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
+<li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
+<li><a href="../dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
+<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
+<li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
+<li><a href="../dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
+<li><a href="../dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
+<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
+<li><a href="../dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
+<div class="content">
+        <h2><strong>CanvasRenderer</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>A renderer which renders map tiles on a <code>Canvas</code> element.</p>
+<pre class="source">
+class CanvasRenderer extends Renderer {
+
+ CanvasElement _canvas;
+ CanvasRenderingContext2D _context;
+ List&lt;Tile&gt; _tiles = [];
+
+ CanvasRenderer(TileLayer layer): super(layer);
+
+ _clear() {
+   if (_context == null) return;
+   _context
+     ..save()
+     ..setTransform(1, 0, 0, 1, 0, 0)
+     ..clearRect(0, 0, _canvas.width, _canvas.height)
+     ..restore();
+   _tiles.forEach((t) =&gt; t.detach());
+   _tiles.clear();
+ }
+
+ beforeRender() {
+   if (_layer.map == null) {
+     _canvas = null;
+     _context = null;
+   } else {
+     if (_canvas == null) {
+       _canvas = new Element.tag("canvas");
+       _layer.container.children.add(_canvas);
+       _canvas.style
+         ..width="100%"
+         ..height="100%"
+         ..top="0px"
+         ..left="0px"
+         ..position="relative"
+         ..zIndex = "inherit";
+       _context = _canvas.context2d;
+     }
+     _updateSize();
+     _clear();
+   }
+ }
+
+ _updateSize() {
+   var vs = _layer.map.viewportSize;
+   // make sure the _canvas size is equal to the map
+   // size
+   if (vs.x != _canvas.width || vs.y != _canvas.height) {
+     _canvas
+       ..width=vs.x
+       ..height=vs.y;
+   }
+ }
+
+ renderTile(Point tile) {
+   Tile t = new Tile(tile, _canvas, _layer);
+   _tiles.add(t);
+   t.load();
+ }
+
+ /* ---------------------- rendering the tile border - for debugging  --- */
+ bool renderTileBorders = false;
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/Renderer.html">Renderer</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>CanvasRenderer</strong></span></p>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="CanvasRenderer">
+<button class="show-code">Code</button>
+new <strong>CanvasRenderer</strong>(<a href="../dartkart.layer/TileLayer.html">TileLayer</a> layer) <a class="anchor-link" href="#CanvasRenderer"
+              title="Permalink to CanvasRenderer.CanvasRenderer">#</a></h4>
+<div class="doc">
+<pre class="source">
+CanvasRenderer(TileLayer layer): super(layer);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="renderTileBorders">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/bool.html">bool</a>         <strong>renderTileBorders</strong> <a class="anchor-link"
+            href="#renderTileBorders"
+            title="Permalink to CanvasRenderer.renderTileBorders">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+renderTileBorders = false
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method inherited"><h4 id="afterRender">
+<button class="show-code">Code</button>
+<strong>afterRender</strong>() <a class="anchor-link" href="#afterRender"
+              title="Permalink to CanvasRenderer.afterRender">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div><div class="doc">
+<pre class="source">
+afterRender(){}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="beforeRender">
+<button class="show-code">Code</button>
+<strong>beforeRender</strong>() <a class="anchor-link" href="#beforeRender"
+              title="Permalink to CanvasRenderer.beforeRender">#</a></h4>
+<div class="doc">
+<pre class="source">
+beforeRender() {
+ if (_layer.map == null) {
+   _canvas = null;
+   _context = null;
+ } else {
+   if (_canvas == null) {
+     _canvas = new Element.tag("canvas");
+     _layer.container.children.add(_canvas);
+     _canvas.style
+       ..width="100%"
+       ..height="100%"
+       ..top="0px"
+       ..left="0px"
+       ..position="relative"
+       ..zIndex = "inherit";
+     _context = _canvas.context2d;
+   }
+   _updateSize();
+   _clear();
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="render">
+<button class="show-code">Code</button>
+<strong>render</strong>() <a class="anchor-link" href="#render"
+              title="Permalink to CanvasRenderer.render">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div><div class="doc">
+<p>Invoked by a <a class="crossref" href="../dartkart.layer/TileLayer.html">TileLayer</a> to render itself</p>
+<pre class="source">
+render() {
+ beforeRender();
+ renderTileGrid();
+ afterRender();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="renderTile">
+<button class="show-code">Code</button>
+<strong>renderTile</strong>(<a href="../dartkart.geometry/Point.html">Point</a> tile) <a class="anchor-link" href="#renderTile"
+              title="Permalink to CanvasRenderer.renderTile">#</a></h4>
+<div class="doc">
+<pre class="source">
+renderTile(Point tile) {
+ Tile t = new Tile(tile, _canvas, _layer);
+ _tiles.add(t);
+ t.load();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="renderTileGrid">
+<button class="show-code">Code</button>
+<strong>renderTileGrid</strong>() <a class="anchor-link" href="#renderTileGrid"
+              title="Permalink to CanvasRenderer.renderTileGrid">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div><div class="doc">
+<pre class="source">
+renderTileGrid() {
+ var map = _layer._map;
+ var tileSize = _layer.tileSize;
+ var centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
+ var topLeftOnZoomPlane = centerOnZoomPlane - (map.viewportSize / 2).round();
+ var viewportOnZoomPlaneBounds = new Bounds(
+     topLeftOnZoomPlane,
+     topLeftOnZoomPlane + map.viewportSize
+ );
+ tileIntersectsWithViewport(Point t) {
+   var tl = t * tileSize;
+   var tileBounds = new Bounds(
+       tl,
+       tl + tileSize
+   );
+   return viewportOnZoomPlaneBounds.intersects(tileBounds);
+ }
+
+ // the tile covering the map center
+ var tile = new Point(
+     centerOnZoomPlane.x ~/ tileSize.x,
+     centerOnZoomPlane.y ~/ tileSize.y
+ );
+
+ // find the first tile to be rendered
+ while(true) {
+   var candidate = tile.translate(-1, 0);
+   if (candidate.x &lt; 0) break;
+   if (! tileIntersectsWithViewport(candidate)) break;
+   tile = candidate;
+ }
+ while(true) {
+   var candidate = tile.translate(0, -1);
+   if (candidate.y &lt; 0) break;
+   if (! tileIntersectsWithViewport(candidate)) break;
+   tile = candidate;
+ }
+
+ // render the tile grid intersecting with the viewport
+ var maxTileX = (1 &lt;&lt; map.zoom);
+ var maxTileY = (1 &lt;&lt; map.zoom);
+ var cur = new Point.from(tile);
+ while(cur.x &lt; maxTileX &amp;&amp; tileIntersectsWithViewport(cur)) {
+   while(cur.y &lt; maxTileY &amp;&amp; tileIntersectsWithViewport(cur)) {
+     renderTile(cur);
+     cur = cur.translate(0,1);
+   }
+   cur = new Point(cur.x + 1, tile.y);
+ }
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.510</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

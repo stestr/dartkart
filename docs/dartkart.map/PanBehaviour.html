@@ -1,0 +1,319 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>PanBehaviour class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="PanBehaviour">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/PanBehaviour.html">PanBehaviour</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><div class="icon-class"></div><strong>PanBehaviour</strong></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>PanBehaviour</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class PanBehaviour {
+ const double ACCELERATION = -2.0; // px / (100ms)²
+ const double SPEED = 20.0;        // px / 100ms
+ const int DELTA_T = 20;           // ms, duration of animation step
+
+ final MapViewport viewport;
+ PanBehaviour(this.viewport);
+
+ animate(Point panBy) {
+   var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
+   var theta = math.asin(panBy.y / dist);
+   if (panBy.x &lt;= 0) {
+     theta = math.PI - theta;
+   }
+
+   var fx = math.cos(theta);
+   //y-axis is inverted, therefore not
+   //  -math.sin(theta)
+   var fy = math.sin(theta);
+
+   now() =&gt; new DateTime.now().millisecondsSinceEpoch;
+
+   pan(dx,dy) {
+     var p = new Point(dx,dy).toInt();
+     if (p != new Point.origin()) viewport.pan(p);
+   }
+
+   bounded(num v, num bound) =&gt; bound &lt; 0
+       ? math.max(v, bound)
+       : math.min(v, bound);
+
+   // pan long distance (fast) as much and possible, the complete
+   // the future with the remaining pan distance
+   Future&lt;Point&gt; panLongDistance(Point panBy) {
+     var completer = new Completer&lt;Point&gt;();
+     var pannedX = 0;
+     var pannedY = 0;
+     bool isLongDistance() =&gt;
+             (panBy.x - pannedX).abs() &gt; 100
+         || (panBy.y  - pannedY).abs() &gt; 100;
+
+     // animation step
+     step(Timer timer){
+       if (!isLongDistance()) {
+         timer.cancel();
+         var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+         completer.complete(rest);
+       } else {
+         var dx = bounded(40 * fx, panBy.x).toInt();
+         var dy = bounded(40 * fy, panBy.y).toInt();
+         pannedX += dx;
+         pannedY += dy;
+         pan(dx, dy);
+       }
+     }
+     new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
+     return completer.future;
+   }
+
+   // pan a short distance, deaccelerate and make sure the final
+   // point is reached
+   panShortDistance(Point panBy) {
+     panBy = panBy.toInt();
+     var lastX = 0;
+     var lastY = 0;
+     var initialTime = now();
+
+     // animation step
+     step(Timer timer) {
+       // scale time by 100 for kinetics calcuations
+       var t  = (now() - initialTime) / 100;
+       var p = ACCELERATION * math.pow(t,2) / 2 + SPEED * t;
+       var x = bounded(p * fx, panBy.x).toInt();
+       var y = bounded(p * fy, panBy.y).toInt();
+       var v = ACCELERATION * t + SPEED;
+       if (v &lt;= 0 || panBy == new Point(x,y)){
+         // last step - pan to the end point
+         x = panBy.x;
+         y = panBy.y;
+         timer.cancel();
+       }
+       var dx = x - lastX;
+       var dy = y - lastY;
+       lastX = x;
+       lastY = y;
+
+       pan(dx, dy);
+     }
+     new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
+   }
+
+   panLongDistance(panBy).then((rest) {
+     panShortDistance(rest);
+   });
+ }
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="PanBehaviour">
+<button class="show-code">Code</button>
+new <strong>PanBehaviour</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#PanBehaviour"
+              title="Permalink to PanBehaviour.PanBehaviour">#</a></h4>
+<div class="doc">
+<pre class="source">
+PanBehaviour(this.viewport);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="ACCELERATION">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/double.html">double</a>         <strong>ACCELERATION</strong> <a class="anchor-link"
+            href="#ACCELERATION"
+            title="Permalink to PanBehaviour.ACCELERATION">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+ACCELERATION = -2.0
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DELTA_T">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DELTA_T</strong> <a class="anchor-link"
+            href="#DELTA_T"
+            title="Permalink to PanBehaviour.DELTA_T">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+DELTA_T = 20
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="SPEED">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/double.html">double</a>         <strong>SPEED</strong> <a class="anchor-link"
+            href="#SPEED"
+            title="Permalink to PanBehaviour.SPEED">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+SPEED = 20.0
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="viewport">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>viewport</strong> <a class="anchor-link"
+            href="#viewport"
+            title="Permalink to PanBehaviour.viewport">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+viewport
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="animate">
+<button class="show-code">Code</button>
+<strong>animate</strong>(<a href="../dartkart.geometry/Point.html">Point</a> panBy) <a class="anchor-link" href="#animate"
+              title="Permalink to PanBehaviour.animate">#</a></h4>
+<div class="doc">
+<pre class="source">
+animate(Point panBy) {
+ var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
+ var theta = math.asin(panBy.y / dist);
+ if (panBy.x &lt;= 0) {
+   theta = math.PI - theta;
+ }
+
+ var fx = math.cos(theta);
+ //y-axis is inverted, therefore not
+ //  -math.sin(theta)
+ var fy = math.sin(theta);
+
+ now() =&gt; new DateTime.now().millisecondsSinceEpoch;
+
+ pan(dx,dy) {
+   var p = new Point(dx,dy).toInt();
+   if (p != new Point.origin()) viewport.pan(p);
+ }
+
+ bounded(num v, num bound) =&gt; bound &lt; 0
+     ? math.max(v, bound)
+     : math.min(v, bound);
+
+ // pan long distance (fast) as much and possible, the complete
+ // the future with the remaining pan distance
+ Future&lt;Point&gt; panLongDistance(Point panBy) {
+   var completer = new Completer&lt;Point&gt;();
+   var pannedX = 0;
+   var pannedY = 0;
+   bool isLongDistance() =&gt;
+           (panBy.x - pannedX).abs() &gt; 100
+       || (panBy.y  - pannedY).abs() &gt; 100;
+
+   // animation step
+   step(Timer timer){
+     if (!isLongDistance()) {
+       timer.cancel();
+       var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+       completer.complete(rest);
+     } else {
+       var dx = bounded(40 * fx, panBy.x).toInt();
+       var dy = bounded(40 * fy, panBy.y).toInt();
+       pannedX += dx;
+       pannedY += dy;
+       pan(dx, dy);
+     }
+   }
+   new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
+   return completer.future;
+ }
+
+ // pan a short distance, deaccelerate and make sure the final
+ // point is reached
+ panShortDistance(Point panBy) {
+   panBy = panBy.toInt();
+   var lastX = 0;
+   var lastY = 0;
+   var initialTime = now();
+
+   // animation step
+   step(Timer timer) {
+     // scale time by 100 for kinetics calcuations
+     var t  = (now() - initialTime) / 100;
+     var p = ACCELERATION * math.pow(t,2) / 2 + SPEED * t;
+     var x = bounded(p * fx, panBy.x).toInt();
+     var y = bounded(p * fy, panBy.y).toInt();
+     var v = ACCELERATION * t + SPEED;
+     if (v &lt;= 0 || panBy == new Point(x,y)){
+       // last step - pan to the end point
+       x = panBy.x;
+       y = panBy.y;
+       timer.cancel();
+     }
+     var dx = x - lastX;
+     var dy = y - lastY;
+     lastX = x;
+     lastY = y;
+
+     pan(dx, dy);
+   }
+   new Timer.periodic(new Duration(milliseconds: DELTA_T), step);
+ }
+
+ panLongDistance(panBy).then((rest) {
+   panShortDistance(rest);
+ });
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.570</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

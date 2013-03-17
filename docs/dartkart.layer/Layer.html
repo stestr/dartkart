@@ -1,0 +1,488 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>Layer abstract class / dartkart.layer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.layer" data-type="Layer">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.layer.html">dartkart.layer</a> &rsaquo; <a href="../dartkart.layer/Layer.html">Layer</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><ul class="icon">
+<li><a href="../dartkart.layer/CanvasRenderer.html"><div class="icon-class"></div>CanvasRenderer</a></li>
+<li><a href="../dartkart.layer/ImgGridRenderer.html"><div class="icon-class"></div>ImgGridRenderer</a></li>
+<li><div class="icon-class"></div><strong>Layer</strong></li>
+<li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
+<li><a href="../dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
+<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
+<li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
+<li><a href="../dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
+<li><a href="../dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
+<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
+<li><a href="../dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
+<div class="content">
+        <h2><strong>Layer</strong>
+          abstract class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>This is the abstract base class for a layer in dartkart.</p>
+<h2>DOM elements</h2><ul><li>
+<p>the layer has a <code>div</code> as root element, see <a class="crossref" href="../dartkart.layer/Layer.html#container">container</a>
+  with the CSS class <code>dartkart-layer</code> and a unique <code>id</code>.</p></li></ul>
+<pre class="source">
+abstract class Layer {
+
+ static var _layerIDCounter = 0;
+ static get _nextLayerId =&gt; _layerIDCounter++;
+
+ MapViewport _map;
+ DivElement _container;
+ int _nid;
+
+ _defaultDOMId() =&gt; "dartkart-layer-$_nid";
+ _defaultName() =&gt; "Layer $_nid";
+
+ /**
+  * Creates a new layer.
+  *
+  * If present, [domId] is assigned to the `id` attribute of the layer
+  * [container]. Otherwise, a new unique id is created.
+  */
+ Layer([String domId]) {
+   _nid = _nextLayerId;
+   if (domId != null) domId = domId.trim();
+   if (domId == null || domId.isEmpty) {
+     domId = _defaultDOMId();
+   }
+   _container = new Element.tag("div");
+   _container.attributes["id"] = domId;
+   _container.classes.add("dartkart-layer");
+ }
+
+ /// replies the unique numeric id for this layer
+ int get id =&gt; _nid;
+
+ /// the unique layer id
+ String get domId =&gt; _container.attributes["id"];
+
+ /**
+  * Sets the DOM  id on the layer [container].
+  *
+  * If [value] is null or empty, sets a default id.
+  */
+ set domId(String value) {
+   if (value != null) value = value.trim();
+   if (value == null || value.isEmpty) {
+     value = _defaultDOMId();
+   }
+   _container.attributes["id"] = value;
+ }
+
+ /// the map this layer is attached to, or null
+ MapViewport get map =&gt; _map;
+
+ /**
+  * Attaches the layer to a map viewport [m].
+  *
+  * Throws [StateError] if this layer is already attached.
+  */
+ attach(MapViewport m) {
+   if (_map != null) {
+     throw new StateError("layer is already attached");
+   }
+   _map = m;
+ }
+
+ /**
+  * Detaches this layer from the map viewport it is
+  * currently attached to.
+  */
+ detach(){
+   _map = null;
+ }
+
+ /**
+  * The [Element] this layer uses as container.
+  */
+ DivElement get container =&gt; _container;
+
+ /**
+  * Renders the layer.
+  */
+ render();
+
+ /* ------------------------ opacity ------------------------------- */
+ double _opacity = 1.0;
+
+ /// the opacity of this layer
+ double get opacity =&gt; _opacity;
+
+ /// set the opacity of this layer. [value] is a [num] in the range
+ /// (0.0 - 1.0). The lower the value, the more transparent the layer.
+ set opacity(num value) {
+   value = math.max(0, value);
+   value = math.min(value, 1);
+   var oldvalue = _opacity;
+   this._opacity = value.toDouble();
+   if (oldvalue != this._opacity) {
+     notify("opacity", oldvalue, this._opacity);
+     if (_map != null) {
+       _map.render();
+     }
+   }
+ }
+
+ /* ------------------------  name------------------------------- */
+ String _name = "Layer ${_nextLayerId}";
+
+ /// the layer name
+ String get name =&gt; _name;
+
+ /// sets the layer name. If [value] is null or white space only,
+ /// chooses a default name.
+ set name(String value) {
+   if (value != null) value = value.trim();
+   var old = _name;
+   if (value == null || value.isEmpty) {
+     _name = "Layer ${_nextLayerId}";
+   } else {
+     _name = value;
+   }
+   notify("name", old, _name);
+ }
+
+ /* ------------------------  visibilty ------------------------------- */
+ bool _visible = true;
+
+ /// the layer visibility
+ bool get visible =&gt; _visible;
+
+ /// sets whether this layer is visible or not
+ set visible(bool value) {
+   var old = _visible;
+   if (value != old) {
+     if (_container != null) {
+       _container.style.visibility =
+           value ? "visible" : "hidden";
+     }
+     _visible = value;
+     notify("visible", old, value);
+   }
+ }
+
+ /* ----------------------------------------------------------- */
+ //TODO: replace with mixin application from core/events.dart
+ final _controller = new StreamController.broadcast();
+
+ Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
+     _controller.stream;
+
+ notify(String property, oldValue, newValue) {
+   if (oldValue == newValue) return;
+   _controller.sink.add(
+       new PropertyChangeEvent(this, property, oldValue,newValue)
+    );
+ }
+}
+</pre>
+</div>
+<h3>Subclasses</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/SimpleFeatureLayer.html">SimpleFeatureLayer</a></span>, <span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/TileLayer.html">TileLayer</a></span></p>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="Layer">
+<button class="show-code">Code</button>
+new <strong>Layer</strong>([<a href="http://api.dartlang.org/dart_core/String.html">String</a> domId]) <a class="anchor-link" href="#Layer"
+              title="Permalink to Layer.Layer">#</a></h4>
+<div class="doc">
+<p>Creates a new layer.</p>
+<p>If present, 
+<span class="param">domId</span> is assigned to the <code>id</code> attribute of the layer
+<a class="crossref" href="../dartkart.layer/Layer.html#container">container</a>. Otherwise, a new unique id is created.</p>
+<pre class="source">
+Layer([String domId]) {
+ _nid = _nextLayerId;
+ if (domId != null) domId = domId.trim();
+ if (domId == null || domId.isEmpty) {
+   domId = _defaultDOMId();
+ }
+ _container = new Element.tag("div");
+ _container.attributes["id"] = domId;
+ _container.classes.add("dartkart-layer");
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="container">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/DivElement.html">DivElement</a>         <strong>container</strong> <a class="anchor-link"
+            href="#container"
+            title="Permalink to Layer.container">#</a>
+        </h4>
+        <div class="doc">
+<p>The <code>Element</code> this layer uses as container.</p>
+<pre class="source">
+DivElement get container =&gt; _container;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="domId">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>get domId</strong> <a class="anchor-link" href="#domId"
+              title="Permalink to Layer.get domId">#</a></h4>
+<div class="doc">
+<p>the unique layer id</p>
+<pre class="source">
+String get domId =&gt; _container.attributes["id"];
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="domId=">
+<button class="show-code">Code</button>
+<strong>set domId</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#domId="
+              title="Permalink to Layer.set domId">#</a></h4>
+<div class="doc">
+<p>Sets the DOM  id on the layer <a class="crossref" href="../dartkart.layer/Layer.html#container">container</a>.</p>
+<p>If 
+<span class="param">value</span> is null or empty, sets a default id.</p>
+<pre class="source">
+set domId(String value) {
+ if (value != null) value = value.trim();
+ if (value == null || value.isEmpty) {
+   value = _defaultDOMId();
+ }
+ _container.attributes["id"] = value;
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="id">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>id</strong> <a class="anchor-link"
+            href="#id"
+            title="Permalink to Layer.id">#</a>
+        </h4>
+        <div class="doc">
+<p>replies the unique numeric id for this layer</p>
+<pre class="source">
+int get id =&gt; _nid;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="map">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>map</strong> <a class="anchor-link"
+            href="#map"
+            title="Permalink to Layer.map">#</a>
+        </h4>
+        <div class="doc">
+<p>the map this layer is attached to, or null</p>
+<pre class="source">
+MapViewport get map =&gt; _map;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="name">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>get name</strong> <a class="anchor-link" href="#name"
+              title="Permalink to Layer.get name">#</a></h4>
+<div class="doc">
+<p>the layer name</p>
+<pre class="source">
+String get name =&gt; _name;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="name=">
+<button class="show-code">Code</button>
+<strong>set name</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#name="
+              title="Permalink to Layer.set name">#</a></h4>
+<div class="doc">
+<p>sets the layer name. If 
+<span class="param">value</span> is null or white space only,
+chooses a default name.</p>
+<pre class="source">
+set name(String value) {
+ if (value != null) value = value.trim();
+ var old = _name;
+ if (value == null || value.isEmpty) {
+   _name = "Layer ${_nextLayerId}";
+ } else {
+   _name = value;
+ }
+ notify("name", old, _name);
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onPropertyChanged">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a href="../dartkart.core/PropertyChangeEvent.html">PropertyChangeEvent</a>&gt;         <strong>onPropertyChanged</strong> <a class="anchor-link"
+            href="#onPropertyChanged"
+            title="Permalink to Layer.onPropertyChanged">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
+   _controller.stream;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="opacity">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/double.html">double</a> <strong>get opacity</strong> <a class="anchor-link" href="#opacity"
+              title="Permalink to Layer.get opacity">#</a></h4>
+<div class="doc">
+<p>the opacity of this layer</p>
+<pre class="source">
+double get opacity =&gt; _opacity;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="opacity=">
+<button class="show-code">Code</button>
+<strong>set opacity</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> value) <a class="anchor-link" href="#opacity="
+              title="Permalink to Layer.set opacity">#</a></h4>
+<div class="doc">
+<p>set the opacity of this layer. 
+<span class="param">value</span> is a <code>num</code> in the range
+(0.0 - 1.0). The lower the value, the more transparent the layer.</p>
+<pre class="source">
+set opacity(num value) {
+ value = math.max(0, value);
+ value = math.min(value, 1);
+ var oldvalue = _opacity;
+ this._opacity = value.toDouble();
+ if (oldvalue != this._opacity) {
+   notify("opacity", oldvalue, this._opacity);
+   if (_map != null) {
+     _map.render();
+   }
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="visible">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> <strong>get visible</strong> <a class="anchor-link" href="#visible"
+              title="Permalink to Layer.get visible">#</a></h4>
+<div class="doc">
+<p>the layer visibility</p>
+<pre class="source">
+bool get visible =&gt; _visible;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="visible=">
+<button class="show-code">Code</button>
+<strong>set visible</strong>(<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> value) <a class="anchor-link" href="#visible="
+              title="Permalink to Layer.set visible">#</a></h4>
+<div class="doc">
+<p>sets whether this layer is visible or not</p>
+<pre class="source">
+set visible(bool value) {
+ var old = _visible;
+ if (value != old) {
+   if (_container != null) {
+     _container.style.visibility =
+         value ? "visible" : "hidden";
+   }
+   _visible = value;
+   notify("visible", old, value);
+ }
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> m) <a class="anchor-link" href="#attach"
+              title="Permalink to Layer.attach">#</a></h4>
+<div class="doc">
+<p>Attaches the layer to a map viewport 
+<span class="param">m</span>.</p>
+<p>Throws <code>StateError</code> if this layer is already attached.</p>
+<pre class="source">
+attach(MapViewport m) {
+ if (_map != null) {
+   throw new StateError("layer is already attached");
+ }
+ _map = m;
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to Layer.detach">#</a></h4>
+<div class="doc">
+<p>Detaches this layer from the map viewport it is
+currently attached to.</p>
+<pre class="source">
+detach(){
+ _map = null;
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="notify">
+<button class="show-code">Code</button>
+<strong>notify</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> property, oldValue, newValue) <a class="anchor-link" href="#notify"
+              title="Permalink to Layer.notify">#</a></h4>
+<div class="doc">
+<pre class="source">
+notify(String property, oldValue, newValue) {
+ if (oldValue == newValue) return;
+ _controller.sink.add(
+     new PropertyChangeEvent(this, property, oldValue,newValue)
+  );
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="render">
+abstract <strong>render</strong>() <a class="anchor-link" href="#render"
+              title="Permalink to Layer.render">#</a></h4>
+<div class="doc">
+<p>Renders the layer.</p>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.535</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

@@ -1,0 +1,149 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>PropertyChangeEvent class / dartkart.core Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.core" data-type="PropertyChangeEvent">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.core.html">dartkart.core</a> &rsaquo; <a href="../dartkart.core/PropertyChangeEvent.html">PropertyChangeEvent</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><ul class="icon">
+<li><div class="icon-class"></div><strong>PropertyChangeEvent</strong></li>
+<li><a href="../dartkart.core/PropertyObservable.html"><div class="icon-class"></div>PropertyObservable</a></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
+<div class="content">
+        <h2><strong>PropertyChangeEvent</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>An event emitted by a <a class="crossref" href="../dartkart.core/PropertyObservable.html">PropertyObservable</a> if the value of a property
+changes.</p>
+<pre class="source">
+class PropertyChangeEvent {
+ /// the source object where the property was changed
+ final Object source;
+ /// the property name
+ final String name;
+ /// the old value
+ final oldValue;
+ ///  the new value
+ final newValue;
+ const PropertyChangeEvent(this.source, this.name, this.oldValue, this.newValue);
+
+ String toString() =&gt;
+     "{PropertyChangeEvent: source=$source name=$name, oldValue=$oldValue"
+     " newValue=$newValue";
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="PropertyChangeEvent">
+<button class="show-code">Code</button>
+const <strong>PropertyChangeEvent</strong>(<a href="http://api.dartlang.org/dart_core/Object.html">Object</a> source, <a href="http://api.dartlang.org/dart_core/String.html">String</a> name, oldValue, newValue) <a class="anchor-link" href="#PropertyChangeEvent"
+              title="Permalink to PropertyChangeEvent.PropertyChangeEvent">#</a></h4>
+<div class="doc">
+<pre class="source">
+const PropertyChangeEvent(this.source, this.name, this.oldValue, this.newValue);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="name">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/String.html">String</a>         <strong>name</strong> <a class="anchor-link"
+            href="#name"
+            title="Permalink to PropertyChangeEvent.name">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+name
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="newValue">
+<button class="show-code">Code</button>
+final         <strong>newValue</strong> <a class="anchor-link"
+            href="#newValue"
+            title="Permalink to PropertyChangeEvent.newValue">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+newValue
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="oldValue">
+<button class="show-code">Code</button>
+final         <strong>oldValue</strong> <a class="anchor-link"
+            href="#oldValue"
+            title="Permalink to PropertyChangeEvent.oldValue">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+oldValue
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="source">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/Object.html">Object</a>         <strong>source</strong> <a class="anchor-link"
+            href="#source"
+            title="Permalink to PropertyChangeEvent.source">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+source
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="toString">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to PropertyChangeEvent.toString">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Returns a string representation of this object.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+String toString() =&gt;
+   "{PropertyChangeEvent: source=$source name=$name, oldValue=$oldValue"
+   " newValue=$newValue";
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.307</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

@@ -1,0 +1,411 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>LayerControl class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="LayerControl">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/LayerControl.html">LayerControl</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><div class="icon-class"></div><strong>LayerControl</strong></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>LayerControl</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class LayerControl extends MapControl {
+ static const _TEMPLATE = """
+ &lt;div class="layer-control"&gt;
+ &lt;table&gt;
+ &lt;/table&gt;
+ &lt;/div&gt;
+ """;
+
+ @override
+ LayerControl([MapViewport map]) : super(map);
+
+ final Map&lt;int, StreamSubscription&gt; _layerSubscriptions
+   = new Map&lt;int, StreamSubscription&gt;();
+
+ static const _ROW_TEMPLATE = """
+ &lt;tr&gt;
+  &lt;td class="layer-visibility"&gt;&lt;input type="checkbox"&gt;&lt;/td&gt;
+  &lt;td class="layer-name"&gt;&lt;span title=""&gt;&lt;/span&gt;&lt;/td&gt;   
+ &lt;/tr&gt;
+ """;
+
+ detach() {
+   super.detach();
+   _layerSubscriptions.keys.forEach((id) {
+     _layerSubscriptions[id].cancel();
+   });
+   _layerSubscriptions.clear();
+ }
+
+ Element _buildLayerRow(Layer layer) {
+   //TODO: replace with a kind of builder.  Element.html will probably disapear
+   var tr = new Element.html(_ROW_TEMPLATE);
+   var span = tr.query("td.layer-name").query("span");
+   span.innerHtml = layer.name;
+   span.attributes["title"] = layer.name; // tooltip
+   var cb = tr.query("input");
+   _cbSetChecked(cb, layer.visible);
+   cb.dataset["layerId"] = layer.id.toString();
+   tr.dataset["layerId"] = layer.id.toString();
+   return tr;
+ }
+
+ _buildHtml() {
+   _root = new Element.html(_TEMPLATE);
+   var size = _map.viewportSize;
+   var left = size.x - 20 - 200;
+   _root.style
+     ..left = "${left}px"
+     ..top = "20px";
+
+   var rows = _map.layers.map((l) =&gt; _buildLayerRow(l));
+   var table = _root.query("table");
+   table.children.clear();
+   table.children.addAll(rows);
+ }
+
+ _wireEventListeners() {
+   // click events in the layer control
+   _subscriptions.add(
+      _root.onClick.listen(_handleClick)
+   );
+
+   // layer events (add, remove, move) in the map viewport
+   _subscriptions.add(
+       _map.onLayersChanged.listen(_handleLayerEvent)
+   );
+
+   // layer properties (name, visible) in a layer
+   _map.layers.forEach((l) {
+     _layerSubscriptions[l.id] =
+         l.onPropertyChanged.listen(_handleLayerPropertyChange);
+   });
+ }
+
+ _handleClick(evt) {
+   var target = evt.target;
+   if (evt.target is InputElement) {
+     _toggleLayerVisibility(evt);
+   }
+ }
+
+ _layerTr(lid) =&gt; _root
+     .queryAll("tr")
+     .firstWhere((e)=&gt;e.dataset["layerId"] == lid.toString());
+
+ _handleLayerEvent(LayerEvent evt) {
+   handleAdded(LayerEvent evt) {
+     var tr = _buildLayerRow(evt.layer);
+     _root.query("table").children.add(tr);
+     _layerSubscriptions[evt.layer.id] =
+         evt.layer.onPropertyChanged.listen(_handleLayerPropertyChange);
+   }
+   handleRemoved(LayerEvent evt) {
+     var lid = evt.layer.id;
+     var tr = _layerTr(lid);
+     if (tr == null) {
+       print("warning: didn't find table row for layer with id $lid");
+       return;
+     }
+     var table = _root.query("table");
+     table.children.remove(tr);
+     var subscription = _layerSubscriptions[lid];
+     if (subscription != null) {
+       subscription.cancel();
+     }
+   }
+   switch(evt.type) {
+     case LayerEvent.ADDED:
+       handleAdded(evt);
+       break;
+     case LayerEvent.REMOVED:
+       handleRemoved(evt);
+       break;
+     default: /* ignore */
+   }
+ }
+
+ _cbSetChecked(cb, value) {
+   if (value) {
+     cb.attributes["checked"] = "checked";
+   } else {
+     cb.attributes.remove("checked");
+   }
+ }
+
+ _handleLayerPropertyChange(evt) {
+   handleNameChange(evt) {
+     var lid = evt.source.id;
+     var span = _layerTr(lid).query("span");
+     span.innerHtml = evt.newValue;
+   }
+
+   handleVisibleChange(evt) {
+     var lid = evt.source.id;
+     var cb = _layerTr(lid).query("input");
+     _cbSetChecked(cb, evt.newValue);
+   }
+   switch(evt.name) {
+     case "name": handleNameChange(evt); break;
+     case "visible": handleVisibleChange(evt);break;
+     default: /* ignore */
+   }
+ }
+
+ _toggleLayerVisibility(evt) {
+   if (evt.target is! InputElement) return;
+   var cb = evt.target;
+   var lid = cb.dataset["layerId"];
+   if (lid == null) return; //TODO: warning
+   try {
+     lid = int.parse(lid);
+   } catch(e) {
+     //TODO: warning
+     return;
+   }
+   var layer = _map.layers.firstWhere((l) =&gt; l.id == lid);
+   if (layer == null) {
+     //TODO: warning
+     return;
+   }
+   var visible = !layer.visible;
+   layer.visible = visible;
+ }
+
+ _build() {
+   _buildHtml();
+   _wireEventListeners();
+ }
+
+ var _defaultPosition = null;
+ @override
+ get defaultPosition {
+   if (_defaultPosition == null &amp;&amp; map != null) {
+     var vs = map.viewportSize;
+     _defaultPosition = new Point(vs.x-200, 20);
+   }
+   return _defaultPosition;
+ }
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.map/MapControl.html">MapControl</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>LayerControl</strong></span></p>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="LayerControl">
+<button class="show-code">Code</button>
+new <strong>LayerControl</strong>([<a href="../dartkart.map/MapViewport.html">MapViewport</a> map]) <a class="anchor-link" href="#LayerControl"
+              title="Permalink to LayerControl.LayerControl">#</a></h4>
+<div class="doc">
+<pre class="source">
+@override
+LayerControl([MapViewport map]) : super(map);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="defaultPosition">
+<button class="show-code">Code</button>
+final         <strong>defaultPosition</strong> <a class="anchor-link"
+            href="#defaultPosition"
+            title="Permalink to LayerControl.defaultPosition">#</a>
+        </h4>
+        <div class="doc">
+<div class="inherited">
+<p>the default position of the control if no position has been
+set explicitly using <code>placeAt</code>.</p>
+<p>Override in subclasses.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div></div>
+<pre class="source">
+@override
+get defaultPosition {
+ if (_defaultPosition == null &amp;&amp; map != null) {
+   var vs = map.viewportSize;
+   _defaultPosition = new Point(vs.x-200, 20);
+ }
+ return _defaultPosition;
+}
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="map">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>map</strong> <a class="anchor-link"
+            href="#map"
+            title="Permalink to LayerControl.map">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>the map this control is attached to, or null</p>
+<pre class="source">
+MapViewport get map =&gt; _map;
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="root">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/Element.html">Element</a>         <strong>root</strong> <a class="anchor-link"
+            href="#root"
+            title="Permalink to LayerControl.root">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>the root DOM element for this map control</p>
+<pre class="source">
+Element get root =&gt; _root;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method inherited"><h4 id="applyPosition">
+<button class="show-code">Code</button>
+<strong>applyPosition</strong>() <a class="anchor-link" href="#applyPosition"
+              title="Permalink to LayerControl.applyPosition">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Applies the current position to the appropriate DOM element.</p>
+<pre class="source">
+applyPosition() {
+ if (_root == null) return;
+ var pos = _position == null ? defaultPosition : _position;
+ if (pos == null) {
+   //TODO: log a warning ?
+   return;
+ }
+ _root.style
+   ..left = "${pos.x}px"
+   ..top = "${pos.y}px";
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
+              title="Permalink to LayerControl.attach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Attaches this control to the map 
+<span class="param">viewport</span>.</p>
+<pre class="source">
+attach(MapViewport viewport) {
+ if (viewport == null) throw new ArgumentError("viewport must not be null");
+ // already attached ?
+ if (_map != null) {
+   if (_map == viewport) {
+     return;  // don't attach again
+   } else {
+     detach(); // detach the currently attached, then attach the new one
+   }
+ }
+ this._map = viewport;
+ var controlsPane = _map.controlsPane;
+ //TODO: log a warning?
+ if (controlsPane == null) return;
+ _build();
+ controlsPane.controls.add(this);
+ controlsPane.root.children.add(_root);
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to LayerControl.detach">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Detaches this control from the map viewport it is currently
+attached to (if any).</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div></div>
+<pre class="source">
+detach() {
+ super.detach();
+ _layerSubscriptions.keys.forEach((id) {
+   _layerSubscriptions[id].cancel();
+ });
+ _layerSubscriptions.clear();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="layout">
+<button class="show-code">Code</button>
+<strong>layout</strong>() <a class="anchor-link" href="#layout"
+              title="Permalink to LayerControl.layout">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Invoke this to force to (re-)layout the map control in the current
+map viewport.</p>
+<pre class="source">
+layout() {}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="placeAt">
+<button class="show-code">Code</button>
+<strong>placeAt</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y) <a class="anchor-link" href="#placeAt"
+              title="Permalink to LayerControl.placeAt">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Places the control at the position (
+<span class="param">x</span>, 
+<span class="param">y</span>).</p>
+<pre class="source">
+placeAt(int x, int y) {
+ _position = new Point(x,y);
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.540</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

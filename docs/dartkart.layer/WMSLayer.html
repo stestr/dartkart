@@ -1,0 +1,706 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>WMSLayer class / dartkart.layer Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.layer" data-type="WMSLayer">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.layer.html">dartkart.layer</a> &rsaquo; <a href="../dartkart.layer/WMSLayer.html">WMSLayer</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><ul class="icon">
+<li><a href="../dartkart.layer/CanvasRenderer.html"><div class="icon-class"></div>CanvasRenderer</a></li>
+<li><a href="../dartkart.layer/ImgGridRenderer.html"><div class="icon-class"></div>ImgGridRenderer</a></li>
+<li><a href="../dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
+<li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
+<li><a href="../dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
+<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
+<li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
+<li><a href="../dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
+<li><a href="../dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
+<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
+<li><div class="icon-class"></div><strong>WMSLayer</strong></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
+<div class="content">
+        <h2><strong>WMSLayer</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class WMSLayer extends TileLayer {
+
+ String _serviceUrl;
+ final List&lt;String&gt; _layers = [];
+ Map&lt;String, String&gt; _defaultParameters;
+
+ _initParameters(Map userParameters) {
+   if (userParameters == null) {
+     userParameters = {};
+   }
+
+   _defaultParameters = new Map();
+   // normalize case
+   userParameters.keys.forEach((k) {
+     _defaultParameters[k.toUpperCase()] = userParameters[k];
+   });
+   if (!_defaultParameters.containsKey("SERVICE")) {
+     _defaultParameters["SERVICE"] = "WMS";
+   }
+   if (!_defaultParameters.containsKey("VERSION")) {
+     _defaultParameters["VERSION"] = "1.0.0";
+   }
+   if (!_defaultParameters.containsKey("FORMAT")) {
+     _defaultParameters["FORMAT"] = "image/png";
+   }
+   if (!_defaultParameters.containsKey("SRS")) {
+     _defaultParameters["SRS"] = "EPSG:4326";
+   }
+ }
+ /**
+  * [serviceUrl] is base URL of the WMS server.
+  *
+  * [layers] is either a single layer name or a list of layer
+  * names.
+  *
+  * [parameters] is a map of WMS request parameters.
+  *
+  * ##Examples
+  *    var layer1 = new WmsLayer(
+  *      serviceUrl: "https://wms.geo.admin.ch?",
+  *      layers: "ch.are.gemeindetypen"
+  *    );
+  *
+  *    var layer2 = new WmsLayer(
+  *      serviceUrl: "https://wms.geo.admin.ch?",
+  *      layers: ["ch.are.gemeindetypen", "ch.are.alpenkonvention"],
+  *      parameters: {
+  *        "FORMAT": "image/jpeg"
+  *      }
+  *    );
+  */
+ WMSLayer({String serviceUrl, layers, Map parameters, renderer})
+   : super(renderer:renderer)
+ {
+     if (?serviceUrl) this.serviceUrl = serviceUrl;
+     if (?layers) this.layers = layers;
+     _initParameters(parameters);
+ }
+
+ /// the layer(s) to be loaded from the WMS server
+ List&lt;String&gt; get layers =&gt; _layers;
+
+ /**
+  * Sets the layer(s) to be retrieved from the WMS server.
+  *
+  * ## Possible values
+  * * [String] - a single layer
+  * * [List] - a list of layer names
+  */
+ set layers(value) {
+   if (value is String) {
+     _layers.clear();
+     _layers.add(value);
+   } else if (value is List) {
+     _layers.clear();
+     _layers.addAll(value);
+   } else {
+     throw new ArgumentError("expected String or list thereof, got $value");
+   }
+ }
+
+ /// sets the service URL
+ set serviceUrl(String value) {
+   if (value != null &amp;&amp; value.endsWith("?")) {
+     value = value.substring(0, value.length -1);
+   }
+   _serviceUrl = value;
+ }
+
+ /// the URL of the WMS server or null, if the server URL
+ /// isn't configured yet
+ String get serviceUrl =&gt; _serviceUrl;
+
+ /**
+  * Builds the tile bounding box for tile ([x],[y]) in geographic
+  * coordinates.
+  */
+ //TODO: Order of components in the bbox string changed in WMS 1.3.0?
+ String buildGeographicTileBBox(int x, int y, int zoom) {
+   var size = tileSize;
+   var tx = x * tileSize.x;
+   var ty = y * tileSize.y + (tileSize.y - 1);
+   var min = map.mapToEarth(map.zoomPlaneToMap(new Point(tx, ty)));
+
+   tx = tx + tileSize.x - 1;
+   ty = y * tileSize.y;
+   var max = map.mapToEarth(map.zoomPlaneToMap(new Point(tx, ty)));
+   return "${min.lon},${min.lat},${max.lon},${max.lat}";
+ }
+
+ /**
+  * Indicates whether the bounding box of a WMS `GetMap`request is
+  * expressed in geographic or in projected coordinates.
+  *
+  * * if false, the bounding box is expressed in geographic coordinates,
+  *   i.e. in WGS84 aka
+  *   [EPSG:4326](http://spatialreference.org/ref/epsg/4326/)
+  *
+  * * if true, the bounding box is expressed in projected coordinates,
+  *   that is coordinate reference system configured on the
+  *   map viewport, see [MapViewport.crs].
+  *
+  * Default value is false.
+  */
+ bool useProjectedCoordinates = false;
+
+ /**
+  * Builds the tile bounding box for tile ([x],[y]) in projected
+  * coordinates
+  */
+ //TODO: Order of components in the bbox string changed in WMS 1.3.0?
+ String buildProjectedTileBBox(int x, int y, int zoom) {
+   var size = tileSize;
+   var tx = x * tileSize.x;
+   var ty = y * tileSize.y + (tileSize.y - 1);
+   var min = map.zoomPlaneToMap(new Point(tx, ty));
+
+   tx = tx + tileSize.x - 1;
+   ty = y * tileSize.y;
+   var max = map.zoomPlaneToMap(new Point(tx, ty));
+   return "${min.x},${min.y},${max.x},${max.y}";
+ }
+
+ bindTileToUrl(int x, int y, int zoom) {
+   var ts = tileSize;
+   var parameters = new Map.from(_defaultParameters);
+   parameters["REQUEST"] = "GetMap";
+   parameters["LAYERS"] = _layers.join(",");
+   parameters["WIDTH"] = ts.x.toString();
+   parameters["HEIGHT"] = ts.y.toString();
+   if (useProjectedCoordinates) {
+     parameters["BBOX"] = buildProjectedTileBBox(x,y,zoom);
+     parameters["SRS"] = _map.crs.code;
+   } else {
+     parameters["BBOX"] = buildGeographicTileBBox(x,y,zoom);
+     parameters["SRS"] = "EPSG:4326";
+   }
+
+   var query = parameters.keys.map((k) =&gt; "$k=${parameters[k]}").join("&amp;");
+   var url = "$_serviceUrl?$query";
+   return url;
+ }
+
+ render() {
+   if (_serviceUrl == null) {
+     print("WARNING: can't render, serviceUrl not defined");
+     return;
+   }
+   if (_layers.isEmpty) {
+     print("WARNING: can't render, no layers defined");
+     return;
+   }
+   super.render();
+ }
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/Layer.html">Layer</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/TileLayer.html">TileLayer</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>WMSLayer</strong></span></p>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="WMSLayer">
+<button class="show-code">Code</button>
+new <strong>WMSLayer</strong>({<a href="http://api.dartlang.org/dart_core/String.html">String</a> serviceUrl, layers, <a href="http://api.dartlang.org/dart_core/Map.html">Map</a> parameters, renderer}) <a class="anchor-link" href="#WMSLayer"
+              title="Permalink to WMSLayer.WMSLayer">#</a></h4>
+<div class="doc">
+<p>
+<span class="param">serviceUrl</span> is base URL of the WMS server.</p>
+<p>
+<span class="param">layers</span> is either a single layer name or a list of layer
+names.</p>
+<p>
+<span class="param">parameters</span> is a map of WMS request parameters.</p>
+<h2>Examples</h2>
+<p>   var layer1 = new WmsLayer(</p>
+<pre><code> serviceUrl: "https://wms.geo.admin.ch?",
+ layers: "ch.are.gemeindetypen"
+</code></pre>
+<p>   );</p>
+<p>   var layer2 = new WmsLayer(</p>
+<pre><code> serviceUrl: "https://wms.geo.admin.ch?",
+ layers: ["ch.are.gemeindetypen", "ch.are.alpenkonvention"],
+ parameters: {
+   "FORMAT": "image/jpeg"
+ }
+</code></pre>
+<p>   );</p>
+<pre class="source">
+WMSLayer({String serviceUrl, layers, Map parameters, renderer})
+ : super(renderer:renderer)
+{
+   if (?serviceUrl) this.serviceUrl = serviceUrl;
+   if (?layers) this.layers = layers;
+   _initParameters(parameters);
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field inherited"><h4 id="container">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/DivElement.html">DivElement</a>         <strong>container</strong> <a class="anchor-link"
+            href="#container"
+            title="Permalink to WMSLayer.container">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>The <code>Element</code> this layer uses as container.</p>
+<pre class="source">
+DivElement get container =&gt; _container;
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="domId">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>get domId</strong> <a class="anchor-link" href="#domId"
+              title="Permalink to WMSLayer.get domId">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>the unique layer id</p>
+<pre class="source">
+String get domId =&gt; _container.attributes["id"];
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="domId=">
+<button class="show-code">Code</button>
+<strong>set domId</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#domId="
+              title="Permalink to WMSLayer.set domId">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>Sets the DOM  id on the layer <code>container</code>.</p>
+<p>If 
+<span class="param">value</span> is null or empty, sets a default id.</p>
+<pre class="source">
+set domId(String value) {
+ if (value != null) value = value.trim();
+ if (value == null || value.isEmpty) {
+   value = _defaultDOMId();
+ }
+ _container.attributes["id"] = value;
+}
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="id">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>id</strong> <a class="anchor-link"
+            href="#id"
+            title="Permalink to WMSLayer.id">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>replies the unique numeric id for this layer</p>
+<pre class="source">
+int get id =&gt; _nid;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="layers">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/List.html">List</a>&lt;<a href="http://api.dartlang.org/dart_core/String.html">String</a>&gt; <strong>get layers</strong> <a class="anchor-link" href="#layers"
+              title="Permalink to WMSLayer.get layers">#</a></h4>
+<div class="doc">
+<p>the layer(s) to be loaded from the WMS server</p>
+<pre class="source">
+List&lt;String&gt; get layers =&gt; _layers;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="layers=">
+<button class="show-code">Code</button>
+<strong>set layers</strong>(value) <a class="anchor-link" href="#layers="
+              title="Permalink to WMSLayer.set layers">#</a></h4>
+<div class="doc">
+<p>Sets the layer(s) to be retrieved from the WMS server.</p>
+<h2>Possible values</h2><ul><li><code>String</code> - a single layer</li><li><code>List</code> - a list of layer names</li></ul>
+<pre class="source">
+set layers(value) {
+ if (value is String) {
+   _layers.clear();
+   _layers.add(value);
+ } else if (value is List) {
+   _layers.clear();
+   _layers.addAll(value);
+ } else {
+   throw new ArgumentError("expected String or list thereof, got $value");
+ }
+}
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="map">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>map</strong> <a class="anchor-link"
+            href="#map"
+            title="Permalink to WMSLayer.map">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>the map this layer is attached to, or null</p>
+<pre class="source">
+MapViewport get map =&gt; _map;
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="name">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>get name</strong> <a class="anchor-link" href="#name"
+              title="Permalink to WMSLayer.get name">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>the layer name</p>
+<pre class="source">
+String get name =&gt; _name;
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="name=">
+<button class="show-code">Code</button>
+<strong>set name</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#name="
+              title="Permalink to WMSLayer.set name">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>sets the layer name. If 
+<span class="param">value</span> is null or white space only,
+chooses a default name.</p>
+<pre class="source">
+set name(String value) {
+ if (value != null) value = value.trim();
+ var old = _name;
+ if (value == null || value.isEmpty) {
+   _name = "Layer ${_nextLayerId}";
+ } else {
+   _name = value;
+ }
+ notify("name", old, _name);
+}
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="onPropertyChanged">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a href="../dartkart.core/PropertyChangeEvent.html">PropertyChangeEvent</a>&gt;         <strong>onPropertyChanged</strong> <a class="anchor-link"
+            href="#onPropertyChanged"
+            title="Permalink to WMSLayer.onPropertyChanged">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<pre class="source">
+Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
+   _controller.stream;
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="opacity">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/double.html">double</a> <strong>get opacity</strong> <a class="anchor-link" href="#opacity"
+              title="Permalink to WMSLayer.get opacity">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>the opacity of this layer</p>
+<pre class="source">
+double get opacity =&gt; _opacity;
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="opacity=">
+<button class="show-code">Code</button>
+<strong>set opacity</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> value) <a class="anchor-link" href="#opacity="
+              title="Permalink to WMSLayer.set opacity">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>set the opacity of this layer. 
+<span class="param">value</span> is a <code>num</code> in the range
+(0.0 - 1.0). The lower the value, the more transparent the layer.</p>
+<pre class="source">
+set opacity(num value) {
+ value = math.max(0, value);
+ value = math.min(value, 1);
+ var oldvalue = _opacity;
+ this._opacity = value.toDouble();
+ if (oldvalue != this._opacity) {
+   notify("opacity", oldvalue, this._opacity);
+   if (_map != null) {
+     _map.render();
+   }
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="serviceUrl">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>get serviceUrl</strong> <a class="anchor-link" href="#serviceUrl"
+              title="Permalink to WMSLayer.get serviceUrl">#</a></h4>
+<div class="doc">
+<p>the URL of the WMS server or null, if the server URL
+isn't configured yet</p>
+<pre class="source">
+String get serviceUrl =&gt; _serviceUrl;
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="serviceUrl=">
+<button class="show-code">Code</button>
+<strong>set serviceUrl</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#serviceUrl="
+              title="Permalink to WMSLayer.set serviceUrl">#</a></h4>
+<div class="doc">
+<p>sets the service URL</p>
+<pre class="source">
+set serviceUrl(String value) {
+ if (value != null &amp;&amp; value.endsWith("?")) {
+   value = value.substring(0, value.length -1);
+ }
+ _serviceUrl = value;
+}
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="tileSize">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>tileSize</strong> <a class="anchor-link"
+            href="#tileSize"
+            title="Permalink to WMSLayer.tileSize">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.layer/TileLayer.html">TileLayer</a> </div><div class="doc">
+<p>The tile size used by this tile layer. Replies a
+<code>Point</code>, <code>x</code> is the tile width, <code>y</code> the tile
+heigth.</p>
+<pre class="source">
+Point get tileSize =&gt; DEFAULT_TILE_SIZE;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="useProjectedCoordinates">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/bool.html">bool</a>         <strong>useProjectedCoordinates</strong> <a class="anchor-link"
+            href="#useProjectedCoordinates"
+            title="Permalink to WMSLayer.useProjectedCoordinates">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+useProjectedCoordinates = false
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="visible">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> <strong>get visible</strong> <a class="anchor-link" href="#visible"
+              title="Permalink to WMSLayer.get visible">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>the layer visibility</p>
+<pre class="source">
+bool get visible =&gt; _visible;
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="visible=">
+<button class="show-code">Code</button>
+<strong>set visible</strong>(<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> value) <a class="anchor-link" href="#visible="
+              title="Permalink to WMSLayer.set visible">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>sets whether this layer is visible or not</p>
+<pre class="source">
+set visible(bool value) {
+ var old = _visible;
+ if (value != old) {
+   if (_container != null) {
+     _container.style.visibility =
+         value ? "visible" : "hidden";
+   }
+   _visible = value;
+   notify("visible", old, value);
+ }
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method inherited"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> m) <a class="anchor-link" href="#attach"
+              title="Permalink to WMSLayer.attach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/TileLayer.html">TileLayer</a> </div><div class="doc">
+<div class="inherited">
+<p>Attaches the layer to a map viewport 
+<span class="param">m</span>.</p>
+<p>Throws <code>StateError</code> if this layer is already attached.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div></div>
+<pre class="source">
+attach(MapViewport m) {
+ super.attach(m);
+ var viewportSize = map.viewportSize;
+ var tl = map.topLeftInPage;
+ _container.style
+   ..width="100%"
+   ..height="100%"
+   ..position = "absolute"
+   ..left = "0px"
+   ..top = "0px";
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="bindTileToUrl">
+<button class="show-code">Code</button>
+<strong>bindTileToUrl</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y, <a href="http://api.dartlang.org/dart_core/int.html">int</a> zoom) <a class="anchor-link" href="#bindTileToUrl"
+              title="Permalink to WMSLayer.bindTileToUrl">#</a></h4>
+<div class="doc">
+<pre class="source">
+bindTileToUrl(int x, int y, int zoom) {
+ var ts = tileSize;
+ var parameters = new Map.from(_defaultParameters);
+ parameters["REQUEST"] = "GetMap";
+ parameters["LAYERS"] = _layers.join(",");
+ parameters["WIDTH"] = ts.x.toString();
+ parameters["HEIGHT"] = ts.y.toString();
+ if (useProjectedCoordinates) {
+   parameters["BBOX"] = buildProjectedTileBBox(x,y,zoom);
+   parameters["SRS"] = _map.crs.code;
+ } else {
+   parameters["BBOX"] = buildGeographicTileBBox(x,y,zoom);
+   parameters["SRS"] = "EPSG:4326";
+ }
+
+ var query = parameters.keys.map((k) =&gt; "$k=${parameters[k]}").join("&amp;");
+ var url = "$_serviceUrl?$query";
+ return url;
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="buildGeographicTileBBox">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>buildGeographicTileBBox</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y, <a href="http://api.dartlang.org/dart_core/int.html">int</a> zoom) <a class="anchor-link" href="#buildGeographicTileBBox"
+              title="Permalink to WMSLayer.buildGeographicTileBBox">#</a></h4>
+<div class="doc">
+<p>Builds the tile bounding box for tile (
+<span class="param">x</span>,
+<span class="param">y</span>) in geographic
+coordinates.</p>
+<pre class="source">
+String buildGeographicTileBBox(int x, int y, int zoom) {
+ var size = tileSize;
+ var tx = x * tileSize.x;
+ var ty = y * tileSize.y + (tileSize.y - 1);
+ var min = map.mapToEarth(map.zoomPlaneToMap(new Point(tx, ty)));
+
+ tx = tx + tileSize.x - 1;
+ ty = y * tileSize.y;
+ var max = map.mapToEarth(map.zoomPlaneToMap(new Point(tx, ty)));
+ return "${min.lon},${min.lat},${max.lon},${max.lat}";
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="buildProjectedTileBBox">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>buildProjectedTileBBox</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y, <a href="http://api.dartlang.org/dart_core/int.html">int</a> zoom) <a class="anchor-link" href="#buildProjectedTileBBox"
+              title="Permalink to WMSLayer.buildProjectedTileBBox">#</a></h4>
+<div class="doc">
+<p>Builds the tile bounding box for tile (
+<span class="param">x</span>,
+<span class="param">y</span>) in projected
+coordinates</p>
+<pre class="source">
+String buildProjectedTileBBox(int x, int y, int zoom) {
+ var size = tileSize;
+ var tx = x * tileSize.x;
+ var ty = y * tileSize.y + (tileSize.y - 1);
+ var min = map.zoomPlaneToMap(new Point(tx, ty));
+
+ tx = tx + tileSize.x - 1;
+ ty = y * tileSize.y;
+ var max = map.zoomPlaneToMap(new Point(tx, ty));
+ return "${min.x},${min.y},${max.x},${max.y}";
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to WMSLayer.detach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<p>Detaches this layer from the map viewport it is
+currently attached to.</p>
+<pre class="source">
+detach(){
+ _map = null;
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="notify">
+<button class="show-code">Code</button>
+<strong>notify</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> property, oldValue, newValue) <a class="anchor-link" href="#notify"
+              title="Permalink to WMSLayer.notify">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<pre class="source">
+notify(String property, oldValue, newValue) {
+ if (oldValue == newValue) return;
+ _controller.sink.add(
+     new PropertyChangeEvent(this, property, oldValue,newValue)
+  );
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="render">
+<button class="show-code">Code</button>
+<strong>render</strong>() <a class="anchor-link" href="#render"
+              title="Permalink to WMSLayer.render">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Renders the layer.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div></div>
+<pre class="source">
+render() {
+ if (_serviceUrl == null) {
+   print("WARNING: can't render, serviceUrl not defined");
+   return;
+ }
+ if (_layers.isEmpty) {
+   print("WARNING: can't render, no layers defined");
+   return;
+ }
+ super.render();
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.481</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

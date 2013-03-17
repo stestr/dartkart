@@ -1,0 +1,48 @@
+---
+layout: default
+title: dartkart - web cartografy with Dart
+id: demo
+---
+
+<div class="row-fluid">  
+  <div class="span12">
+  <ul class="nav nav-pills">
+    <li id="btn-demo-1" class="btn-demo"><a href="#">Map controls</a></li>
+    <li id="btn-demo-2" class="btn-demo"><a href="#">WMS Layers</a></li>
+  </ul>
+  </div>
+
+
+  <div id="div-demo-1" class="div-demo span12" style="display:none">
+  <div class="span3">
+    <h3>Example 1</h3>
+A simple tiled map with three map controls. 
+
+* an interactive *pan control* (pan east, west, south, and north)
+* an interactive *zoom level control* (select a zoom level, zoom in, or zoom out)
+* a *scale control* providing scale information on the current zoom level    
+  </div>
+  <div class="span9">
+    <div id="demo1-map"></div>
+
+p(attribution). *Attribuition*: Map content "&#169; OpenStreetMap contributors":http://www.openstreetmap.org/copyright
+  
+  </div>
+  </div>
+
+  <div id="div-demo-2" class="div-demo span12">
+  <div class="span3">
+  <h3>Example 2</h3>  
+A map which displays two layers:
+
+# a tile layer provided by the OpenStreetMap project
+# a "WMS":http://en.wikipedia.org/wiki/Web_Map_Service layer with data about community types in Switzerland 
+  </div>
+  <div class="span9">
+   <div id="demo2-map"></div>  
+
+p(attribution). *Attribuition*: Map content "&#169; OpenStreetMap contributors":http://www.openstreetmap.org/copyright, Map content "&#169; Swiss Government":http://www.geo.admin.ch/internet/geoportal/de/home/services/geoservices/display_services/services_wms.html
+  
+  </div>
+  </div>
+</div>

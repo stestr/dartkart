@@ -1,8 +1,60 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>{{ page.title }}</title>
-</head>
-<body>
-{{ page.content | textilize}}
-</body>
+  <head>
+    <title>{{ page.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="css/dartkart.css" rel="stylesheet" media="screen">
+    <link href="css/controls.css" rel="stylesheet" media="screen">
+    {% if page.id == "main" %}
+    <script src="js/dartkart.js"></script>
+    {% endif %} 
+  </head>
+
+    {% if page.id == "main" %}
+    <body id="{{ page.id }}" onload="detectExecutionEnvironment()">
+    {% else %}
+    <body id="{{ page.id }}">
+    {% endif %} 
+
+    {{page.id}}    
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">dartkart</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="/">Home</a></li>
+              <li><a href="/demo.html">Samples</a></li>
+              <li><a href="/docs/dartkart.html" target="docs">API Doc</a></li>
+              <li><a href="https://github.com/Gubaer/dartkart" target="github">Github</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid page">
+      <div class="row-fluid">
+        <div class="span12">
+          {{ page.content | textilize}}
+        </div>
+      </div>
+    </div>
+
+
+    <script type="application/dart" src="demo.dart"></script>
+    <!-- for this next line to work, your pubspec.yaml file must have a dependen
+    cy on 'browser' -->
+    <script src="packages/browser/dart.js"></script>
+
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
 </html>

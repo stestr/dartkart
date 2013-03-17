@@ -1,0 +1,300 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>MouseGesturePrimitive class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="MouseGesturePrimitive">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MouseGesturePrimitive.html">MouseGesturePrimitive</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><div class="icon-class"></div><strong>MouseGesturePrimitive</strong></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>MouseGesturePrimitive</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class MouseGesturePrimitive {
+ static const int CLICK = 0;
+ static const int DOUBLE_CLICK = 1;
+ static const int DRAG_START = 2;
+ static const int DRAG = 3;
+ static const int DRAG_END = 4;
+ static const int HOVER = 5;
+
+ final int type;
+ final MouseEvent event;
+ MouseGesturePrimitive(this.type, this.event);
+ MouseGesturePrimitive.click(event) : this(CLICK, event);
+ MouseGesturePrimitive.doubleClick(event) : this(DOUBLE_CLICK, event);
+ MouseGesturePrimitive.drag(event) : this(DRAG, event);
+ MouseGesturePrimitive.hover(event) : this(HOVER, event);
+ MouseGesturePrimitive.dragStart(event) : this(DRAG_START, event);
+ MouseGesturePrimitive.dragEnd(event) : this(DRAG_END, event);
+
+ String get _typeAsString {
+   switch(type) {
+     case CLICK: return "CLICK";
+     case DOUBLE_CLICK: return "DOUBLE_CLICK";
+     case DRAG: return "DRAG";
+     case DRAG_START: return "DRAG_START";
+     case DRAG_END: return "DRAG_END";
+     case HOVER: return "HOVER";
+   }
+ }
+
+ bool get isDragPrimitive =&gt; type == DRAG_START || type == DRAG ||
+     type == DRAG_END;
+
+ toString() =&gt; "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
+    "y=${event.offset.y}";
+}
+</pre>
+</div>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="CLICK">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>CLICK</strong> <a class="anchor-link"
+            href="#CLICK"
+            title="Permalink to MouseGesturePrimitive.CLICK">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+CLICK = 0
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DOUBLE_CLICK">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DOUBLE_CLICK</strong> <a class="anchor-link"
+            href="#DOUBLE_CLICK"
+            title="Permalink to MouseGesturePrimitive.DOUBLE_CLICK">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+DOUBLE_CLICK = 1
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DRAG">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DRAG</strong> <a class="anchor-link"
+            href="#DRAG"
+            title="Permalink to MouseGesturePrimitive.DRAG">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+DRAG = 3
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DRAG_END">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DRAG_END</strong> <a class="anchor-link"
+            href="#DRAG_END"
+            title="Permalink to MouseGesturePrimitive.DRAG_END">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+DRAG_END = 4
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="DRAG_START">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DRAG_START</strong> <a class="anchor-link"
+            href="#DRAG_START"
+            title="Permalink to MouseGesturePrimitive.DRAG_START">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+DRAG_START = 2
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="HOVER">
+<button class="show-code">Code</button>
+const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>HOVER</strong> <a class="anchor-link"
+            href="#HOVER"
+            title="Permalink to MouseGesturePrimitive.HOVER">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+HOVER = 5
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="MouseGesturePrimitive">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> type, <a href="http://api.dartlang.org/dart_html/MouseEvent.html">MouseEvent</a> event) <a class="anchor-link" href="#MouseGesturePrimitive"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive(this.type, this.event);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGesturePrimitive.click">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive.click</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.click"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.click">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive.click(event) : this(CLICK, event);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGesturePrimitive.doubleClick">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive.doubleClick</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.doubleClick"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.doubleClick">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive.doubleClick(event) : this(DOUBLE_CLICK, event);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGesturePrimitive.drag">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive.drag</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.drag"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.drag">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive.drag(event) : this(DRAG, event);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGesturePrimitive.dragEnd">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive.dragEnd</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.dragEnd"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.dragEnd">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive.dragEnd(event) : this(DRAG_END, event);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGesturePrimitive.dragStart">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive.dragStart</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.dragStart"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.dragStart">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive.dragStart(event) : this(DRAG_START, event);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGesturePrimitive.hover">
+<button class="show-code">Code</button>
+new <strong>MouseGesturePrimitive.hover</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.hover"
+              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.hover">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGesturePrimitive.hover(event) : this(HOVER, event);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="event">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/MouseEvent.html">MouseEvent</a>         <strong>event</strong> <a class="anchor-link"
+            href="#event"
+            title="Permalink to MouseGesturePrimitive.event">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+event
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="isDragPrimitive">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/bool.html">bool</a>         <strong>isDragPrimitive</strong> <a class="anchor-link"
+            href="#isDragPrimitive"
+            title="Permalink to MouseGesturePrimitive.isDragPrimitive">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+bool get isDragPrimitive =&gt; type == DRAG_START || type == DRAG ||
+   type == DRAG_END;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="type">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>type</strong> <a class="anchor-link"
+            href="#type"
+            title="Permalink to MouseGesturePrimitive.type">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+type
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="toString">
+<button class="show-code">Code</button>
+<strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to MouseGesturePrimitive.toString">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Returns a string representation of this object.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+toString() =&gt; "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
+  "y=${event.offset.y}";
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.575</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

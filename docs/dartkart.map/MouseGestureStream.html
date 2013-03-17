@@ -1,0 +1,226 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>MouseGestureStream class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="MouseGestureStream">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MouseGestureStream.html">MouseGestureStream</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><div class="icon-class"></div><strong>MouseGestureStream</strong></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>MouseGestureStream</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class MouseGestureStream {
+ var _controler = new StreamController.broadcast();
+ var _subscriptions = [];
+
+ var _lastMouseDownPos = null;
+ var _lastMouseDownTimestamp = 0;
+ var _mouseDown = false;
+ var _isDragging = false;
+
+ MouseGestureStream();
+ MouseGestureStream.from(Element source) {
+   attach(source);
+ }
+
+ var deferredEvent = null;
+
+ _fireDeferred() {
+   if (deferredEvent != null) {
+     var e = deferredEvent;
+     deferredEvent = null;
+     _controler.sink.add(new MouseGesturePrimitive.click(e));
+   }
+ }
+
+ _rawMouseClick(evt) {
+   if (deferredEvent == null) {
+     var ts = new DateTime.now().millisecondsSinceEpoch;
+     if (ts - _lastMouseDownTimestamp &gt; 150) {
+       // a click generated at the end of a drag sequence
+       //      mouse down, mouse move, ..., mouse move, mouse up, click
+       // Ignore it.
+       return;
+     }
+     deferredEvent = evt;
+     new Timer(const Duration(milliseconds: 200), () =&gt; _fireDeferred());
+   } else {
+     deferredEvent = null;
+     _controler.sink.add(new MouseGesturePrimitive.doubleClick(evt));
+   }
+ }
+
+ _rawMouseMove(evt){
+   if (_mouseDown) {
+      if (!_isDragging) {
+        _controler.sink.add(new MouseGesturePrimitive.dragStart(evt));
+      }
+     _isDragging = true;
+   }
+   if (_isDragging) {
+     _controler.sink.add(new MouseGesturePrimitive.drag(evt));
+   } else {
+     _controler.sink.add(new MouseGesturePrimitive.hover(evt));
+   }
+ }
+
+ _rawMouseDown(MouseEvent evt) {
+   if (evt.button != 0 /* left */) return;
+   evt.preventDefault();
+   evt.stopPropagation();
+   _mouseDown = true;
+   _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
+   _lastMouseDownPos = new Point(evt.offset.x, evt.offset.y);
+ }
+
+ _rawMouseUp(MouseEvent evt) {
+   if (evt.button != 0 /* left */) return;
+   evt.preventDefault();
+   evt.stopPropagation();
+   if (_isDragging) {
+     _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
+   }
+   _mouseDown = false;
+   _isDragging = false;
+ }
+
+ get stream =&gt; _controler.stream;
+
+ detach() =&gt; _subscriptions.forEach((s) =&gt; s.cancel());
+
+ attach(Element source) {
+   _subscriptions.add(source.onClick.listen(_rawMouseClick));
+   _subscriptions.add(source.onMouseDown.listen(_rawMouseDown));
+   _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
+   _subscriptions.add(source.onMouseMove.listen(_rawMouseMove));
+ }
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="MouseGestureStream">
+<button class="show-code">Code</button>
+new <strong>MouseGestureStream</strong>() <a class="anchor-link" href="#MouseGestureStream"
+              title="Permalink to MouseGestureStream.MouseGestureStream">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGestureStream();
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="MouseGestureStream.from">
+<button class="show-code">Code</button>
+new <strong>MouseGestureStream.from</strong>(<a href="http://api.dartlang.org/dart_html/Element.html">Element</a> source) <a class="anchor-link" href="#MouseGestureStream.from"
+              title="Permalink to MouseGestureStream.MouseGestureStream.from">#</a></h4>
+<div class="doc">
+<pre class="source">
+MouseGestureStream.from(Element source) {
+ attach(source);
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="deferredEvent">
+<button class="show-code">Code</button>
+var         <strong>deferredEvent</strong> <a class="anchor-link"
+            href="#deferredEvent"
+            title="Permalink to MouseGestureStream.deferredEvent">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+deferredEvent = null
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="stream">
+<button class="show-code">Code</button>
+final         <strong>stream</strong> <a class="anchor-link"
+            href="#stream"
+            title="Permalink to MouseGestureStream.stream">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+get stream =&gt; _controler.stream;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="http://api.dartlang.org/dart_html/Element.html">Element</a> source) <a class="anchor-link" href="#attach"
+              title="Permalink to MouseGestureStream.attach">#</a></h4>
+<div class="doc">
+<pre class="source">
+attach(Element source) {
+ _subscriptions.add(source.onClick.listen(_rawMouseClick));
+ _subscriptions.add(source.onMouseDown.listen(_rawMouseDown));
+ _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
+ _subscriptions.add(source.onMouseMove.listen(_rawMouseMove));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to MouseGestureStream.detach">#</a></h4>
+<div class="doc">
+<pre class="source">
+detach() =&gt; _subscriptions.forEach((s) =&gt; s.cancel());
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.572</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

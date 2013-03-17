@@ -1,0 +1,207 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>LayerEvent class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="LayerEvent">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/LayerEvent.html">LayerEvent</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><div class="icon-class"></div><strong>LayerEvent</strong></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>LayerEvent</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>A layer event emitted by a <a class="crossref" href="../dartkart.map/MapViewport.html">MapViewport</a></p>
+<pre class="source">
+class LayerEvent {
+ /// layer has been added
+ static const ADDED = 0;
+ /// layer has been removed
+ static const REMOVED = 1;
+ /// layer has been moved
+ static const MOVED = 2;
+
+ /// the map viewport emitting the event
+ final MapViewport map;
+ /// the layer
+ final Layer layer;
+ /// the type of event (either [ADDED], [REMOVED], or [MOVED]
+ final type;
+
+ /// Creates an event of type [type] emitted by [map] for [layer]
+ const LayerEvent(this.map, this.layer, this.type);
+ const LayerEvent.added(map, layer): this(map, layer, ADDED);
+ const LayerEvent.removed(map, layer):this(map, layer, REMOVED);
+ const LayerEvent.moved(map, layer): this(map, layer, MOVED);
+}
+</pre>
+</div>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="ADDED">
+<button class="show-code">Code</button>
+const         <strong>ADDED</strong> <a class="anchor-link"
+            href="#ADDED"
+            title="Permalink to LayerEvent.ADDED">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+ADDED = 0
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="MOVED">
+<button class="show-code">Code</button>
+const         <strong>MOVED</strong> <a class="anchor-link"
+            href="#MOVED"
+            title="Permalink to LayerEvent.MOVED">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+MOVED = 2
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="REMOVED">
+<button class="show-code">Code</button>
+const         <strong>REMOVED</strong> <a class="anchor-link"
+            href="#REMOVED"
+            title="Permalink to LayerEvent.REMOVED">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+REMOVED = 1
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="LayerEvent">
+<button class="show-code">Code</button>
+const <strong>LayerEvent</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> map, <a href="../dartkart.layer/Layer.html">Layer</a> layer, type) <a class="anchor-link" href="#LayerEvent"
+              title="Permalink to LayerEvent.LayerEvent">#</a></h4>
+<div class="doc">
+<p>Creates an event of type 
+<span class="param">type</span> emitted by 
+<span class="param">map</span> for 
+<span class="param">layer</span></p>
+<pre class="source">
+const LayerEvent(this.map, this.layer, this.type);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="LayerEvent.added">
+<button class="show-code">Code</button>
+const <strong>LayerEvent.added</strong>(map, layer) <a class="anchor-link" href="#LayerEvent.added"
+              title="Permalink to LayerEvent.LayerEvent.added">#</a></h4>
+<div class="doc">
+<pre class="source">
+const LayerEvent.added(map, layer): this(map, layer, ADDED);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="LayerEvent.moved">
+<button class="show-code">Code</button>
+const <strong>LayerEvent.moved</strong>(map, layer) <a class="anchor-link" href="#LayerEvent.moved"
+              title="Permalink to LayerEvent.LayerEvent.moved">#</a></h4>
+<div class="doc">
+<pre class="source">
+const LayerEvent.moved(map, layer): this(map, layer, MOVED);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="LayerEvent.removed">
+<button class="show-code">Code</button>
+const <strong>LayerEvent.removed</strong>(map, layer) <a class="anchor-link" href="#LayerEvent.removed"
+              title="Permalink to LayerEvent.LayerEvent.removed">#</a></h4>
+<div class="doc">
+<pre class="source">
+const LayerEvent.removed(map, layer):this(map, layer, REMOVED);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="layer">
+<button class="show-code">Code</button>
+final <a href="../dartkart.layer/Layer.html">Layer</a>         <strong>layer</strong> <a class="anchor-link"
+            href="#layer"
+            title="Permalink to LayerEvent.layer">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+layer
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="map">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>map</strong> <a class="anchor-link"
+            href="#map"
+            title="Permalink to LayerEvent.map">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+map
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="type">
+<button class="show-code">Code</button>
+final         <strong>type</strong> <a class="anchor-link"
+            href="#type"
+            title="Permalink to LayerEvent.type">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+type
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.603</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

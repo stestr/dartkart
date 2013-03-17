@@ -1,0 +1,379 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>ScaleIndicatorControl class / dartkart.map Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.map" data-type="ScaleIndicatorControl">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/ScaleIndicatorControl.html">ScaleIndicatorControl</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2><ul class="icon">
+<li><a href="../dartkart.map/ControlsPane.html"><div class="icon-class"></div>ControlsPane</a></li>
+<li><a href="../dartkart.map/LayerControl.html"><div class="icon-class"></div>LayerControl</a></li>
+<li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
+<li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
+<li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
+<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
+<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
+<li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
+<li><div class="icon-class"></div><strong>ScaleIndicatorControl</strong></li>
+<li><a href="../dartkart.map/SimpleZoomControl.html"><div class="icon-class"></div>SimpleZoomControl</a></li>
+<li><a href="../dartkart.map/ZoomControl.html"><div class="icon-class"></div>ZoomControl</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>ScaleIndicatorControl</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>A scale indicator control displays information about the current
+map scale.</p>
+<pre class="source">
+class ScaleIndicatorControl extends MapControl {
+
+ static const SVG_CONTENT = """&lt;svg
+ xmlns:svg="http://www.w3.org/2000/svg"
+ xmlns="http://www.w3.org/2000/svg"
+ width="200"
+ height="100"
+ version="1.1"&gt;
+
+ &lt;g class="scale-indicator-control"&gt;
+   &lt;g class="scale-kilometers"&gt;
+     &lt;rect class="bar" x="0" y="0" width="100" height="15"/&gt;
+     &lt;text class="label" x="5" y="12"&gt;1000 km&lt;/text&gt;
+
+   &lt;/g&gt;
+   &lt;g class="scale-miles"&gt;
+     &lt;rect class="bar" x="0" y="20" width="100" height="15"/&gt;
+     &lt;text class="label" x="5" y="32"&gt;500 mi&lt;/text&gt;
+   &lt;/g&gt;
+ &lt;/g&gt;
+ &lt;/svg&gt;
+ """;
+
+ @override
+ ScaleIndicatorControl([MapViewport map]): super(map);
+
+ _build() {
+   _root = new Element.tag("div");
+   var svg = new SvgElement.svg(SVG_CONTENT);
+   var size = _map.viewportSize;
+   var y = size.y - 100;
+   _root.style
+     ..position = "relative"
+     ..left = "20px"
+     ..top = "${y}px"
+     ..width="200px"
+     ..height = "100px";
+   _root.children.add(svg);
+
+   _subscriptions.add(_map.onZoomChanged.listen((e) =&gt; _refresh()));
+   _refresh();
+ }
+
+ _100PixelDistance() {
+   var zh = _map.zoomPlaneSize.x;
+   var w = _map.crs.projectedBounds.width;
+   var dist = 100 / zh * w;
+   return dist;
+ }
+
+ String _formatMeterDistance(m) {
+   if (m &gt; 1000) {
+     m = m ~/ 1000;
+     m = m.round().toInt();
+     return "$m km";
+   } else if (m &gt; 0) {
+     m = m.round().toInt();
+     return "$m m";
+   } else if (m &lt; 0) {
+     m = (m * 100).round().toInt();
+     return "$m cm";
+   }
+ }
+
+ String _formatMilesDistance(ft) {
+   if (ft &gt; 5000) {
+     ft = (ft * 0.000189394).round().toInt();
+     return "$ft mi";
+   } else if (ft &gt; 0) {
+     ft = ft.round().toInt();
+     return "$ft ft";
+   } else {
+     ft = (ft * 10).round().toInt();
+     return "$ft in";
+   }
+ }
+
+ _refresh() {
+   var m = _100PixelDistance();
+   var ft = m * 3.28084;
+   _root.query(".scale-kilometers text").text = _formatMeterDistance(m);
+   _root.query(".scale-miles text").text = _formatMilesDistance(ft);
+ }
+
+
+ @override
+ get defaultPosition {
+   if (map != null) {
+     var vs = map.viewportSize;
+     if (vs.x != 0 &amp;&amp; vs.y != 0) {
+       return new Point(20, vs.y - 150);
+     } else {
+       return null;
+     }
+   }
+   return null;
+ }
+
+ @override
+ layout() {
+   applyPosition();
+ }
+}
+</pre>
+</div>
+<h3>Extends</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.map/MapControl.html">MapControl</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>ScaleIndicatorControl</strong></span></p>
+<div>
+<h3>Static Properties</h3>
+<div class="field"><h4 id="SVG_CONTENT">
+<button class="show-code">Code</button>
+const         <strong>SVG_CONTENT</strong> <a class="anchor-link"
+            href="#SVG_CONTENT"
+            title="Permalink to ScaleIndicatorControl.SVG_CONTENT">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+SVG_CONTENT = """&lt;svg
+xmlns:svg="http://www.w3.org/2000/svg"
+xmlns="http://www.w3.org/2000/svg"
+width="200"
+height="100"
+version="1.1"&gt;
+
+&lt;g class="scale-indicator-control"&gt;
+&lt;g class="scale-kilometers"&gt;
+&lt;rect class="bar" x="0" y="0" width="100" height="15"/&gt;
+&lt;text class="label" x="5" y="12"&gt;1000 km&lt;/text&gt;
+
+&lt;/g&gt;
+&lt;g class="scale-miles"&gt;
+&lt;rect class="bar" x="0" y="20" width="100" height="15"/&gt;
+&lt;text class="label" x="5" y="32"&gt;500 mi&lt;/text&gt;
+&lt;/g&gt;
+&lt;/g&gt;
+&lt;/svg&gt;
+"""
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="ScaleIndicatorControl">
+<button class="show-code">Code</button>
+new <strong>ScaleIndicatorControl</strong>([<a href="../dartkart.map/MapViewport.html">MapViewport</a> map]) <a class="anchor-link" href="#ScaleIndicatorControl"
+              title="Permalink to ScaleIndicatorControl.ScaleIndicatorControl">#</a></h4>
+<div class="doc">
+<pre class="source">
+@override
+ScaleIndicatorControl([MapViewport map]): super(map);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="defaultPosition">
+<button class="show-code">Code</button>
+final         <strong>defaultPosition</strong> <a class="anchor-link"
+            href="#defaultPosition"
+            title="Permalink to ScaleIndicatorControl.defaultPosition">#</a>
+        </h4>
+        <div class="doc">
+<div class="inherited">
+<p>the default position of the control if no position has been
+set explicitly using <code>placeAt</code>.</p>
+<p>Override in subclasses.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div></div>
+<pre class="source">
+@override
+get defaultPosition {
+ if (map != null) {
+   var vs = map.viewportSize;
+   if (vs.x != 0 &amp;&amp; vs.y != 0) {
+     return new Point(20, vs.y - 150);
+   } else {
+     return null;
+   }
+ }
+ return null;
+}
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="map">
+<button class="show-code">Code</button>
+final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong>map</strong> <a class="anchor-link"
+            href="#map"
+            title="Permalink to ScaleIndicatorControl.map">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>the map this control is attached to, or null</p>
+<pre class="source">
+MapViewport get map =&gt; _map;
+</pre>
+</div>
+</div>
+<div class="field inherited"><h4 id="root">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_html/Element.html">Element</a>         <strong>root</strong> <a class="anchor-link"
+            href="#root"
+            title="Permalink to ScaleIndicatorControl.root">#</a>
+        </h4>
+        <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>the root DOM element for this map control</p>
+<pre class="source">
+Element get root =&gt; _root;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method inherited"><h4 id="applyPosition">
+<button class="show-code">Code</button>
+<strong>applyPosition</strong>() <a class="anchor-link" href="#applyPosition"
+              title="Permalink to ScaleIndicatorControl.applyPosition">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Applies the current position to the appropriate DOM element.</p>
+<pre class="source">
+applyPosition() {
+ if (_root == null) return;
+ var pos = _position == null ? defaultPosition : _position;
+ if (pos == null) {
+   //TODO: log a warning ?
+   return;
+ }
+ _root.style
+   ..left = "${pos.x}px"
+   ..top = "${pos.y}px";
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="attach">
+<button class="show-code">Code</button>
+<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
+              title="Permalink to ScaleIndicatorControl.attach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Attaches this control to the map 
+<span class="param">viewport</span>.</p>
+<pre class="source">
+attach(MapViewport viewport) {
+ if (viewport == null) throw new ArgumentError("viewport must not be null");
+ // already attached ?
+ if (_map != null) {
+   if (_map == viewport) {
+     return;  // don't attach again
+   } else {
+     detach(); // detach the currently attached, then attach the new one
+   }
+ }
+ this._map = viewport;
+ var controlsPane = _map.controlsPane;
+ //TODO: log a warning?
+ if (controlsPane == null) return;
+ _build();
+ controlsPane.controls.add(this);
+ controlsPane.root.children.add(_root);
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="detach">
+<button class="show-code">Code</button>
+<strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to ScaleIndicatorControl.detach">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Detaches this control from the map viewport it is currently
+attached to (if any).</p>
+<pre class="source">
+detach() {
+ if (_map == null) return;
+ if (_root == null) return;
+ if (_map._controlsPane == null) return;
+ _map.controlsPane.root.children.remove(_root);
+ _subscriptions.forEach((s) =&gt; s.cancel());
+ _subscriptions.clear();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="layout">
+<button class="show-code">Code</button>
+<strong>layout</strong>() <a class="anchor-link" href="#layout"
+              title="Permalink to ScaleIndicatorControl.layout">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Invoke this to force to (re-)layout the map control in the current
+map viewport.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div></div>
+<pre class="source">
+@override
+layout() {
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+<div class="method inherited"><h4 id="placeAt">
+<button class="show-code">Code</button>
+<strong>placeAt</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y) <a class="anchor-link" href="#placeAt"
+              title="Permalink to ScaleIndicatorControl.placeAt">#</a></h4>
+<div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
+<p>Places the control at the position (
+<span class="param">x</span>, 
+<span class="param">y</span>).</p>
+<pre class="source">
+placeAt(int x, int y) {
+ _position = new Point(x,y);
+ applyPosition();
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-03-17 09:22:51.556</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

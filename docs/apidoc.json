@@ -1,0 +1,1 @@
+{"location":"0","name":"dart:","dependencies":[],"description":"Dart System Libraries","libraries":[{"refId":"dartkart"},{"refId":"dartkart.core"},{"refId":"dartkart.geo"},{"refId":"dartkart.geometry"},{"refId":"dartkart.layer"},{"refId":"dartkart.map"}],"revision":"0"}
