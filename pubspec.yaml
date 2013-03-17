@@ -6,13 +6,13 @@ description: >
    them nor does it provide the full functionality of either of them,
    but it has a similar structure and borrows a lot of ideas from them.
 
-version: 0.0.3
+version: 0.0.4
 
 authors:
   - Karl Guggisberg <karl.guggisberg@guggis.ch>
 
 dependencies:
-   browser: 0.3.7+6
-   meta: 0.3.7+6
-   unittest: 0.3.7+6
-   args: 0.4.0
+   browser: 0.4.2
+   meta: 0.4.1+1
+   unittest: 0.4.2
+   args: 0.4.1
