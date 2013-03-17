@@ -1,0 +1,273 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>LatLon class / dartkart.geo Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.geo" data-type="LatLon">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.geo.html">dartkart.geo</a> &rsaquo; <a href="../dartkart.geo/LatLon.html">LatLon</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><ul class="icon">
+<li><a href="../dartkart.geo/CoordinateReferenceSystem.html"><div class="icon-class"></div>CoordinateReferenceSystem</a></li>
+<li><a href="../dartkart.geo/EPSG3857.html"><div class="icon-class"></div>EPSG3857</a></li>
+<li><div class="icon-class"></div><strong>LatLon</strong></li>
+<li><a href="../dartkart.geo/LatLonBounds.html"><div class="icon-class"></div>LatLonBounds</a></li>
+<li><a href="../dartkart.geo/PlateCarree.html"><div class="icon-class"></div>PlateCarree</a></li>
+<li><a href="../dartkart.geo/ProjectedCRS.html"><div class="icon-class"></div>ProjectedCRS</a></li>
+<li><a href="../dartkart.geo/Projection.html"><div class="icon-class"></div>Projection</a></li>
+<li><a href="../dartkart.geo/SphericalMercator.html"><div class="icon-class"></div>SphericalMercator</a></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2></div>
+<div class="content">
+        <h2><strong>LatLon</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>An instance of this class represents a pair of geographic  coordinates (lat/lon).</p>
+<pre class="source">
+class LatLon {
+
+ double _lat;
+ double _lon;
+ 
+ /**
+  * Creates a point with coordinates [lat] and [lon].
+  * 
+  * Throws [ArgumentError] if either [lat] or [lon] isn't in the expected
+  * range.
+  */
+ LatLon(num lat, num lon) {
+   if (!isValidLat(lat)) throw new ArgumentError("invalid lat value, got $lat");
+   if (!isValidLon(lon)) throw new ArgumentError("invalid lon value, got $lon");
+   this._lat = lat.toDouble();
+   this._lon = lon.toDouble();
+ }
+
+ /**
+  * A (lon/lat) point at position (0,0).
+  */
+ LatLon.origin() :
+   _lat = 0.0, _lon = 0.0;
+
+ /**
+  * Creates a lat/lon point from another value [other]. [other] must not be null.
+  *
+  * ## [other] - possible values
+  * 
+  * * another [LatLon]
+  * * a [List] with two numbers lat, lon
+  * * a [Map] with two properties `lat` and `lon` of type [num].
+  * 
+  * ## Examples
+  *     var ll1 = new LatLon.from([0, 12.32]);
+  *     var ll2 = new LatLon.from({"lat": 0, "lon": 12.32});
+  *     var ll3 = new LatLon.from(ll1);
+  */
+ factory LatLon.from(other) {
+   if (other == null) throw new ArgumentError("other must not be null");
+   if (other is List) {
+     return new LatLon._fromList(other);
+   } else if (other is Map) {
+     return new LatLon._fromMap(other);
+   } else if (other is LatLon) {
+     return new LatLon(other.lat, other.lon);
+   } else {
+     throw new ArgumentError("can't create a LonLat from $other");
+   }
+ }
+
+ factory LatLon._fromList(l) {
+   if (l.length != 2)  {
+     throw new ArgumentError(
+       "expected list with exactly two arguments, got ${l.length}"
+     );
+   }
+   //TODO: check arguments
+   return new LatLon(l[0], l[1]);
+ }
+
+ factory LatLon._fromMap(map) {
+   //TODO: check arguments
+   return new LatLon(map["lat"], map["lon"]);
+ }
+
+ /// the latitue
+ double get lat =&gt; _lat;
+ 
+ /// the longitude 
+ double get lon =&gt; _lon;
+
+ bool operator ==(other) {
+   if (other == null || other is! LatLon) return false;
+   return lat == other.lat &amp;&amp; lon == other.lon;
+ }
+
+ String toString() =&gt; "{LonLat: lon=$lon, lat=$lat}";
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="LatLon">
+<button class="show-code">Code</button>
+new <strong>LatLon</strong>(lat, lon) <a class="anchor-link" href="#LatLon"
+              title="Permalink to LatLon.LatLon">#</a></h4>
+<div class="doc">
+<p>Creates a point with coordinates 
+<span class="param">lat</span> and 
+<span class="param">lon</span>.</p>
+<p>Throws <code>ArgumentError</code> if either 
+<span class="param">lat</span> or 
+<span class="param">lon</span> isn't in the expected
+range.</p>
+<pre class="source">
+LatLon(num lat, num lon) {
+ if (!isValidLat(lat)) throw new ArgumentError("invalid lat value, got $lat");
+ if (!isValidLon(lon)) throw new ArgumentError("invalid lon value, got $lon");
+ this._lat = lat.toDouble();
+ this._lon = lon.toDouble();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="LatLon.from">
+<button class="show-code">Code</button>
+factory <strong>LatLon.from</strong>(other) <a class="anchor-link" href="#LatLon.from"
+              title="Permalink to LatLon.LatLon.from">#</a></h4>
+<div class="doc">
+<p>Creates a lat/lon point from another value 
+<span class="param">other</span>. 
+<span class="param">other</span> must not be null.</p>
+<h2>
+<span class="param">other</span> - possible values</h2><ul><li>another <a class="crossref" href="../dartkart.geo/LatLon.html#LatLon">LatLon</a></li><li>a <code>List</code> with two numbers lat, lon</li><li>a <code>Map</code> with two properties <code>lat</code> and <code>lon</code> of type <code>num</code>.</li></ul>
+<h2>Examples</h2>
+<pre><code>var ll1 = new LatLon.from([0, 12.32]);
+var ll2 = new LatLon.from({"lat": 0, "lon": 12.32});
+var ll3 = new LatLon.from(ll1);
+</code></pre>
+<pre class="source">
+factory LatLon.from(other) {
+ if (other == null) throw new ArgumentError("other must not be null");
+ if (other is List) {
+   return new LatLon._fromList(other);
+ } else if (other is Map) {
+   return new LatLon._fromMap(other);
+ } else if (other is LatLon) {
+   return new LatLon(other.lat, other.lon);
+ } else {
+   throw new ArgumentError("can't create a LonLat from $other");
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="LatLon.origin">
+<button class="show-code">Code</button>
+new <strong>LatLon.origin</strong>() <a class="anchor-link" href="#LatLon.origin"
+              title="Permalink to LatLon.LatLon.origin">#</a></h4>
+<div class="doc">
+<p>A (lon/lat) point at position (0,0).</p>
+<pre class="source">
+LatLon.origin() :
+ _lat = 0.0, _lon = 0.0;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="lat">
+<button class="show-code">Code</button>
+final         <strong>lat</strong> <a class="anchor-link"
+            href="#lat"
+            title="Permalink to LatLon.lat">#</a>
+        </h4>
+        <div class="doc">
+<p>the latitue</p>
+<pre class="source">
+double get lat =&gt; _lat;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="lon">
+<button class="show-code">Code</button>
+final         <strong>lon</strong> <a class="anchor-link"
+            href="#lon"
+            title="Permalink to LatLon.lon">#</a>
+        </h4>
+        <div class="doc">
+<p>the longitude </p>
+<pre class="source">
+double get lon =&gt; _lon;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Operators</h3>
+<div class="method"><h4 id="==">
+<button class="show-code">Code</button>
+<strong>operator ==</strong>(other) <a class="anchor-link" href="#=="
+              title="Permalink to LatLon.operator ==">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>The equality operator.</p>
+<p>The default behavior for all <code>Object</code>s is to return true if and
+only if <code>this</code> and 
+<span class="param">other</span> are the same object.</p>
+<p>If a subclass overrides the equality operator it should override
+the <code>hashCode</code> method as well to maintain consistency.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+bool operator ==(other) {
+ if (other == null || other is! LatLon) return false;
+ return lat == other.lat &amp;&amp; lon == other.lon;
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="toString">
+<button class="show-code">Code</button>
+<strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to LatLon.toString">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Returns a string representation of this object.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+String toString() =&gt; "{LonLat: lon=$lon, lat=$lat}";
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-02-23 13:30:20.071</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

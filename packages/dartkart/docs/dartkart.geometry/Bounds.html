@@ -1,0 +1,303 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>Bounds class / dartkart.geometry Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.geometry" data-type="Bounds">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.geometry.html">dartkart.geometry</a> &rsaquo; <a href="../dartkart.geometry/Bounds.html">Bounds</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><ul class="icon">
+<li><div class="icon-class"></div><strong>Bounds</strong></li>
+<li><a href="../dartkart.geometry/Point.html"><div class="icon-class"></div>Point</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>Bounds</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>Bounds represents a rectangular area on the screen in pixel coordinates
+or a rectangular area in a rendered coordinate system.</p>
+<pre class="source">
+class Bounds {
+ Point _min;
+ Point _max;
+
+ /**
+  * Creates a new bounds given two corner points.
+  *
+  * [min] is the lower left, [max] the upper right point. Both are either
+  * [Point]s or any other object accepted by [Point.from].
+  *
+  * Examples:
+  *     var b1 = new Bounds(new Point(0,0), new Point(2,2));
+  *     var b2 = new Bounds([0,0], [2,2]);
+  *     var b2 = new Bounds({x: 0, y: 0}, {x:2, y: 2});
+  */
+ Bounds(min, max) {
+   _min = new Point.from(min);
+   _max = new Point.from(max);
+ }
+
+ Point get min =&gt; _min;
+ Point get max =&gt; _max;
+
+ /**
+  * Creates a bounds from another value [other].
+  *
+  * [other] can be one of the following values:
+  *   * a [Bounds]  -&gt; replies a copy of [other]
+  */
+ factory Bounds.from(other) {
+   if (other is Bounds) return new Bounds(other.min, other.max);
+ }
+
+ /**
+  * Replies an extended version of this bounds which
+  * includes the point [other].
+  */
+ Bounds extendTo(Point other) =&gt; new Bounds(min.min(other), max.max(other));
+
+ Point get center =&gt; (min + max) / 2;
+ Point get size =&gt; max - min;
+
+ /**
+  * Checks whether this bounds contains [other].
+  *
+  * [other] is eithe another [Bounds] or a [Point].
+  *
+  */
+ bool contains(obj) {
+   if (obj is Point) {
+     return min.x &lt;= obj.x &amp;&amp; obj.x &lt;= max.x
+         &amp;&amp; min.y &lt;= obj.y &amp;&amp; obj.y &lt;= max.y;
+   } else if (obj is Bounds) {
+     return contains(obj.min) &amp;&amp; contains(obj.max);
+   } else {
+     throw new ArgumentError("expected Point or Bounds, got $obj");
+   }
+ }
+
+ bool intersects(Bounds other) =&gt;
+      (other.max.x &gt;= min.x) &amp;&amp; (other.min.x &lt;= max.x)
+   &amp;&amp; (other.max.y &gt;= min.y) &amp;&amp; (other.min.y &lt;= max.y);
+
+
+ num get width =&gt; max.x - min.x;
+ num get height =&gt; max.y - min.y;
+
+ toString() =&gt; "{Bounds: min=$min, max=$max}";
+
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="Bounds">
+<button class="show-code">Code</button>
+new <strong>Bounds</strong>(min, max) <a class="anchor-link" href="#Bounds"
+              title="Permalink to Bounds.Bounds">#</a></h4>
+<div class="doc">
+<p>Creates a new bounds given two corner points.</p>
+<p>
+<span class="param">min</span> is the lower left, 
+<span class="param">max</span> the upper right point. Both are either
+<a class="crossref" href="../dartkart.geometry/Point.html">Point</a>s or any other object accepted by <code>Point.from</code>.</p>
+<p>Examples:</p>
+<pre><code>var b1 = new Bounds(new Point(0,0), new Point(2,2));
+var b2 = new Bounds([0,0], [2,2]);
+var b2 = new Bounds({x: 0, y: 0}, {x:2, y: 2});
+</code></pre>
+<pre class="source">
+Bounds(min, max) {
+ _min = new Point.from(min);
+ _max = new Point.from(max);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="Bounds.from">
+<button class="show-code">Code</button>
+factory <strong>Bounds.from</strong>(other) <a class="anchor-link" href="#Bounds.from"
+              title="Permalink to Bounds.Bounds.from">#</a></h4>
+<div class="doc">
+<p>Creates a bounds from another value 
+<span class="param">other</span>.</p>
+<p>
+<span class="param">other</span> can be one of the following values:
+  * a <a class="crossref" href="../dartkart.geometry/Bounds.html#Bounds">Bounds</a>  -> replies a copy of 
+<span class="param">other</span></p>
+<pre class="source">
+factory Bounds.from(other) {
+ if (other is Bounds) return new Bounds(other.min, other.max);
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="center">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>center</strong> <a class="anchor-link"
+            href="#center"
+            title="Permalink to Bounds.center">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Point get center =&gt; (min + max) / 2;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="height">
+<button class="show-code">Code</button>
+final         <strong>height</strong> <a class="anchor-link"
+            href="#height"
+            title="Permalink to Bounds.height">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+num get height =&gt; max.y - min.y;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="max">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>max</strong> <a class="anchor-link"
+            href="#max"
+            title="Permalink to Bounds.max">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Point get max =&gt; _max;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="min">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>min</strong> <a class="anchor-link"
+            href="#min"
+            title="Permalink to Bounds.min">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Point get min =&gt; _min;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="size">
+<button class="show-code">Code</button>
+final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>size</strong> <a class="anchor-link"
+            href="#size"
+            title="Permalink to Bounds.size">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Point get size =&gt; max - min;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="width">
+<button class="show-code">Code</button>
+final         <strong>width</strong> <a class="anchor-link"
+            href="#width"
+            title="Permalink to Bounds.width">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+num get width =&gt; max.x - min.x;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="contains">
+<button class="show-code">Code</button>
+<strong>contains</strong>(obj) <a class="anchor-link" href="#contains"
+              title="Permalink to Bounds.contains">#</a></h4>
+<div class="doc">
+<p>Checks whether this bounds contains <code>other</code>.</p>
+<p><code>other</code> is eithe another <a class="crossref" href="../dartkart.geometry/Bounds.html#Bounds">Bounds</a> or a <a class="crossref" href="../dartkart.geometry/Point.html">Point</a>.</p>
+<pre class="source">
+bool contains(obj) {
+ if (obj is Point) {
+   return min.x &lt;= obj.x &amp;&amp; obj.x &lt;= max.x
+       &amp;&amp; min.y &lt;= obj.y &amp;&amp; obj.y &lt;= max.y;
+ } else if (obj is Bounds) {
+   return contains(obj.min) &amp;&amp; contains(obj.max);
+ } else {
+   throw new ArgumentError("expected Point or Bounds, got $obj");
+ }
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="extendTo">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Bounds.html">Bounds</a> <strong>extendTo</strong>(<a href="../dartkart.geometry/Point.html">Point</a> other) <a class="anchor-link" href="#extendTo"
+              title="Permalink to Bounds.extendTo">#</a></h4>
+<div class="doc">
+<p>Replies an extended version of this bounds which
+includes the point 
+<span class="param">other</span>.</p>
+<pre class="source">
+Bounds extendTo(Point other) =&gt; new Bounds(min.min(other), max.max(other));
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="intersects">
+<button class="show-code">Code</button>
+<strong>intersects</strong>(<a href="../dartkart.geometry/Bounds.html">Bounds</a> other) <a class="anchor-link" href="#intersects"
+              title="Permalink to Bounds.intersects">#</a></h4>
+<div class="doc">
+<pre class="source">
+bool intersects(Bounds other) =&gt;
+    (other.max.x &gt;= min.x) &amp;&amp; (other.min.x &lt;= max.x)
+ &amp;&amp; (other.max.y &gt;= min.y) &amp;&amp; (other.min.y &lt;= max.y);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="toString">
+<button class="show-code">Code</button>
+<strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to Bounds.toString">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Returns a string representation of this object.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+toString() =&gt; "{Bounds: min=$min, max=$max}";
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-02-23 13:30:20.103</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

@@ -1,0 +1,89 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>PropertyObservable class / dartkart.core Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.core" data-type="PropertyObservable">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.core.html">dartkart.core</a> &rsaquo; <a href="../dartkart.core/PropertyObservable.html">PropertyObservable</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><ul class="icon">
+<li><a href="../dartkart.core/PropertyChangeEvent.html"><div class="icon-class"></div>PropertyChangeEvent</a></li>
+<li><div class="icon-class"></div><strong>PropertyObservable</strong></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2></div>
+<div class="content">
+        <h2><strong>PropertyObservable</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class PropertyObservable {
+ final StreamController _controller = new StreamController();
+ 
+ Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
+     _controller.stream;
+ 
+ notify(String property, oldValue, newValue) =&gt;
+   _controller.sink.add(new PropertyChangeEvent(property, oldValue,newValue));
+}
+</pre>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="onPropertyChanged">
+<button class="show-code">Code</button>
+final         <strong>onPropertyChanged</strong> <a class="anchor-link"
+            href="#onPropertyChanged"
+            title="Permalink to PropertyObservable.onPropertyChanged">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
+   _controller.stream;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="notify">
+<button class="show-code">Code</button>
+<strong>notify</strong>(property, oldValue, newValue) <a class="anchor-link" href="#notify"
+              title="Permalink to PropertyObservable.notify">#</a></h4>
+<div class="doc">
+<pre class="source">
+notify(String property, oldValue, newValue) =&gt;
+ _controller.sink.add(new PropertyChangeEvent(property, oldValue,newValue));
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-02-23 13:30:20.038</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        
