@@ -5658,7 +5658,7 @@ z=$.DB(46.8,8)
 y=$.Xt
 $.YJ(y,7)
 y.smD(z)
-x=$.az(1,"http://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
+x=$.az(1,"http://c.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png")
 x.soc(x,"OSM map tiles")
 $.rf(new $.NR(x))
 $.QS(null).pE($.Xt)

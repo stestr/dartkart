@@ -34,7 +34,7 @@ prepareDemo1() {
     ..zoom = 7
     ..center = new LatLon(46.8, 8);
 
-  var source = "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  var source = "http://c.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png";
   var osmLayer = new OsmTileLayer(tileSources:source);
   osmLayer.name = "OSM map tiles";
   Timer.run(() {
