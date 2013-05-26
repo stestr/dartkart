@@ -1,5 +1,5 @@
 /**
- * The library *dartkart.layer* provides various types of layers which
+ * The library `dartkart.layer` provides various types of layers which
  * can be added to a [MapViewport].
  *
  */

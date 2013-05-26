@@ -1,15 +1,14 @@
 part of dartkart.layer;
 
 /**
- * This is the abstract base class for a layer in dartkart.
+ * This is the abstract base class for a layer in `dartkart.
  *
  * ## DOM elements
  * * the layer has a `div` as root element, see [container]
  *   with the CSS class `dartkart-layer` and a unique `id`.
  *
  */
-//TODO: mix in core.PropertyObservable
-abstract class Layer {
+abstract class Layer extends Object with PropertyObservable{
 
   static var _layerIDCounter = 0;
   static get _nextLayerId => _layerIDCounter++;
@@ -19,7 +18,7 @@ abstract class Layer {
   int _nid;
 
   _defaultDOMId() => "dartkart-layer-$_nid";
-  _defaultName() => "Layer $_nid";
+  String get _defaultName => "Layer $_nid";
 
   /**
    * Creates a new layer.
@@ -33,12 +32,12 @@ abstract class Layer {
     if (domId == null || domId.isEmpty) {
       domId = _defaultDOMId();
     }
-    _container = new Element.tag("div");
-    _container.attributes["id"] = domId;
-    _container.classes.add("dartkart-layer");
+    _container = new Element.tag("div")
+      ..attributes["id"] = domId
+      ..classes.add("dartkart-layer");
   }
 
-  /// replies the unique numeric id for this layer
+  /// the unique numeric id for this layer
   int get id => _nid;
 
   /// the unique layer id
@@ -65,7 +64,7 @@ abstract class Layer {
    *
    * Throws [StateError] if this layer is already attached.
    */
-  attach(MapViewport m) {
+  void attach(MapViewport m) {
     if (_map != null) {
       throw new StateError("layer is already attached");
     }
@@ -76,19 +75,17 @@ abstract class Layer {
    * Detaches this layer from the map viewport it is
    * currently attached to.
    */
-  detach(){
+  void detach(){
     _map = null;
   }
 
-  /**
-   * The [Element] this layer uses as container.
-   */
+  // the [Element] this layer uses as container.
   DivElement get container => _container;
 
   /**
    * Renders the layer.
    */
-  render();
+  void render();
 
   /* ------------------------ opacity ------------------------------- */
   double _opacity = 1.0;
@@ -112,25 +109,28 @@ abstract class Layer {
   }
 
   /* ------------------------  name------------------------------- */
-  String _name = "Layer ${_nextLayerId}";
+  String _name;
 
   /// the layer name
-  String get name => _name;
+  String get name {
+    if (_name == null) return _defaultName;
+    return _name;
+  }
 
-  /// sets the layer name. If [value] is null or white space only,
-  /// chooses a default name.
+  /// sets the layer name. If [value] is null or consists of white space only,
+  /// a default name is chosen.
   set name(String value) {
     if (value != null) value = value.trim();
     var old = _name;
     if (value == null || value.isEmpty) {
-      _name = "Layer ${_nextLayerId}";
+      _name = null;
     } else {
       _name = value;
     }
-    notify("name", old, _name);
+    notify("name", old, name);
   }
 
-  /* ------------------------  visibilty ------------------------------- */
+  /* ------------------------  visibility -------------------------- */
   bool _visible = true;
 
   /// the layer visibility
@@ -147,19 +147,5 @@ abstract class Layer {
       _visible = value;
       notify("visible", old, value);
     }
-  }
-
-  /* ----------------------------------------------------------- */
-  //TODO: replace with mixin application from core/events.dart
-  final _controller = new StreamController.broadcast();
-
-  Stream<PropertyChangeEvent> get onPropertyChanged =>
-      _controller.stream;
-
-  notify(String property, oldValue, newValue) {
-    if (oldValue == newValue) return;
-    _controller.sink.add(
-        new PropertyChangeEvent(this, property, oldValue,newValue)
-     );
   }
 }
