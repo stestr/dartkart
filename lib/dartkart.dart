@@ -1,3 +1,9 @@
+/**
+ * dartkart is a framwork for web cartografy in the tradition of the 
+ * JavaScript libraries OpenLayers and Leaflet. It is neither a 1:1 port 
+ * nor does it provide the full functionality of either of them, but it has 
+ * a similar structure and borrows a lot of ideas from them.
+ */
 library dartkart;
 
 import "src/core.dart";
