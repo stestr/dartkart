@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test_MapGestureStream</title>
+    <style type="text/css">
+      #mouse-pad {
+         width: 150px;
+         height: 150px;
+         position: relative;
+         border-width: 1px;
+         border-color: black;
+         border-style: solid;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h3>Element with attached muse event stream:</h3>
+    <p>Move the mouse over the following rectangle, click, double click, and/or
+    drag  the mouse.</p>
+    <div id="mouse-pad">
+    </div>
+    <h3>Log of detected mouse events:</h3>
+    <textarea id="log" cols="80" rows="20"></textarea>
+
+    <script type="application/dart" src="test_mouse_event_stream.dart"></script>
+    <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

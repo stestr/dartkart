@@ -15,17 +15,29 @@ class LayerEvent {
   final MapViewport map;
   /// the layer
   final Layer layer;
-  /// the type of event (either [ADDED], [REMOVED], or [MOVED]
-  final type;
+  /// the type of event (either [ADDED], [REMOVED], or [MOVED])
+  final int type;
 
   /// Creates an event of type [type] emitted by [map] for [layer]
-  const LayerEvent(this.map, this.layer, this.type);
-  const LayerEvent.added(map, layer): this(map, layer, ADDED);
-  const LayerEvent.removed(map, layer):this(map, layer, REMOVED);
-  const LayerEvent.moved(map, layer): this(map, layer, MOVED);
+  LayerEvent(this.map, this.layer, this.type);
 }
 
-class MapViewport {
+/**
+ * A MapViewport provides a view on a rectangular area of a map
+ * plane in a stack of map planes on different zoom levels.
+ * 
+ * It also provides the functionality to change between map
+ * planes (zoom in and zoom out) and to move the viewport
+ * around on the current map plane (pan left, rigth, up, or down). 
+ * 
+ * A MapViewport manages a stack of map [Layer]s. 
+ * 
+ * A MapViewport is a [PropertyObservable]. It emits propery change
+ * events for
+ * * [: zoom :]  - emitted if the zoom level is changed
+ * * [: center :]  - emitted if the center of the map viewport is changed
+ */
+class MapViewport extends Object with PropertyObservable{
 
   DivElement _root;
 
@@ -37,36 +49,31 @@ class MapViewport {
   ProjectedCRS get crs => _crs;
 
   /**
-   * Creates a map.
+   * Creates a map viewport.
    *
-   * [container] is either an [Element] or a string with with
+   * [container] is either an [Element] or a string consisting of
    * a CSS selector.
-   *
    */
   MapViewport(container) {
-    if (container == null) {
-      throw new ArgumentError("container must not be null");
-    }
+    _require(container != null,"container must not be null");
     if (container is String) {
       container = query(container);
-      if (container == null) {
-        throw new ArgumentError("didn't find container with id '$container'");
-      }
+      _require(container != null, "didn't find container with id '$container'");
     } else if (container is Element) {
       // OK
     } else {
-      throw new ArgumentError("expected an Element or a DOM id as String, "
-          "got $container");
+      _require(false,"expected Element or String, got $container");
     }
-    _root = new DivElement();
-    _root.classes.add("dartkart-map-viewport");
-    container.children.clear();
-    container.children.add(_root);
+    _root = new DivElement()
+      ..classes.add("dartkart-map-viewport");
+    container.children
+      ..clear()
+      ..add(_root);
     attachEventListeners();
     controlsPane = new ControlsPane();
   }
 
-  attachEventListeners() {
+  void attachEventListeners() {
     //TODO: remind subscription; solve detach
     _root.onMouseWheel.listen(_onMouseWheel);
     new _DragController(this);
@@ -75,61 +82,61 @@ class MapViewport {
 
   /// Transforms projected coordinates [p] to coordinates in the current map
   /// zoom plane
-  Point mapToZoomPlane(Point p) {
+  Point2D mapToZoomPlane(Point2D p) {
     var zp = zoomPlaneSize;
     var w = _crs.projectedBounds.width;
     var h = _crs.projectedBounds.height;
     return p.flipY()
-     .translate(w/2, h/2)
-     .scale(zp.x / w, zp.y / h)
+     .translate(dx: w/2, dy: h/2)
+     .scale(sx: zp.x/w, sy: zp.y/h)
      .toInt();
   }
 
   /// Transforms coordinates [p] in the current map zoom plane to
   /// projected coordinates
-  Point zoomPlaneToMap(Point p) {
+  Point2D zoomPlaneToMap(Point2D p) {
     var zp = zoomPlaneSize;
     var w = _crs.projectedBounds.width;
     var h = _crs.projectedBounds.height;
-    return p.scale(w/ zp.x, h/ zp.y)
-        .translate(-w/2, -h/2)
+    return p.scale(sx: w/zp.x, sy: h/zp.y)
+        .translate(dx:-w/2, dy:-h/2)
         .flipY();
   }
 
   /// Transforms coordinates in the current map zoom plane to viewport
   /// coordinates
-  Point zoomPlaneToViewport(Point p) {
+  Point2D zoomPlaneToViewport(Point2D p) {
    var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
    return ((viewportSize / 2) + (p - centerOnZoomPlane)).toInt();
   }
 
   /// viewport coordinates to coordinates in the current map zoom plane
-  Point viewportToZoomPlane(Point p) {
+  Point2D viewportToZoomPlane(Point2D p) {
     var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
     var delta = p - (viewportSize / 2);
     return (centerOnZoomPlane + delta).toInt();
   }
 
   /// Transforms geographic coordinates [ll] to projected coordinates
-  Point earthToMap(LatLon ll) => _crs.project(ll);
+  Point2D earthToMap(LatLon ll) => _crs.project(ll);
 
   /// Transforms projected coordinates [p] to geographic coordinates
-  LatLon mapToEarth(Point p) => _crs.unproject(p);
+  LatLon mapToEarth(Point2D p) => _crs.unproject(p);
 
   /// the viewport size
-  Point get viewportSize =>
-      new Point(_root.client.width, _root.client.height);
+  Dimension get viewportSize =>
+      new Dimension(_root.client.width, _root.client.height);
 
   /// the size of the current map zoom plane
-  Point get zoomPlaneSize {
+  Dimension get zoomPlaneSize {
     var dim = (1 << zoom) * 256;
-    return new Point(dim, dim);
+    return new Dimension(dim, dim);
   }
 
   /// the top-left point in "page coordinates"
-  Point get topLeftInPage {
+  Point2D get topLeftInPage {
     offset(Element e) {
-      var p = new Point(e.offset.left, e.offset.top);
+      var p = new Point2D(e.offset.left, e.offset.top);
       return e.parent == null ? p : p + offset(e.parent);
     }
     return offset(_root);
@@ -164,7 +171,7 @@ class MapViewport {
    * Transforms page coordinates to viewport coordinates.
    *
    * [v] is either
-   *   * a [Point]
+   *   * a [Point2D]
    *   * a [MouseEvent] - uses the coordinates (pageX, pageY)
    *
    *  The result are viewport coordinates for the map viewport where
@@ -172,26 +179,24 @@ class MapViewport {
    *    * x runs to the right
    *    * y runs down
    */
-  Point pageToViewport(v) {
+  Point2D pageToViewport(v) {
     if (v is MouseEvent) {
-      v = new Point(v.page.x, v.page.y);
-    } else if (v is Point) {} // do nothing
-    else throw new ArgumentError("expected MouseEvent or Point, got $v");
+      v = new Point2D(v.page.x, v.page.y);
+    } else if (v is Point2D) {} // do nothing
+    else throw new ArgumentError("expected MouseEvent or Point2D, got $v");
     return v - topLeftInPage;
   }
 
   /**
    * Renders the map.
    */
-  render() {
+  void render() {
     _layers.forEach((l)=> l.render());
     _controlsPane.layout();
   }
 
   /* ----------------------- layer handling -------------------------- */
   final List<Layer> _layers = [];
-  final StreamController<LayerEvent> _layerEvents =
-      new StreamController<LayerEvent>.broadcast();
 
   /// update the z-indexes of the layer. Reflects the ordering in
   /// the layer stack. The layer with the highest index is renderer
@@ -217,15 +222,15 @@ class MapViewport {
    *    var source= "http://a.tile.openstreetmap.org/{z}/{x}/{y}.png";
    *    map.addLayer(new OsmLayer(tileSource: source));
    */
-  addLayer(Layer layer) {
-    if (layer == null) throw new ArgumentError("layer must not be null");
+  void addLayer(Layer layer) {
+    _require(layer != null, "layer must not be null");
     if (hasLayer(layer)) return;
     _layers.add(layer);
     _root.children.add(layer.container);
     layer.attach(this);
     _updateLayerZIndex();
     render();
-    _layerEvents.add(new LayerEvent.added(this, layer));
+    _notifyLayerEvent(layer,LayerEvent.ADDED);
   }
 
   /**
@@ -233,7 +238,7 @@ class MapViewport {
    *
    * Ignores [layer] if it is null or if it isn't attached to this map.
    */
-  removeLayer(Layer layer) {
+  void removeLayer(Layer layer) {
     if (layer == null) return;
     if (!hasLayer(layer)) return;
     layer.detach();
@@ -241,7 +246,7 @@ class MapViewport {
     _layers.remove(layer);
     _updateLayerZIndex();
     render();
-    _layerEvents.add(new LayerEvent.removed(this, layer));
+    _notifyLayerEvent(layer,LayerEvent.REMOVED);
   }
 
   /// true, if [layer] is part of the layer stack of this map
@@ -254,37 +259,50 @@ class MapViewport {
   /**
    * Moves the [layer] to the top.
    */
-  moveToTop(Layer layer) {
+  void moveToTop(Layer layer) {
     if (!hasLayer(layer)) return;
     _layers.remove(layer);
     _layers.add(layer);
     _updateLayerZIndex();
-    _layerEvents.add(new LayerEvent.moved(this, layer));
+    _notifyLayerEvent(layer,LayerEvent.MOVED);
   }
 
   /**
    * Moves the [layer] to the bottom.
    */
-  moveToBottom(Layer layer) {
+  void moveToBottom(Layer layer) {
     if (!hasLayer(layer)) return;
-    _layers.remove(layer);
-    _layers.insertRange(0, 1, layer);
+    _layers
+      ..remove(layer)
+      ..insert(0, layer);
     _updateLayerZIndex();
-    _layerEvents.add(new LayerEvent.moved(this, layer));
+    _notifyLayerEvent(layer,LayerEvent.MOVED);
   }
 
   /**
    * Moves the [layer] to the position [index] in the
    * layer stack.
    */
-  moveTo(Layer layer, int index) {
+  void moveTo(Layer layer, int index) {
     if (!hasLayer(layer)) return;
     index = math.max(index, 0);
     index = math.min(index, _layers.length);
-    _layers.remove(layer);
-    _layers.insertRange(index, 1, layer);
+    _layers
+      ..remove(layer)
+      ..insert(index,layer);
     _updateLayerZIndex();
-    _layerEvents.add(new LayerEvent.moved(this, layer));
+    _notifyLayerEvent(layer,LayerEvent.MOVED);
+  }
+
+  final StreamController<LayerEvent> _layerEventsController =
+      new StreamController<LayerEvent>();
+  Stream<LayerEvent> _layerEventsStream;
+  
+  _notifyLayerEvent(layer, type) {
+    if (!_layerEventsController.hasListener) return;
+    if (_layerEventsController.isPaused) return;
+    var event = new LayerEvent(this, layer, type);
+    _layerEventsController.sink.add(event);
   }
 
   /**
@@ -292,13 +310,18 @@ class MapViewport {
    *
    * ## Example
    *
-   *   map.onLayersChanged
-   *     .where((LayerEvent e) => e.type == LayerEvent.ADDED))
-   *     .listen((LayerEvent e) {
-   *         print("layer added - cur num layers: ${map.layers.length}");
-   *      });
+   *     map.onLayersChanged
+   *       .where((LayerEvent e) => e.type == LayerEvent.ADDED))
+   *       .listen((LayerEvent e) {
+   *           print("layer added - num layers: ${map.layers.length}");
+   *       });
    */
-  Stream<LayerEvent> get onLayersChanged => _layerEvents.stream;
+  Stream<LayerEvent> get onLayersChanged {
+    if (_layerEventsStream == null) {
+      _layerEventsStream = _layerEventsController.stream.asBroadcastStream();
+    }
+    return _layerEventsStream;
+  }
 
   /* ----------------------- zooming       --------------------------- */
   int _zoom = 0;
@@ -311,13 +334,12 @@ class MapViewport {
    *
    * [zoom] >= 0 expected, otherwise throws an [ArgumentError].
    */
-  set zoom(int value) {
-    if (value < 0) throw new ArgumentError("zoom >= 0 expected, got $value");
+  void set zoom(int value) {
+    _require(value >= 0, "zoom >= 0 expected, got $value");
     if (value == _zoom) return;
-    var event = new PropertyChangeEvent(this,"zoom", _zoom, value);
     _zoom = value;
     render();
-    _events.sink.add(event);
+    notify("zoom", _zoom, value);
   }
 
   /**
@@ -325,16 +347,15 @@ class MapViewport {
    *
    * Throws [ArgumentError] if [delta] < 0. Fires a zoom change event.
    */
-  zoomIn([int delta=1]) {
-    if (delta < 0) throw new ArgumentError("delta >= 0 expected, got $delta");
+  void zoomIn([int delta=1]) {
+    _require(delta >= 0, "delta >= 0 expected, got $delta");
     if (delta == 0) return;
 
     //TODO: check for max zoom level
     var oldZoom = _zoom;
     _zoom+= delta;
     render();
-    var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
-    _events.sink.add(event);
+    notify("zoom", oldZoom, _zoom);
   }
 
   /**
@@ -342,14 +363,13 @@ class MapViewport {
    *
    * Throws [ArgumentError] if [delta] < 0. Fires a zoom change event.
    */
-  zoomOut([int delta=1]) {
+  void zoomOut([int delta=1]) {
     if (delta < 0) throw new ArgumentError("delta >= 0 expected, got $delta");
     if (delta == 0) return;
     var oldZoom = _zoom;
     _zoom = math.max(0, _zoom - delta);
     render();
-    var event = new PropertyChangeEvent(this,"zoom", oldZoom, _zoom);
-    _events.sink.add(event);
+    notify("zoom", oldZoom, _zoom);
   }
 
   /* ----------------------- event handlers --------------------------- */
@@ -376,21 +396,21 @@ class MapViewport {
    * [center] must not be null. Broadcasts a [PropertyChangeEvent] if
    * the center is changed, see [onCenterChanged].
    */
-  set center(LatLon value) {
-    if (value == null) throw new ArgumentError("center must not be null");
+  void set center(LatLon value) {
+    _require(value != null, "center must not be null");
     if (_center == value) return;
     var old = _center;
-    _center = value;
+    _center = value;    
     render();
-    _events.sink.add(new PropertyChangeEvent(this,"center", old, _center));
+    notify("center", old, _center);
   }
 
   /* --------------------- panning ---------------------------------- */
-  pan(delta, {bool animate: false}) {
+  void pan(delta, {bool animate: false}) {
     if (animate) {
-      new PanBehaviour(this).animate(new Point.from(delta));
+      new PanBehaviour(this).animate(new Point2D.from(delta));
     } else {
-      delta = new Point.from(delta);
+      delta = new Point2D.from(delta);
       var p = mapToZoomPlane(earthToMap(center));
       p = p + delta;
       if (p.x <= 0 || p.y <= 0) return;
@@ -404,22 +424,22 @@ class MapViewport {
 
   /// Pans the viewport num [pixels] to the north.
   /// Animates panning if [animate] is true.
-  panNorth({int pixels:100, bool animate:false}) =>
+  void panNorth({int pixels:100, bool animate:false}) =>
       pan([0,-pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the south.
   /// Animates panning if [animate] is true.
-  panSouth({int pixels:100, bool animate:false}) =>
+  void panSouth({int pixels:100, bool animate:false}) =>
       pan([0,pixels], animate: animate);
 
   /// Pans the viewport num [pixels] to the west
   /// Animates panning if [animate] is true.
-  panWest({int pixels:100, bool animate:false}) =>
+  void panWest({int pixels:100, bool animate:false}) =>
       pan([-pixels, 0], animate: animate);
 
   /// Pans the viewport num [pixels] to the east
   /// Animates panning if [animate] is true.
-  panEast({int pixels:100, bool animate:false}) =>
+  void panEast({int pixels:100, bool animate:false}) =>
       pan([pixels, 0],animate: animate);
 
   /* ----------------------- controls pane ------------------------ */
@@ -429,7 +449,7 @@ class MapViewport {
   ControlsPane get controlsPane => _controlsPane;
 
   /// sets the [pane] for the interactive map controls
-  set controlsPane(ControlsPane pane) {
+  void set controlsPane(ControlsPane pane) {
     if (pane == _controlsPane) return; // don't add twice
     if (_controlsPane != null) {
       _controlsPane.detach();
@@ -437,61 +457,22 @@ class MapViewport {
     }
     _controlsPane = pane;
     if (_controlsPane != null) {
-      _controlsPane.attach(this);
-      // render the controls pane on top of the map layers.
-      // The z-index for the top most layer is 0.
-      _controlsPane.root.style.zIndex = "100";
+      _controlsPane
+        ..attach(this)
+        // render the controls pane on top of the map layers.
+        // The z-index for the top most layer is 0.
+        ..root.style.zIndex = "100";
       _root.children.add(_controlsPane.root);
     }
   }
-
-  /* ----------------------- controls pane ------------------------ */
-  StreamController _events = new StreamController.broadcast();
-  Stream _zoomEvents;
-  Stream _centerEvents;
-  /**
-   * The streams of zoom change events.
-   *
-   * Listen on this stream to get notified about changes of the zoom
-   * level.
-   *
-   * Example:
-   *    map.onZoomChanged.listen((e) {
-   *       print("zoom changed: old=${e.oldValue}, new=${e.newValue}");
-   *    });
-   */
-  Stream<PropertyChangeEvent> get onZoomChanged {
-    if (_zoomEvents == null) {
-      _zoomEvents = _events.stream.where((e) => e.name == "zoom");
-    }
-    return _zoomEvents;
-  }
-
-  /**
-   * The streams of center change events.
-   *
-   * Listen on this stream to get notified when the map center is
-   * changed.
-   *
-   * Example:
-   *    // oldValue and newValue are LonLats
-   *    map.onCenterChanged.listen((e) {
-   *       print("zoom changed: old=${e.oldValue}, new=${e.newValue}");
-   *    });
-   */
-  Stream<PropertyChangeEvent> get onCenterChanged {
-    if (_centerEvents == null) {
-      _centerEvents = _events.stream.where((e) => e.name == "center");
-    }
-    return _centerEvents;
-  }
 }
+
 
 class _DoubleClickController {
   final map;
   _DoubleClickController(this.map) {
-    var stream = new MouseGestureStream.from(map.root).stream;
-    stream.where((p) => p.type == MouseGesturePrimitive.DOUBLE_CLICK)
+    var stream = new MouseEventStream.from(map.root).stream;
+    stream.where((p) => p.type == MouseGesture.DOUBLE_CLICK)
       .listen((p) => _onDoubleClick(p.event));
   }
   _onDoubleClick(evt) => map.zoomIn();
@@ -499,24 +480,24 @@ class _DoubleClickController {
 
 class _DragController {
   final map;
-  Point _dragStart;
-  Point _dragLast;
-  Point _centerOnZoomPlane;
+  Point2D _dragStart;
+  Point2D _dragLast;
+  Point2D _centerOnZoomPlane;
 
   _DragController(this.map) {
-    var stream = new MouseGestureStream.from(map.root).stream;
+    var stream = new MouseEventStream.from(map.root).stream;
     stream.where((p) => p.isDragPrimitive).listen((p) {
       switch(p.type) {
-        case MouseGesturePrimitive.DRAG_START: _onDragStart(p.event); break;
-        case MouseGesturePrimitive.DRAG_END: _onDragEnd(p.event); break;
-        case MouseGesturePrimitive.DRAG: _onDrag(p.event); break;
+        case MouseEvent.DRAG_START: _onDragStart(p.event); break;
+        case MouseEvent.DRAG_END: _onDragEnd(p.event); break;
+        case MouseEvent.DRAG: _onDrag(p.event); break;
       }
     });
   }
 
   _onDragStart(evt) {
-    _dragStart = new Point(evt.screen.x, evt.screen.y);
-    _dragLast = new Point.from(_dragStart);
+    _dragStart = new Point2D(evt.screen.x, evt.screen.y);
+    _dragLast = new Point2D.from(_dragStart);
     _centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
     evt.target.style.cursor = "move";
   }
@@ -529,7 +510,7 @@ class _DragController {
   _onDrag(evt) {
     assert(_dragStart != null);
     var cur;
-    cur = new Point(evt.screen.x, evt.screen.y);
+    cur = new Point2D(evt.screen.x, evt.screen.y);
     // |cur - last| < 5
     var dx = cur.x - _dragLast.x;
     var dy = cur.y - _dragLast.y;
@@ -545,128 +526,6 @@ class _DragController {
   }
 }
 
-class MouseGesturePrimitive {
-  static const int CLICK = 0;
-  static const int DOUBLE_CLICK = 1;
-  static const int DRAG_START = 2;
-  static const int DRAG = 3;
-  static const int DRAG_END = 4;
-  static const int HOVER = 5;
-
-  final int type;
-  final MouseEvent event;
-  MouseGesturePrimitive(this.type, this.event);
-  MouseGesturePrimitive.click(event) : this(CLICK, event);
-  MouseGesturePrimitive.doubleClick(event) : this(DOUBLE_CLICK, event);
-  MouseGesturePrimitive.drag(event) : this(DRAG, event);
-  MouseGesturePrimitive.hover(event) : this(HOVER, event);
-  MouseGesturePrimitive.dragStart(event) : this(DRAG_START, event);
-  MouseGesturePrimitive.dragEnd(event) : this(DRAG_END, event);
-
-  String get _typeAsString {
-    switch(type) {
-      case CLICK: return "CLICK";
-      case DOUBLE_CLICK: return "DOUBLE_CLICK";
-      case DRAG: return "DRAG";
-      case DRAG_START: return "DRAG_START";
-      case DRAG_END: return "DRAG_END";
-      case HOVER: return "HOVER";
-    }
-  }
-
-  bool get isDragPrimitive => type == DRAG_START || type == DRAG ||
-      type == DRAG_END;
-
-  toString() => "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
-     "y=${event.offset.y}";
-}
-
-class MouseGestureStream {
-  var _controler = new StreamController.broadcast();
-  var _subscriptions = [];
-
-  var _lastMouseDownPos = null;
-  var _lastMouseDownTimestamp = 0;
-  var _mouseDown = false;
-  var _isDragging = false;
-
-  MouseGestureStream();
-  MouseGestureStream.from(Element source) {
-    attach(source);
-  }
-
-  var deferredEvent = null;
-
-  _fireDeferred() {
-    if (deferredEvent != null) {
-      var e = deferredEvent;
-      deferredEvent = null;
-      _controler.sink.add(new MouseGesturePrimitive.click(e));
-    }
-  }
-
-  _rawMouseClick(evt) {
-    if (deferredEvent == null) {
-      var ts = new DateTime.now().millisecondsSinceEpoch;
-      if (ts - _lastMouseDownTimestamp > 150) {
-        // a click generated at the end of a drag sequence
-        //      mouse down, mouse move, ..., mouse move, mouse up, click
-        // Ignore it.
-        return;
-      }
-      deferredEvent = evt;
-      new Timer(const Duration(milliseconds: 200), () => _fireDeferred());
-    } else {
-      deferredEvent = null;
-      _controler.sink.add(new MouseGesturePrimitive.doubleClick(evt));
-    }
-  }
-
-  _rawMouseMove(evt){
-    if (_mouseDown) {
-       if (!_isDragging) {
-         _controler.sink.add(new MouseGesturePrimitive.dragStart(evt));
-       }
-      _isDragging = true;
-    }
-    if (_isDragging) {
-      _controler.sink.add(new MouseGesturePrimitive.drag(evt));
-    } else {
-      _controler.sink.add(new MouseGesturePrimitive.hover(evt));
-    }
-  }
-
-  _rawMouseDown(MouseEvent evt) {
-    if (evt.button != 0 /* left */) return;
-    evt.preventDefault();
-    evt.stopPropagation();
-    _mouseDown = true;
-    _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
-    _lastMouseDownPos = new Point(evt.offset.x, evt.offset.y);
-  }
-
-  _rawMouseUp(MouseEvent evt) {
-    if (evt.button != 0 /* left */) return;
-    evt.preventDefault();
-    evt.stopPropagation();
-    if (_isDragging) {
-      _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
-    }
-    _mouseDown = false;
-    _isDragging = false;
-  }
-
-  get stream => _controler.stream;
-
-  detach() => _subscriptions.forEach((s) => s.cancel());
-
-  attach(Element source) {
-    _subscriptions.add(source.onClick.listen(_rawMouseClick));
-    _subscriptions.add(source.onMouseDown.listen(_rawMouseDown));
-    _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
-    _subscriptions.add(source.onMouseMove.listen(_rawMouseMove));
-  }
-}
 
 class PanBehaviour {
   const double ACCELERATION = -2.0; // px / (100ms)²
@@ -676,7 +535,7 @@ class PanBehaviour {
   final MapViewport viewport;
   PanBehaviour(this.viewport);
 
-  animate(Point panBy) {
+  animate(Point2D panBy) {
     var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
     var theta = math.asin(panBy.y / dist);
     if (panBy.x <= 0) {
@@ -691,8 +550,8 @@ class PanBehaviour {
     now() => new DateTime.now().millisecondsSinceEpoch;
 
     pan(dx,dy) {
-      var p = new Point(dx,dy).toInt();
-      if (p != new Point.origin()) viewport.pan(p);
+      var p = new Point2D(dx,dy).toInt();
+      if (p != new Point2D.origin()) viewport.pan(p);
     }
 
     bounded(num v, num bound) => bound < 0
@@ -701,8 +560,8 @@ class PanBehaviour {
 
     // pan long distance (fast) as much and possible, the complete
     // the future with the remaining pan distance
-    Future<Point> panLongDistance(Point panBy) {
-      var completer = new Completer<Point>();
+    Future<Point2D> panLongDistance(Point2D panBy) {
+      var completer = new Completer<Point2D>();
       var pannedX = 0;
       var pannedY = 0;
       bool isLongDistance() =>
@@ -713,7 +572,7 @@ class PanBehaviour {
       step(Timer timer){
         if (!isLongDistance()) {
           timer.cancel();
-          var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+          var rest = new Point2D(panBy.x - pannedX, panBy.y - pannedY);
           completer.complete(rest);
         } else {
           var dx = bounded(40 * fx, panBy.x).toInt();
@@ -729,7 +588,7 @@ class PanBehaviour {
 
     // pan a short distance, deaccelerate and make sure the final
     // point is reached
-    panShortDistance(Point panBy) {
+    panShortDistance(Point2D panBy) {
       panBy = panBy.toInt();
       var lastX = 0;
       var lastY = 0;
@@ -743,7 +602,7 @@ class PanBehaviour {
         var x = bounded(p * fx, panBy.x).toInt();
         var y = bounded(p * fy, panBy.y).toInt();
         var v = ACCELERATION * t + SPEED;
-        if (v <= 0 || panBy == new Point(x,y)){
+        if (v <= 0 || panBy == new Point2D(x,y)){
           // last step - pan to the end point
           x = panBy.x;
           y = panBy.y;
