@@ -23,4 +23,11 @@ class Dimension {
   bool operator ==(other) => width == other.width && height == other.height;
   @override int get hashCode => width.hashCode * 31 + height.hashCode;
   @override String toString() => "{Dimension: width=$width, height=$height}";
+  
+  Dimension operator *(num factor) => 
+      new Dimension(width * factor, height * factor);
+  Dimension operator /(num divisor) =>
+      new Dimension(width / divisor, height / divisor);
+ 
+  Dimension toInt() => new Dimension(width.toInt(), height.toInt());
 }
