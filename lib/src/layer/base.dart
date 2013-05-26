@@ -48,7 +48,7 @@ abstract class Layer extends Object with PropertyObservable{
    *
    * If [value] is null or empty, sets a default id.
    */
-  set domId(String value) {
+  void set domId(String value) {
     if (value != null) value = value.trim();
     if (value == null || value.isEmpty) {
       value = _defaultDOMId();
@@ -56,7 +56,7 @@ abstract class Layer extends Object with PropertyObservable{
     _container.attributes["id"] = value;
   }
 
-  /// the map this layer is attached to, or null
+  /// the map this layer is attached to, or [:null:]
   MapViewport get map => _map;
 
   /**
@@ -82,9 +82,7 @@ abstract class Layer extends Object with PropertyObservable{
   // the [Element] this layer uses as container.
   DivElement get container => _container;
 
-  /**
-   * Renders the layer.
-   */
+  /// renders the layer
   void render();
 
   /* ------------------------ opacity ------------------------------- */
@@ -95,7 +93,7 @@ abstract class Layer extends Object with PropertyObservable{
 
   /// set the opacity of this layer. [value] is a [num] in the range
   /// (0.0 - 1.0). The lower the value, the more transparent the layer.
-  set opacity(num value) {
+  void set opacity(num value) {
     value = math.max(0, value);
     value = math.min(value, 1);
     var oldvalue = _opacity;
@@ -119,7 +117,7 @@ abstract class Layer extends Object with PropertyObservable{
 
   /// sets the layer name. If [value] is null or consists of white space only,
   /// a default name is chosen.
-  set name(String value) {
+  void set name(String value) {
     if (value != null) value = value.trim();
     var old = _name;
     if (value == null || value.isEmpty) {
@@ -137,7 +135,7 @@ abstract class Layer extends Object with PropertyObservable{
   bool get visible => _visible;
 
   /// sets whether this layer is visible or not
-  set visible(bool value) {
+  void set visible(bool value) {
     var old = _visible;
     if (value != old) {
       if (_container != null) {
