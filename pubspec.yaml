@@ -12,7 +12,9 @@ authors:
   - Karl Guggisberg <karl.guggisberg@guggis.ch>
 
 dependencies:
-   browser: 0.4.2
-   meta: 0.4.1+1
-   unittest: 0.4.2
-   args: 0.4.1
+   browser: 0.5.9
+   meta: 0.5.9
+   args: 0.5.9
+
+dev_dependencies:
+  unittest: 0.5.9
