@@ -1,4 +1,4 @@
-library map_control_test;
+library test_map_control;
 
 import "dart:html" hide Point;
 import "dart:math" as math;
@@ -12,18 +12,24 @@ import "../../lib/src/layer.dart";
 import "../../lib/src/geometry.dart";
 import "../../lib/src/geo.dart";
 import "../../lib/src/core.dart";
-part "../../lib/src/map/map_viewport.dart";
-part "../../lib/src/map/controls.dart";
-
+//part "../../lib/src/map/map_viewport.dart";
+//part "../../lib/src/map/controls.dart";
+import "../../lib/src/map.dart";
 
 class TestControl extends MapControl {
-  _build(){
+  var _root;
+  get root => _root;
+  @override
+  void build(){
     _root = new DivElement();
   }
+  
+  get defaultPosition => new Point2D(0,0);
 }
 
 main() {
-  group("map control tests", () {
+  useHtmlEnhancedConfiguration();
+  group("map control tests -", () {
     var map;
     var container;
 
@@ -53,8 +59,5 @@ main() {
       expect(control.root.style.left, "10px");
       expect(control.root.style.top, "20px");
     });
-
-
   });
-
 }

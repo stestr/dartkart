@@ -80,7 +80,7 @@ abstract class MapControl {
     if (_map == null) return;
     if (_root == null) return;
     if (_map._controlsPane == null) return;
-    _map.controlsPane.root.children.remove(_root);
+    _map.controlsPane.root.children.remove(root);
     _subscriptions.forEach((s) => s.cancel());
     _subscriptions.clear();
   }
@@ -102,9 +102,9 @@ abstract class MapControl {
     var controlsPane = _map.controlsPane;
     //TODO: log a warning?
     if (controlsPane == null) return;
-    _build();
+    build();
     controlsPane.controls.add(this);
-    controlsPane.root.children.add(_root);
+    controlsPane.root.children.add(root);
     applyPosition();
   }
 
@@ -129,13 +129,13 @@ abstract class MapControl {
    * Applies the current position to the appropriate DOM element.
    */
   void applyPosition() {
-    if (_root == null) return;
+    if (root == null) return;
     var pos = _position == null ? defaultPosition : _position;
     if (pos == null) {
       //TODO: log a warning ?
       return;
     }
-    _root.style
+    root.style
       ..left = "${pos.x}px"
       ..top = "${pos.y}px";
   }
@@ -148,13 +148,17 @@ abstract class MapControl {
     applyPosition();
   }
 
-  _build();
+  /**
+   * Abstract method which builds the DOM tree for the control.
+   * Override in subclasses.
+   */
+  void build();
 
   /**
    * Invoke this to force to (re-)layout the map control in the current
    * map viewport.
    */
-  layout() {}
+  void layout() {}
 }
 
 /**
@@ -230,7 +234,8 @@ class PanControl extends MapControl{
     _root.children.add(svg);
   }
 
-  _build() {
+  @override
+  void build() {
     _buildSvg();
     _wireEventHandlers();
   }
@@ -274,7 +279,8 @@ class ScaleIndicatorControl extends MapControl {
   @override
   ScaleIndicatorControl([MapViewport map]): super(map);
 
-  _build() {
+  @override
+  void build() {
     _root = new Element.tag("div");
     var svg = new SvgElement.svg(SVG_CONTENT);
     var size = _map.viewportSize;
@@ -394,7 +400,8 @@ class ZoomControl extends MapControl{
           .classes.add("current");
   }
 
-  _build() {
+  @override
+  void build() {
     _buildSvg();
     _wireEventHandlers();
   }
@@ -516,7 +523,8 @@ class SimpleZoomControl extends MapControl{
   _zoomIn(evt) => _map.zoomIn();
   _zoomOut(evt) => _map.zoomOut();
 
-  _build() {
+  @override
+  void build() {
     _buildSvg();
     _wireEventHandlers();
   }
@@ -747,7 +755,8 @@ class LayerControl extends MapControl {
     layer.visible = visible;
   }
 
-  _build() {
+  @override
+  void build() {
     _buildHtml();
     _wireEventListeners();
   }
