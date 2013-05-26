@@ -88,7 +88,7 @@ class MapViewport extends Object with PropertyObservable{
     var h = _crs.projectedBounds.height;
     return p.flipY()
      .translate(dx: w/2, dy: h/2)
-     .scale(sx: zp.x/w, sy: zp.y/h)
+     .scale(sx: zp.width/w, sy: zp.height/h)
      .toInt();
   }
 
@@ -98,7 +98,7 @@ class MapViewport extends Object with PropertyObservable{
     var zp = zoomPlaneSize;
     var w = _crs.projectedBounds.width;
     var h = _crs.projectedBounds.height;
-    return p.scale(sx: w/zp.x, sy: h/zp.y)
+    return p.scale(sx: w/zp.width, sy: h/zp.height)
         .translate(dx:-w/2, dy:-h/2)
         .flipY();
   }
@@ -107,7 +107,7 @@ class MapViewport extends Object with PropertyObservable{
   /// coordinates
   Point2D zoomPlaneToViewport(Point2D p) {
    var centerOnZoomPlane = mapToZoomPlane(earthToMap(center));
-   return ((viewportSize / 2) + (p - centerOnZoomPlane)).toInt();
+   return (p - centerOnZoomPlane).toInt() + (viewportSize / 2);
   }
 
   /// viewport coordinates to coordinates in the current map zoom plane
@@ -415,7 +415,7 @@ class MapViewport extends Object with PropertyObservable{
       p = p + delta;
       if (p.x <= 0 || p.y <= 0) return;
       var size = zoomPlaneSize;
-      if (p.x >= size.x || p.y >= size.y) return;
+      if (p.x >= size.width || p.y >= size.height) return;
       var c = zoomPlaneToMap(p);
       if (!crs.projectedBounds.contains(c)) return;
       center = mapToEarth(c);
@@ -485,11 +485,11 @@ class _DragController {
 
   _DragController(this.map) {
     var stream = new MouseEventStream.from(map.root).stream;
-    stream.where((p) => p.isDragPrimitive).listen((p) {
-      switch(p.type) {
-        case MouseEvent.DRAG_START: _onDragStart(p.event); break;
-        case MouseEvent.DRAG_END: _onDragEnd(p.event); break;
-        case MouseEvent.DRAG: _onDrag(p.event); break;
+    stream.where((MouseEvent evt) => evt.isDragEvent).listen((evt) {
+      switch(evt.type) {
+        case MouseEvent.DRAG_START: _onDragStart(evt.event); break;
+        case MouseEvent.DRAG_END: _onDragEnd(evt.event); break;
+        case MouseEvent.DRAG: _onDrag(evt.event); break;
       }
     });
   }

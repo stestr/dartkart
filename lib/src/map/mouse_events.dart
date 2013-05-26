@@ -82,7 +82,7 @@ class MouseEventStream {
     }
   }
 
-  _rawMouseClick(evt) {
+  void _rawMouseClick(html.MouseEvent evt) {
     if (_deferredEvent == null) {
       var ts = new DateTime.now().millisecondsSinceEpoch;
       if (ts - _lastMouseDownTimestamp > 150) {
@@ -99,7 +99,7 @@ class MouseEventStream {
     }
   }
 
-  _rawMouseMove(evt){
+  void _rawMouseMove(html.MouseEvent evt){
     if (_mouseDown) {
        if (!_isDragging) {
          _controler.sink.add(new MouseEvent(MouseEvent.DRAG_START, evt));
@@ -113,7 +113,7 @@ class MouseEventStream {
     }
   }
 
-  _rawMouseDown(html.MouseEvent evt) {
+  void _rawMouseDown(html.MouseEvent evt) {
     if (evt.button != 0 /* left */) return;
     evt.preventDefault();
     evt.stopPropagation();
@@ -122,7 +122,7 @@ class MouseEventStream {
     _lastMouseDownPos = new Point2D(evt.offset.x, evt.offset.y);
   }
 
-  _rawMouseUp(html.MouseEvent evt) {
+  void _rawMouseUp(html.MouseEvent evt) {
     if (evt.button != 0 /* left */) return;
     evt.preventDefault();
     evt.stopPropagation();

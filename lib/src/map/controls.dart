@@ -284,7 +284,7 @@ class ScaleIndicatorControl extends MapControl {
     _root = new Element.tag("div");
     var svg = new SvgElement.svg(SVG_CONTENT);
     var size = _map.viewportSize;
-    var y = size.y - 100;
+    var y = size.height - 100;
     _root.style
       ..position = "relative"
       ..left = "20px"

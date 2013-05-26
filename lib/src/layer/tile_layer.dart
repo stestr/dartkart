@@ -42,7 +42,7 @@ abstract class Renderer {
         topLeftOnZoomPlane + map.viewportSize
     );
     tileIntersectsWithViewport(Point2D t) {
-      var tl = t * tileSize;
+      var tl = t.scale(sx:tileSize.width, sy:tileSize.height);
       var tileBounds = new Bounds(
           tl,
           tl + tileSize
@@ -52,8 +52,8 @@ abstract class Renderer {
 
     // the tile covering the map center
     var tile = new Point2D(
-        centerOnZoomPlane.x ~/ tileSize.x,
-        centerOnZoomPlane.y ~/ tileSize.y
+        centerOnZoomPlane.x ~/ tileSize.width,
+        centerOnZoomPlane.y ~/ tileSize.height
     );
 
     // find the first tile to be rendered
@@ -165,7 +165,7 @@ class Tile {
     context.globalAlpha = layer.opacity;
     var tl = _topLeftInViewport;
     var ts = layer.tileSize;
-    context.clearRect(tl.x, tl.y, ts.x, ts.y);
+    context.clearRect(tl.x, tl.y, ts.width, ts.height);
     context.drawImage(_img, tl.x, tl.y);
   }
 
@@ -658,7 +658,6 @@ class WMSLayer extends TileLayer {
    */
   //TODO: Order of components in the bbox string changed in WMS 1.3.0?
   String _buildProjectedTileBBox(int x, int y, int zoom) {
-    var size = tileSize;
     var tx = x * tileSize.width;
     var ty = y * tileSize.height + (tileSize.height - 1);
     var min = map.zoomPlaneToMap(new Point2D(tx, ty));
@@ -675,8 +674,8 @@ class WMSLayer extends TileLayer {
     var parameters = new Map.from(_defaultParameters);
     parameters["REQUEST"] = "GetMap";
     parameters["LAYERS"] = _layers.join(",");
-    parameters["WIDTH"] = ts.x.toString();
-    parameters["HEIGHT"] = ts.y.toString();
+    parameters["WIDTH"] = ts.width.toString();
+    parameters["HEIGHT"] = ts.height.toString();
     if (useProjectedCoordinates) {
       parameters["BBOX"] = _buildProjectedTileBBox(x,y,zoom);
       parameters["SRS"] = _map.crs.code;
