@@ -3,7 +3,6 @@ part of dartkart.map;
 /**
  * The container class for [MapControl]s. There's exactly one [ControlsPane] in
  * a [MapViewport].
- *
  */
 class ControlsPane {
   MapViewport _viewport;
@@ -19,14 +18,14 @@ class ControlsPane {
   DivElement get root => _root;
 
   /// Detach this pane from the map viewport.
-  detach() {
+  void detach() {
     _viewport = null;
   }
 
   /// Attach this control pane to the [viewport]. [viewport]
   /// must not be null.
-  attach(MapViewport viewport) {
-    assert(viewport != null);
+  void attach(MapViewport viewport) {
+    _require(viewport != null, "viewport must not be null");
     _viewport = viewport;
     _root.style
       ..width = "100%"
@@ -38,7 +37,8 @@ class ControlsPane {
     // the map viewport takes care of this
   }
 
-  layout() {
+  /// layout the contronls pane
+  void layout() {
     controls.forEach((c) => c.layout());
   }
 }
@@ -76,7 +76,7 @@ abstract class MapControl {
    * Detaches this control from the map viewport it is currently
    * attached to (if any).
    */
-  detach() {
+  void detach() {
     if (_map == null) return;
     if (_root == null) return;
     if (_map._controlsPane == null) return;
@@ -88,8 +88,8 @@ abstract class MapControl {
   /**
    * Attaches this control to the map [viewport].
    */
-  attach(MapViewport viewport) {
-    if (viewport == null) throw new ArgumentError("viewport must not be null");
+  void attach(MapViewport viewport) {
+    _require(viewport != null, "viewport must not be null");
     // already attached ?
     if (_map != null) {
       if (_map == viewport) {
@@ -121,14 +121,14 @@ abstract class MapControl {
    *
    * Override in subclasses.
    */
-  Point get defaultPosition;
+  Point2D get defaultPosition;
 
-  Point _position;
+  Point2D _position;
 
   /**
    * Applies the current position to the appropriate DOM element.
    */
-  applyPosition() {
+  void applyPosition() {
     if (_root == null) return;
     var pos = _position == null ? defaultPosition : _position;
     if (pos == null) {
@@ -143,8 +143,8 @@ abstract class MapControl {
   /**
    * Places the control at the position ([x], [y]).
    */
-  placeAt(int x, int y) {
-    _position = new Point(x,y);
+  void placeAt(int x, int y) {
+    _position = new Point2D(x,y);
     applyPosition();
   }
 
@@ -161,20 +161,20 @@ abstract class MapControl {
  * An instance of PanControl represents a map control to pan the
  * map viewport ~100 pixels north, east, west, or south.
  *
- * ##Example
+ * ## Example
  *
- *    var map = new MapViewport("#container");
- *    // this creates the control and adds it to the
- *    // map's controls pane, and registers
- *    var panControl = new PanControl();
- *    panControl.attachTo(map);
+ *      var map = new MapViewport("#container");
+ *      // this creates the control and adds it to the
+ *      // map's controls pane, and registers
+ *      var panControl = new PanControl();
+ *      panControl.attachTo(map);
  *
- *    // to detach the control from the map
- *    panControl.detachFrom(map);
+ *      // to detach the control from the map
+ *      panControl.detachFrom(map);
  *
  */
 class PanControl extends MapControl{
-  static var _DEFAULT_POS = new Point(20,20);
+  static var _DEFAULT_POS = new Point2D(20,20);
 
   static const SVG_CONTENT = """
   <svg
@@ -200,8 +200,6 @@ class PanControl extends MapControl{
    </g> 
   </svg>
   """;
-
-
 
   _wireEventHandlers() {
     register(cls, handler) {
@@ -289,12 +287,16 @@ class ScaleIndicatorControl extends MapControl {
       ..height = "100px";
     _root.children.add(svg);
 
-    _subscriptions.add(_map.onZoomChanged.listen((e) => _refresh()));
+    _subscriptions.add(
+        _map.onPropertyChanged
+        .where((e) => e.name == "zoom")
+        .listen((e) => _refresh())
+     );
     _refresh();
   }
 
   _100PixelDistance() {
-    var zh = _map.zoomPlaneSize.x;
+    var zh = _map.zoomPlaneSize.width;
     var w = _map.crs.projectedBounds.width;
     var dist = 100 / zh * w;
     return dist;
@@ -339,8 +341,8 @@ class ScaleIndicatorControl extends MapControl {
   get defaultPosition {
     if (map != null) {
       var vs = map.viewportSize;
-      if (vs.x != 0 && vs.y != 0) {
-        return new Point(20, vs.y - 150);
+      if (vs.width != 0 && vs.height != 0) {
+        return new Point2D(20, vs.height - 150);
       } else {
         return null;
       }
@@ -349,7 +351,7 @@ class ScaleIndicatorControl extends MapControl {
   }
 
   @override
-  layout() {
+  void layout() {
     applyPosition();
   }
 }
@@ -370,7 +372,6 @@ class ZoomControl extends MapControl{
   </svg>
   """;
 
-  @override
   ZoomControl([MapViewport map]) : super(map);
 
   _zoomIn(evt) => _map.zoomIn();
@@ -479,10 +480,15 @@ class ZoomControl extends MapControl{
     _subscriptions.add(_root.query(".zoom-in-nob").onClick.listen(_zoomIn));
     _subscriptions.add(_root.query(".zoom-out-nob").onClick.listen(_zoomOut));
 
-    _subscriptions.add(_map.onZoomChanged.listen(_onZoomChanged));
+    _subscriptions.add(
+        _map.onPropertyChanged
+        .where((e) => e.name == "zoom")
+        .listen(_onZoomChanged)
+    );
   }
 
-  static var _DEFAULT_POS = new Point(60,150);
+  static var _DEFAULT_POS = new Point2D(60,150);
+  
   @override
   get defaultPosition => _DEFAULT_POS;
 }
@@ -505,7 +511,6 @@ class SimpleZoomControl extends MapControl{
   </svg>
   """;
 
-  @override
   SimpleZoomControl([MapViewport map]) : super(map);
 
   _zoomIn(evt) => _map.zoomIn();
@@ -573,7 +578,7 @@ class SimpleZoomControl extends MapControl{
     _subscriptions.add(_root.query(".zoom-out-nob").onClick.listen(_zoomOut));
   }
 
-  static var _DEFAULT_POS = new Point(10,20);
+  static var _DEFAULT_POS = new Point2D(10,20);
 
   @override
   get defaultPosition => _DEFAULT_POS;
@@ -587,7 +592,6 @@ class LayerControl extends MapControl {
   </div>
   """;
 
-  @override
   LayerControl([MapViewport map]) : super(map);
 
   final Map<int, StreamSubscription> _layerSubscriptions
@@ -600,7 +604,7 @@ class LayerControl extends MapControl {
   </tr>
   """;
 
-  detach() {
+  void detach() {
     super.detach();
     _layerSubscriptions.keys.forEach((id) {
       _layerSubscriptions[id].cancel();
@@ -624,15 +628,15 @@ class LayerControl extends MapControl {
   _buildHtml() {
     _root = new Element.html(_TEMPLATE);
     var size = _map.viewportSize;
-    var left = size.x - 20 - 200;
+    var left = size.width - 20 - 200;
     _root.style
       ..left = "${left}px"
       ..top = "20px";
 
     var rows = _map.layers.map((l) => _buildLayerRow(l));
-    var table = _root.query("table");
-    table.children.clear();
-    table.children.addAll(rows);
+    _root.query("table").children
+          ..clear()
+          ..addAll(rows);          
   }
 
   _wireEventListeners() {
@@ -749,11 +753,12 @@ class LayerControl extends MapControl {
   }
 
   var _defaultPosition = null;
+  
   @override
   get defaultPosition {
     if (_defaultPosition == null && map != null) {
       var vs = map.viewportSize;
-      _defaultPosition = new Point(vs.x-200, 20);
+      _defaultPosition = new Point2D(vs.width-200, 20);
     }
     return _defaultPosition;
   }

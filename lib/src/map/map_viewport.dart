@@ -467,12 +467,11 @@ class MapViewport extends Object with PropertyObservable{
   }
 }
 
-
 class _DoubleClickController {
   final map;
   _DoubleClickController(this.map) {
     var stream = new MouseEventStream.from(map.root).stream;
-    stream.where((p) => p.type == MouseGesture.DOUBLE_CLICK)
+    stream.where((p) => p.type == MouseEvent.DOUBLE_CLICK)
       .listen((p) => _onDoubleClick(p.event));
   }
   _onDoubleClick(evt) => map.zoomIn();
@@ -526,16 +525,25 @@ class _DragController {
   }
 }
 
-
+/**
+ * `PanBehaviour` controls animated panning of a map viewport.
+ */
 class PanBehaviour {
   const double ACCELERATION = -2.0; // px / (100ms)²
   const double SPEED = 20.0;        // px / 100ms
   const int DELTA_T = 20;           // ms, duration of animation step
 
+  /// the map viewport controlled by this behaviour
   final MapViewport viewport;
+  
+  /// Creates a new behaviour controlling [viewport].
   PanBehaviour(this.viewport);
 
-  animate(Point2D panBy) {
+  /**
+   * Animate the panning of the map viewport by a vector given
+   * by [panBy].
+   */
+  void animate(Point2D panBy) {
     var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
     var theta = math.asin(panBy.y / dist);
     if (panBy.x <= 0) {

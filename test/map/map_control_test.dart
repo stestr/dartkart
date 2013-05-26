@@ -1,3 +1,5 @@
+library map_control_test;
+
 import "dart:html" hide Point;
 import "dart:math" as math;
 import "dart:svg" hide Point;
