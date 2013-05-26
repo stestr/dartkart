@@ -374,14 +374,8 @@ class MapViewport extends Object with PropertyObservable{
 
   /* ----------------------- event handlers --------------------------- */
   _onMouseWheel(WheelEvent evt) {
-    // sign of deltaY is reversed in firefox
-    if (evt.deltaY < 0) {
-      var zoom = isFirefox ? zoomIn : zoomOut;
-      zoom();
-    } else if (evt.deltaY > 0) {
-      var zoom = isFirefox ? zoomOut : zoomIn;
-      zoom();
-    }
+    var doZoom = evt.deltaY < 0 ? zoomIn : zoomOut;
+    doZoom();
   }
 
   /* --------------------- map center ---------------------------------- */
