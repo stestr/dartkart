@@ -1,27 +1,45 @@
 part of dartkart.geo;
 
-
+/**
+ * Abstract base class for a coordinate reference system
+ */
 abstract class CoordinateReferenceSystem {
-  /// The standardized identifier for this reference system
-  ///
-  /// A coordinate references system can be assigned more than
-  /// one idetifier, see also [aliases]
+  /**
+   * The standardized identifier for this reference system.
+   *
+   * A coordinate references system can be assigned more than
+   * one idetifier, see also [aliases]
+   */
   String get code;
 
-  /// A list of code aliases for this reference system.
-  ///
-  /// The empty list, if no alternative codes are known for this
-  /// coordinate reference system.
+  /**
+   * A list of code aliases for this reference system.
+   *
+   * The empty list, if no alternative codes are known for this
+   * coordinate reference system.
+   */
   List<String> get aliases;
 }
 
-/// The abstract base class for a projected coordinate reference systems.
+/**
+ * The abstract base class for a projected coordinate reference systems.
+ */
 abstract class ProjectedCRS  implements CoordinateReferenceSystem {
+
   LatLonBounds get geographicBounds;
   Bounds get projectedBounds;
 
-  Point project(LatLon ll);
-  LatLon unproject(Point p);
+  /**
+   * Projects a point [ll] in geodetic coordinates
+   * into a projected coordinate reference system.
+   */
+  Point2D project(LatLon ll);
+
+  /**
+   * Maps a point [p] in the projected coordinate reference system to
+   * a point in the geodetic coordinate system.
+   */
+  LatLon unproject(Point2D p);
 }
 
 /**
@@ -46,9 +64,9 @@ class EPSG3857 extends ProjectedCRS {
 
   LatLonBounds get geographicBounds => _geographicBounds;
 
-  Point project(LatLon ll) => _projection.project(ll);
+  Point2D project(LatLon ll) => _projection.project(ll);
 
-  LatLon unproject(Point p) => _projection.unproject(p);
+  LatLon unproject(Point2D p) => _projection.unproject(p);
 }
 
 

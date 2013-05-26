@@ -7,16 +7,17 @@ bool isValidLat(num lat) => lat >= -90 && lat <= 90;
 bool isValidLon(num lon) => lon >= -180 && lon <= 180;
 
 /**
- * An instance of this class represents a pair of geographic  coordinates (lat/lon).
+ * An instance of this class represents a pair of geodetic
+ * coordinates (lat/lon).
  */
 class LatLon {
 
   double _lat;
   double _lon;
-  
+
   /**
    * Creates a point with coordinates [lat] and [lon].
-   * 
+   *
    * Throws [ArgumentError] if either [lat] or [lon] isn't in the expected
    * range.
    */
@@ -34,15 +35,17 @@ class LatLon {
     _lat = 0.0, _lon = 0.0;
 
   /**
-   * Creates a lat/lon point from another value [other]. [other] must not be null.
+   * Creates a lat/lon point from another value [other].
+   * [other] must not be null.
    *
    * ## [other] - possible values
-   * 
+   *
    * * another [LatLon]
    * * a [List] with two numbers lat, lon
    * * a [Map] with two properties `lat` and `lon` of type [num].
-   * 
+   *
    * ## Examples
+   *
    *     var ll1 = new LatLon.from([0, 12.32]);
    *     var ll2 = new LatLon.from({"lat": 0, "lon": 12.32});
    *     var ll3 = new LatLon.from(ll1);
@@ -77,8 +80,8 @@ class LatLon {
 
   /// the latitue
   double get lat => _lat;
-  
-  /// the longitude 
+
+  /// the longitude
   double get lon => _lon;
 
   bool operator ==(other) {
@@ -86,5 +89,5 @@ class LatLon {
     return lat == other.lat && lon == other.lon;
   }
 
-  String toString() => "{LonLat: lon=$lon, lat=$lat}";
+  String toString() => "{LatLon: lon=$lon, lat=$lat}";
 }
