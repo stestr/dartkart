@@ -48,7 +48,7 @@ class Point2D implements Comparable<Point2D>{
     return y.compareTo(other.y);
   }
 
-  bool operator==(other) => compareTo(other) == 0;
+  bool operator==(other) => x == other.x && y == other.y;
 
   Point2D operator +(other) => new Point2D(x + other.x, y + other.y);
   Point2D operator -() => new Point2D(-x, -y);
@@ -74,4 +74,18 @@ class Point2D implements Comparable<Point2D>{
 
   /// returns a new point for which the sign of the y-coordinates is inverted
   Point2D flipY() => scale(sy:-1);
+
+  /**
+   * returns a new point whose coordinates are truncated to
+   * [afterDecimalPoint] digits after the decimal point.
+   */
+  Point2D truncate([num afterDecimalPoint=0]) {
+    var d = math.pow(10, afterDecimalPoint);
+    var x= (this.x * d).truncateToDouble() / d;
+    var y= (this.y * d).truncateToDouble() / d;
+    return new Point2D(x,y);
+  }
+
+  String toString() => "{Point2D: x=$x, y=$y}";
+
 }
