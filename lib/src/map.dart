@@ -19,7 +19,7 @@ import "core.dart";
 
 part 'map/map_viewport.dart';
 part "map/controls.dart";
-part "map/mouse_gestures.dart";
+part "map/mouse_events.dart";
 
 _require(cond, [msg=""]) {
   if (!cond) throw new ArgumentError(msg);
