@@ -56,6 +56,9 @@ class Point2D implements Comparable<Point2D>{
   Point2D operator +(other) => new Point2D(x + other.x, y + other.y);
   Point2D operator -() => new Point2D(-x, -y);
   Point2D operator -(other) => this + (-other);
+  Point2D operator *(num factor) => new Point2D(x * factor, y * factor);
+  Point2D operator /(num divisor) => new Point2D(x / divisor, y / divisor);
+
   int get hashCode => x.hashCode * 31 + y.hashCode;
 
   /// returns a new point whose coordinates are converted to [int]
