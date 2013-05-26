@@ -12,24 +12,36 @@ abstract class Renderer {
   Renderer(this._layer);
 
   /// Invoked by a [TileLayer] to render itself
-  render() {
+  void render() {
     beforeRender();
     renderTileGrid();
     afterRender();
   }
 
-  beforeRender(){}
+  /**
+   * Invoked before the tile grid is rendered using [renderTileGrid].
+   * Default implementation is empty. Override in subclasses if
+   * necessary.
+   */
+  void beforeRender(){}
 
-  renderTileGrid() {
+  /**
+   * Renders the tile grid
+   */
+  void renderTileGrid() {
     var map = _layer._map;
     var tileSize = _layer.tileSize;
     var centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
-    var topLeftOnZoomPlane = centerOnZoomPlane - (map.viewportSize / 2).round();
+    var vshalf = (map.viewportSize / 2).toInt();
+    var topLeftOnZoomPlane = new Point2D(
+        centerOnZoomPlane.x - vshalf.width,
+        centerOnZoomPlane.y - vshalf.height
+    );
     var viewportOnZoomPlaneBounds = new Bounds(
         topLeftOnZoomPlane,
         topLeftOnZoomPlane + map.viewportSize
     );
-    tileIntersectsWithViewport(Point t) {
+    tileIntersectsWithViewport(Point2D t) {
       var tl = t * tileSize;
       var tileBounds = new Bounds(
           tl,
@@ -39,20 +51,20 @@ abstract class Renderer {
     }
 
     // the tile covering the map center
-    var tile = new Point(
+    var tile = new Point2D(
         centerOnZoomPlane.x ~/ tileSize.x,
         centerOnZoomPlane.y ~/ tileSize.y
     );
 
     // find the first tile to be rendered
     while(true) {
-      var candidate = tile.translate(-1, 0);
+      var candidate = tile.translate(dx:-1);
       if (candidate.x < 0) break;
       if (! tileIntersectsWithViewport(candidate)) break;
       tile = candidate;
     }
     while(true) {
-      var candidate = tile.translate(0, -1);
+      var candidate = tile.translate(dy:-1);
       if (candidate.y < 0) break;
       if (! tileIntersectsWithViewport(candidate)) break;
       tile = candidate;
@@ -61,41 +73,56 @@ abstract class Renderer {
     // render the tile grid intersecting with the viewport
     var maxTileX = (1 << map.zoom);
     var maxTileY = (1 << map.zoom);
-    var cur = new Point.from(tile);
+    var cur = new Point2D.from(tile);
     while(cur.x < maxTileX && tileIntersectsWithViewport(cur)) {
       while(cur.y < maxTileY && tileIntersectsWithViewport(cur)) {
         renderTile(cur);
-        cur = cur.translate(0,1);
+        cur = cur.translate(dy:1);
       }
-      cur = new Point(cur.x + 1, tile.y);
+      cur = new Point2D(cur.x + 1, tile.y);
     }
   }
 
-  afterRender(){}
+  /**
+   * Invoked after the tile grid is rendered using [renderTileGrid].
+   * Default implementation is empty. Override in subclasses if
+   * necessary.
+   */
+  void afterRender(){}
 
-  renderTile(Point tilePos);
+  /**
+   * Renders the tile at position [tileCoord] in the current
+   * tile plane.
+   */
+  void renderTile(Point2D tileCoord);
 }
 
-typedef String TileUrlBuilder(int x, int y, int zoom);
-
+/**
+ * Tile represents a map tile. 
+ */
 class Tile {
+  /// indicates that the tile is loading the tile image
   static const LOADING = 0;
+  /// indicates that the tile image is ready for rendering
   static const READY = 1;
+  /// indicates that an error occured when loading the tile image
   static const ERROR= 2;
 
-  final Point t;
-  CanvasElement canvas;
+  /// the tile coordinats
+  final Point2D tc;
+  /// the layer this tile is rendered on 
   final TileLayer layer;
+  
+  CanvasElement _canvas;
   ImageElement _img;
   int _state = LOADING;
 
   /**
-   * Creates a tile at tile coordinates [t] = (ti, tj)
+   * Creates a tile at tile coordinates [tc] = (ti, tj)
    * for the layer [layer]. It will be rendered on
-   * [canvas].
-   *
+   * [_canvas].
    */
-  Tile(this.t, this.canvas, this.layer);
+  Tile(this.tc, this._canvas, this.layer);
 
   /**
    * Detach the tile from the map viewport.
@@ -103,13 +130,13 @@ class Tile {
    * A detached tile whose image becomes available isn't
    * rendered anymore.
    */
-  detach() => canvas = null;
+  void detach() => _canvas = null;
 
   /**
    * Trigger loading of the tile image.
    */
-  load() {
-     var url = layer.bindTileToUrl(t.x, t.y, layer.map.zoom);
+  void load() {
+     var url = layer.bindTileToUrl(tc.x, tc.y, layer.map.zoom);
      _img = _DEFAULT_CACHE.lookup(url,
       onLoad: (e) {
         _state = READY;
@@ -124,60 +151,71 @@ class Tile {
     render();
   }
 
-  Point get topLeftInViewport =>
-      layer.map.zoomPlaneToViewport(t * layer.tileSize);
+  /// the top left corner in viewport coordinates where the tile
+  /// should be rendered
+  Point2D get _topLeftInViewport =>
+      layer.map.zoomPlaneToViewport(tc.scale(
+          sx: layer.tileSize.width,
+          sy: layer.tileSize.height
+      ));
 
-  renderReady() {
-    if (canvas == null) return;
-    var context = canvas.context2d;
+  void _renderReady() {
+    if (_canvas == null) return;
+    var context = _canvas.context2D;
     context.globalAlpha = layer.opacity;
-    var tl = topLeftInViewport;
+    var tl = _topLeftInViewport;
     var ts = layer.tileSize;
     context.clearRect(tl.x, tl.y, ts.x, ts.y);
     context.drawImage(_img, tl.x, tl.y);
   }
 
-  ImageElement parentImage() {
+  /// Returns the image of the parent tile of this tile, provided 
+  /// there is a parent tile and its image is already in the cache.
+  /// Otherwise returns [:null:].
+  ImageElement get _parentImage {
     var z = layer.map.zoom;
     if (z == 0) return null;
     z--;
-    var ti = t.x ~/ 2;
-    var tj = t.y ~/ 2;
+    var ti = tc.x ~/ 2;
+    var tj = tc.y ~/ 2;
     var url = layer.bindTileToUrl(ti, tj, z);
     var img = _DEFAULT_CACHE.get(url);
     return img;
   }
 
-  renderLoading() {
-    var img = parentImage();
-    if (img == null) {
-      var context = canvas.context2d;
-      var tl = topLeftInViewport;
+  void _renderLoading() {
+    var img = _parentImage;
+    var context = _canvas.context2D;
+    if (img == null) {      
+      var tl = _topLeftInViewport;
       var ts = layer.tileSize;
-      context.clearRect(tl.x,tl.y, ts.x /* width */, ts.y /* height */);
+      context.clearRect(tl.x,tl.y, ts.width, ts.height);
     } else {
-      var tl = topLeftInViewport;
+      var tl = _topLeftInViewport;
       var ts = layer.tileSize;
       // the quadrant of the parent tile to be rendered (scaled by 2)
       // in place of the current tile
       var src = new html.Rect(
-          (t.x % 2) * ts.x ~/ 2,
-          (t.y % 2) * ts.y ~/ 2,
-          ts.x ~/ 2,
-          ts.y ~/ 2
+          (tc.x % 2) * ts.width ~/ 2,
+          (tc.y % 2) * ts.height ~/ 2,
+          ts.width ~/ 2,
+          ts.height ~/ 2
       );
       // the rectangle where the current tile is rendered
-      var dest = new html.Rect(tl.x, tl.y, ts.x, ts.y);
-      canvas.context2d.drawImageAtScale(img,dest,sourceRect:src);
+      var dest = new html.Rect(tl.x, tl.y, ts.width, ts.height);
+      context.drawImageToRect(img,dest,sourceRect:src);
     }
   }
 
-  renderError() {
-    var context = canvas.context2d;
+  void _renderError() {
+    var context = _canvas.context2D;
     context.globalAlpha = layer.opacity;
     var ts = layer.tileSize;
-    var tl = topLeftInViewport;
-    var center = new Point(tl.x, tl.y) + (new Point(ts.x, ts.y) / 2).toInt();
+    var tl = _topLeftInViewport;
+    var center = 
+         new Point2D(tl.x, tl.y) 
+      + (new Point2D(ts.width, ts.height) / 2).toInt();
+    
     context
       ..save()
       ..strokeStyle="rgba(255,0,0,0.5)"
@@ -195,30 +233,34 @@ class Tile {
       ;
   }
 
-  render() {
-    if (canvas == null) return;
+  /// renders the tile
+  void render() {
+    if (_canvas == null) return;
     switch(_state) {
-      case LOADING: renderLoading(); break;
-      case READY: renderReady(); break;
-      case ERROR: renderError(); break;
+      case LOADING: _renderLoading(); break;
+      case READY: _renderReady(); break;
+      case ERROR: _renderError(); break;
     }
   }
 }
 
 /**
- * A renders which renders map tiles with a grid of [ImgElements]s.
+ * A renderer which renders map tiles with a grid of [ImgElements]s.
  */
 class ImgGridRenderer extends Renderer {
   ImgGridRenderer(layer) : super(layer);
 
-  beforeRender(){
+  void beforeRender(){
     _layer.container.children.clear();
   }
 
-  renderTile(Point tile) {
+  void renderTile(Point2D tile) {
     var url = _layer.bindTileToUrl(tile.x, tile.y, _layer.map.zoom);
     var img = _layer._cache.lookup(url);
-    var tileOnZoomPlane = tile * _layer.tileSize;
+    var tileOnZoomPlane = tile.scale(
+        sx: _layer.tileSize.width,
+        sy: _layer.tileSize.height
+    );
     var tileOnViewport = _layer._map.zoomPlaneToViewport(tileOnZoomPlane);
     img.style
       ..position = "absolute"
@@ -235,7 +277,11 @@ class ImgGridRenderer extends Renderer {
 class CanvasRenderer extends Renderer {
 
   CanvasElement _canvas;
-  CanvasRenderingContext2D _context;
+  CanvasRenderingContext2D get _context {
+    if (_canvas == null) return null;
+    return _canvas.context2D;
+  }
+  
   List<Tile> _tiles = [];
 
   CanvasRenderer(TileLayer layer): super(layer);
@@ -251,10 +297,10 @@ class CanvasRenderer extends Renderer {
     _tiles.clear();
   }
 
-  beforeRender() {
+  @override 
+  void beforeRender() {
     if (_layer.map == null) {
       _canvas = null;
-      _context = null;
     } else {
       if (_canvas == null) {
         _canvas = new Element.tag("canvas");
@@ -266,7 +312,6 @@ class CanvasRenderer extends Renderer {
           ..left="0px"
           ..position="relative"
           ..zIndex = "inherit";
-        _context = _canvas.context2d;
       }
       _updateSize();
       _clear();
@@ -277,20 +322,21 @@ class CanvasRenderer extends Renderer {
     var vs = _layer.map.viewportSize;
     // make sure the _canvas size is equal to the map
     // size
-    if (vs.x != _canvas.width || vs.y != _canvas.height) {
+    if (vs.width != _canvas.width || vs.height != _canvas.height) {
       _canvas
-        ..width=vs.x
-        ..height=vs.y;
+        ..width=vs.width
+        ..height=vs.height;
     }
   }
 
-  renderTile(Point tile) {
-    Tile t = new Tile(tile, _canvas, _layer);
+  @override
+  void renderTile(Point2D tileCoord) {
+    Tile t = new Tile(tileCoord, _canvas, _layer);
     _tiles.add(t);
     t.load();
   }
 
-  /* ---------------------- rendering the tile border - for debugging  --- */
+  /* ------------- rendering the tile border - for debugging  --- */
   bool renderTileBorders = false;
 }
 
@@ -299,7 +345,7 @@ class CanvasRenderer extends Renderer {
  * layer.
  *
  * ### Example
- *    var layer = new OsmTileLayer(renderer: IMG_GRID_RENDERER);
+ *        var layer = new OsmTileLayer(renderer: IMG_GRID_RENDERER);
  */
 const IMG_GRID_RENDERER = 0;
 
@@ -308,7 +354,7 @@ const IMG_GRID_RENDERER = 0;
  * layer.
  *
  * ### Example
- *    var layer = new OsmTileLayer(renderer: CanvasRenderer);
+ *       var layer = new OsmTileLayer(renderer: CANVAS_RENDERER);
  */
 const CANVAS_RENDERER = 1;
 
@@ -319,7 +365,7 @@ const CANVAS_RENDERER = 1;
 abstract class TileLayer extends Layer {
 
   /// the default tile dimensions
-  static final Point DEFAULT_TILE_SIZE = new Point(256,256);
+  static final Dimension DEFAULT_TILE_SIZE = new Dimension(256,256);
 
   final TileCache _cache = new TileCache();
   Renderer _renderer;
@@ -351,14 +397,16 @@ abstract class TileLayer extends Layer {
     else if (renderer is Renderer) initCustom(renderer);
     else if(renderer == null) _renderer = new CanvasRenderer(this);
     else
-      throw new ArgumentError("renderer: expected int or Renderer, got $renderer");
+      throw new ArgumentError(
+          "renderer: expected int or Renderer, got $renderer");
   }
 
   /**
    * Creates the tile renderer.
    *
    * ### Possible values for [renderer]
-   * * either [IMG_GRID_RENDERER] or [CANVAS_RENDERER]
+   * 
+   * * [IMG_GRID_RENDERER] or [CANVAS_RENDERER]
    * * an instance of a [Renderer]
    * * the default value if missing or null is [CANVAS_RENDERER]
    */
@@ -370,14 +418,11 @@ abstract class TileLayer extends Layer {
       ..style.overflow = "hidden";
   }
 
-  /**
-   * The tile size used by this tile layer. Replies a
-   * [Point], `x` is the tile width, `y` the tile
-   * heigth.
-   */
-  Point get tileSize => DEFAULT_TILE_SIZE;
+  /// the tile size used by this tile layer
+  Dimension get tileSize => DEFAULT_TILE_SIZE;
 
-  attach(MapViewport m) {
+  @override
+  void attach(MapViewport m) {
     super.attach(m);
     var viewportSize = map.viewportSize;
     var tl = map.topLeftInPage;
@@ -389,53 +434,63 @@ abstract class TileLayer extends Layer {
       ..top = "0px";
   }
 
-  bindTileToUrl(int x, int y, int zoom);
+  /// returns a tile URL for the tile at tile coordinates [x], [y]
+  /// in the tile plane at zoom level [zoom]
+  String bindTileToUrl(int x, int y, int zoom);
 
-  render() {
+  @override
+  void render() {
     if (!visible) return;
     _renderer.render();
   }
 }
 
+/**
+ * A tile layer which renders map tiles provided by the 
+ * OpenStreetMap project.
+ */
 class OsmTileLayer extends TileLayer {
-
 
   OsmTileLayer({tileSources, renderer:CANVAS_RENDERER})
       : super(renderer:renderer)
   {
-    if (?tileSources) this.tileSources = tileSources;
+     this.tileSources = tileSources;
   }
 
-  List _tileSources = [];
+  List _tileSources;
 
   /// the list of tile sources this layer uses
   List get tileSources => new List.from(_tileSources);
 
   /**
    * Set the tile sources where tiles are loaded from.
+   * 
+   * If more than one tile source is supplied, the layer loads map
+   * tile in random order from them.
    *
-   * [sources] can be
-   *   * [:null:] which results in an empty list of tile sources
-   *   * a [String] with a tile URL template
-   *   * a [List] of strings, a tile URL template each
+   * ## Possible values for [sources] 
+   * 
+   * * [:null:] which results in an empty list of tile sources
+   * * a [String] with a tile URL template
+   * * a [List] of strings, a tile URL template each
    *
    * A *tile URL template* is a string which can include the following
    * macros:
+   * 
    *   * `{z}` -  bound to the current zoom level when a tile is loaded
    *   * `{x}` -  bound to the x-coordiate of the tile when a tile is loaded
    *   * `{y}` -  bound to the y-coordiate of the tile when a tile is loaded
    */
-  set tileSources(sources) {
+  void set tileSources(sources) {
     if (sources == null) {
-      _tileSources = [];
+      _tileSources = null;
     } else  if (sources is String) {
-      _tileSources = [sources];
+      _tileSources = new List.filled(1, sources);
     } else if (sources is List) {
       sources = sources.where((s) => s != null);
-      if (sources.any((s) => s is! String)) {
-        throw new ArgumentError("Expected list tile source strings, got sources");
-      }
-      _tileSources = new List.from(sources);
+      _require(sources.every((s) => s is String),
+        "Expected list tile source strings, got $sources");     
+      _tileSources = new List.from(sources, growable: false);
     }
   }
 
@@ -443,13 +498,15 @@ class OsmTileLayer extends TileLayer {
 
   /// selects a random tile source from the list of configured tile sources
   String get _randomTileSource {
-    if (_tileSources.isEmpty) return null;
+    if (_tileSources == null) return null;
     if (_tileSources.length == 1) return _tileSources.first;
     return _tileSources[_random.nextInt(_tileSources.length)];
   }
 
   static final _TEMPLATE_BIND_REGEXP = new RegExp(r"\{\s*(x|y|z)\s*\}");
-  bindTileToUrl(int x, int y, int zoom) {
+  
+  @override
+  String bindTileToUrl(int x, int y, int zoom) {
     var source = _randomTileSource;
     return source.splitMapJoin(
       _TEMPLATE_BIND_REGEXP,
@@ -463,6 +520,9 @@ class OsmTileLayer extends TileLayer {
   }
 }
 
+/**
+ * `WMSLayer` loads map tiles from a Web Map Server.
+ */
 class WMSLayer extends TileLayer {
 
   String _serviceUrl;
@@ -499,20 +559,23 @@ class WMSLayer extends TileLayer {
    * names.
    *
    * [parameters] is a map of WMS request parameters.
+   * 
+   * [renderer] is one of the renderer values supported by
+   * [TileLayer].
    *
    * ##Examples
-   *    var layer1 = new WmsLayer(
-   *      serviceUrl: "https://wms.geo.admin.ch?",
-   *      layers: "ch.are.gemeindetypen"
-   *    );
+   *      var layer1 = new WmsLayer(
+   *        serviceUrl: "https://wms.geo.admin.ch?",
+   *        layers: "ch.are.gemeindetypen"
+   *      );
    *
-   *    var layer2 = new WmsLayer(
-   *      serviceUrl: "https://wms.geo.admin.ch?",
-   *      layers: ["ch.are.gemeindetypen", "ch.are.alpenkonvention"],
-   *      parameters: {
-   *        "FORMAT": "image/jpeg"
-   *      }
-   *    );
+   *      var layer2 = new WmsLayer(
+   *        serviceUrl: "https://wms.geo.admin.ch?",
+   *        layers: ["ch.are.gemeindetypen", "ch.are.alpenkonvention"],
+   *        parameters: {
+   *          "FORMAT": "image/jpeg"
+   *        }
+   *      );
    */
   WMSLayer({String serviceUrl, layers, Map parameters, renderer})
     : super(renderer:renderer)
@@ -532,7 +595,7 @@ class WMSLayer extends TileLayer {
    * * [String] - a single layer
    * * [List] - a list of layer names
    */
-  set layers(value) {
+  void set layers(value) {
     if (value is String) {
       _layers.clear();
       _layers.add(value);
@@ -545,7 +608,7 @@ class WMSLayer extends TileLayer {
   }
 
   /// sets the service URL
-  set serviceUrl(String value) {
+  void set serviceUrl(String value) {
     if (value != null && value.endsWith("?")) {
       value = value.substring(0, value.length -1);
     }
@@ -561,15 +624,15 @@ class WMSLayer extends TileLayer {
    * coordinates.
    */
   //TODO: Order of components in the bbox string changed in WMS 1.3.0?
-  String buildGeographicTileBBox(int x, int y, int zoom) {
+  String _buildGeographicTileBBox(int x, int y, int zoom) {
     var size = tileSize;
-    var tx = x * tileSize.x;
-    var ty = y * tileSize.y + (tileSize.y - 1);
-    var min = map.mapToEarth(map.zoomPlaneToMap(new Point(tx, ty)));
+    var tx = x * tileSize.width;
+    var ty = y * tileSize.height + (tileSize.height - 1);
+    var min = map.mapToEarth(map.zoomPlaneToMap(new Point2D(tx, ty)));
 
-    tx = tx + tileSize.x - 1;
-    ty = y * tileSize.y;
-    var max = map.mapToEarth(map.zoomPlaneToMap(new Point(tx, ty)));
+    tx = tx + tileSize.width - 1;
+    ty = y * tileSize.height;
+    var max = map.mapToEarth(map.zoomPlaneToMap(new Point2D(tx, ty)));
     return "${min.lon},${min.lat},${max.lon},${max.lat}";
   }
 
@@ -594,19 +657,20 @@ class WMSLayer extends TileLayer {
    * coordinates
    */
   //TODO: Order of components in the bbox string changed in WMS 1.3.0?
-  String buildProjectedTileBBox(int x, int y, int zoom) {
+  String _buildProjectedTileBBox(int x, int y, int zoom) {
     var size = tileSize;
-    var tx = x * tileSize.x;
-    var ty = y * tileSize.y + (tileSize.y - 1);
-    var min = map.zoomPlaneToMap(new Point(tx, ty));
+    var tx = x * tileSize.width;
+    var ty = y * tileSize.height + (tileSize.height - 1);
+    var min = map.zoomPlaneToMap(new Point2D(tx, ty));
 
-    tx = tx + tileSize.x - 1;
-    ty = y * tileSize.y;
-    var max = map.zoomPlaneToMap(new Point(tx, ty));
+    tx = tx + tileSize.width - 1;
+    ty = y * tileSize.height;
+    var max = map.zoomPlaneToMap(new Point2D(tx, ty));
     return "${min.x},${min.y},${max.x},${max.y}";
   }
 
-  bindTileToUrl(int x, int y, int zoom) {
+  @override
+  String bindTileToUrl(int x, int y, int zoom) {
     var ts = tileSize;
     var parameters = new Map.from(_defaultParameters);
     parameters["REQUEST"] = "GetMap";
@@ -614,10 +678,10 @@ class WMSLayer extends TileLayer {
     parameters["WIDTH"] = ts.x.toString();
     parameters["HEIGHT"] = ts.y.toString();
     if (useProjectedCoordinates) {
-      parameters["BBOX"] = buildProjectedTileBBox(x,y,zoom);
+      parameters["BBOX"] = _buildProjectedTileBBox(x,y,zoom);
       parameters["SRS"] = _map.crs.code;
     } else {
-      parameters["BBOX"] = buildGeographicTileBBox(x,y,zoom);
+      parameters["BBOX"] = _buildGeographicTileBBox(x,y,zoom);
       parameters["SRS"] = "EPSG:4326";
     }
 
@@ -626,7 +690,8 @@ class WMSLayer extends TileLayer {
     return url;
   }
 
-  render() {
+  @override
+  void render() {
     if (_serviceUrl == null) {
       print("WARNING: can't render, serviceUrl not defined");
       return;
@@ -646,26 +711,25 @@ class WMSLayer extends TileLayer {
  * The size of the cache is bound. The least recently accessed map tile
  * is removed from the cache first, if the upper limit of the maps size
  * is reached.
- *
  */
 class TileCache {
 
   /// default tile cache size
-  static const DEFAULT_SIZE = 200;
+  static const DEFAULT_CAPACITY = 200;
 
   final Map<String, ImageElement>  _map = new Map();
   final Queue<ImageElement> _access = new Queue();
 
-  final int size;
+  final int capacity;
 
   /**
-   * Creates the tile cache with [size] as upper
+   * Creates the tile cache with [capacity] as upper
    * capacity limit.
    */
-  TileCache({this.size: DEFAULT_SIZE});
+  TileCache({this.capacity: DEFAULT_CAPACITY});
 
   /**
-   *  Lookup (or create) an [ImageElement] for the [url].
+   *  Lookup (or create) an [ImageElement] for [url].
    *
    *  If the image isn't in the cache then [onLoad] and [onError]
    *  are invoked later when the image is successfully loaded or
@@ -680,7 +744,7 @@ class TileCache {
     }
     img = new Element.tag("img");
     _map[url] = img;
-    if (_access.length >= size) {
+    if (_access.length >= capacity) {
       _access.removeLast();
     }
     _access.addFirst(img);
@@ -726,6 +790,7 @@ class TileCache {
    * Purges [obj] from the cache.
    *
    * ## Possible values for [obj]
+   * 
    * * an URL as [String]
    * * an [ImageElement]
    *
@@ -733,7 +798,7 @@ class TileCache {
    *
    * Nothing is purged from the cache if [obj] is null.
    */
-  purge(obj) {
+  void purge(obj) {
     if (obj == null) return;
     if (obj is String) {
       obj = _map[obj];
