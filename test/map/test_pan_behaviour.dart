@@ -1,4 +1,4 @@
-library map_viewport_test;
+library test_pan_behaviour;
 
 import "dart:html" hide Point;
 import "dart:math" as math;
@@ -20,12 +20,13 @@ class MapViewportMock extends Mock implements MapViewport {
     when(callsTo("pan")).alwaysCall(_logPanStep);
   }
 
-  var panned = new Point.origin();
+  var panned = new Point2D.origin();
   reset() {
-    panned = new Point.origin();
+    panned = new Point2D.origin();
   }
 
-  _logPanStep(Point panBy) {
+  _logPanStep(Point2D panBy) {
+    //print("panned ...");
     panned += panBy;
   }
 }
@@ -33,7 +34,7 @@ class MapViewportMock extends Mock implements MapViewport {
 main() {
   useHtmlEnhancedConfiguration();
 
-  group("short distance panning", () {
+  group("short distance panning -", () {
     var map;
     var container;
 
@@ -51,14 +52,13 @@ main() {
       }));
     }
 
-    print("testing short distance panning ...");
-    test("- pan east by 100 pixel", () => pan(new Point(100,0)));
-    test("- pan west by 100 pixel", () => pan(new Point(-100,0)));
-    test("- pan north by 100 pixel", () => pan(new Point(0, -100)));
-    test("- pan south by 100 pixel", () => pan(new Point(0, 100)));
+    test("pan east by 100 pixel", () => pan(new Point2D(100,0)));
+    test("pan west by 100 pixel", () => pan(new Point2D(-100,0)));
+    test("pan north by 100 pixel", () => pan(new Point2D(0, -100)));
+    test("pan south by 100 pixel", () => pan(new Point2D(0, 100)));
   });
 
-  group("long distance panning", () {
+  group("long distance panning -", () {
     var map;
     var container;
 
@@ -76,11 +76,10 @@ main() {
       }));
     }
 
-    print("testing long distance panning ...");
-    test("- pan east by 500 pixel", () => pan(new Point(500,0)));
-    test("- pan west by 500 pixel", () => pan(new Point(-500,0)));
-    test("- pan north by 500 pixel", () => pan(new Point(0, -500)));
-    test("- pan south by 500 pixel", () => pan(new Point(0, 500)));
+    test("pan east by 500 pixel", () => pan(new Point2D(500,0)));
+    test("pan west by 500 pixel", () => pan(new Point2D(-500,0)));
+    test("pan north by 500 pixel", () => pan(new Point2D(0, -500)));
+    test("pan south by 500 pixel", () => pan(new Point2D(0, 500)));
   });
 }
 
