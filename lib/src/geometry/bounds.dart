@@ -42,7 +42,8 @@ class Bounds {
    * Creates a bounds from another value [other].
    *
    * [other] can be one of the following values:
-   *   * a [Bounds]  -> replies a copy of [other]
+   *
+   * * a [Bounds]  -> replies a copy of [other]
    */
   factory Bounds.from(other) {
     if (other is Bounds) return new Bounds(other.min, other.max);
@@ -50,7 +51,7 @@ class Bounds {
 
   /**
    * Replies an extended version of this bounds which
-   * includes the Point2D [other].
+   * includes [other].
    */
   Bounds extendTo(Point2D other) => new Bounds(min.min(other), max.max(other));
 

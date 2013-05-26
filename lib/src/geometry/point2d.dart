@@ -4,7 +4,10 @@ part of dartkart.geometry;
  * A point in 2D cartesian space.
  */
 class Point2D implements Comparable<Point2D>{
+  /// the x-coordinate
   final num x;
+
+  /// the y-coordinate
   final num y;
 
   /**
@@ -15,9 +18,9 @@ class Point2D implements Comparable<Point2D>{
   /**
    * Creates a point from another object [other].
    *
-   * [other] is either
+   * ## Possible values for [other]
    *
-   * * another [Point2D], in which case [other] is clonsed
+   * * another [Point2D], in which case [other] is cloned
    * * a [List] with exactly two [num] values.
    *
    * ## Examples
