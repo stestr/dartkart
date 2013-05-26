@@ -53,9 +53,33 @@ class Point2D implements Comparable<Point2D>{
 
   bool operator==(other) => x == other.x && y == other.y;
 
-  Point2D operator +(other) => new Point2D(x + other.x, y + other.y);
+  /**
+   * Creates a new point by adding [other] to this point.
+   * 
+   * ### Possible values for [other]
+   * * [Point2D]  - vector addition 
+   * * [Dimension] - adds `x` and `width`, and `y` and `height`
+   */
+  Point2D operator +(other) {
+    if (other is Point2D) return new Point2D(x + other.x, y + other.y);
+    if (other is Dimension) return new Point2D(x + other.width, y + other.height);
+    throw new ArgumentError("expected Point2D or Dimension, got $other");
+  }
+  
   Point2D operator -() => new Point2D(-x, -y);
-  Point2D operator -(other) => this + (-other);
+  
+  /**
+   * Creates a new point by subtracting [other] from this point.
+   * 
+   * ### Possible values for [other]
+   * * [Point2D]  - vector subtraction 
+   * * [Dimension] - subtracts `width` from `x`, and `height` from `y`
+   */
+  Point2D operator -(other) {
+    if (other is Point2D) return new Point2D(x - other.x, y - other.y);
+    if (other is Dimension) return new Point2D(x - other.width, y - other.height);
+    throw new ArgumentError("expected Point2D or Dimension, got $other");
+  }
   Point2D operator *(num factor) => new Point2D(x * factor, y * factor);
   Point2D operator /(num divisor) => new Point2D(x / divisor, y / divisor);
 
