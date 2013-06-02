@@ -36,6 +36,7 @@ class LatLonBounds {
    * Create a bounds objects from another value [other].
    *
    * ## Possible values for [other]
+   *
    * * a [LatLonBounds] -> creates a copy of [other]
    */
   factory LatLonBounds.from(other) {
@@ -48,18 +49,19 @@ class LatLonBounds {
     throw new ArgumentError("can't create a LatLonBounds from $other");
   }
 
-  /// the south-west corner 
+  /// the south-west corner
   LatLon get southWest => new LatLon(_minLat, _maxLon);
-  /// the south-east corner 
+  /// the south-east corner
   LatLon get southEast => new LatLon(_minLat, _maxLon);
-  /// the north-east corner 
+  /// the north-east corner
   LatLon get northEast => new LatLon(_maxLat, _maxLon);
-  
-  /// the north-west corner 
+
+  /// the north-west corner
   LatLon get northWest => new LatLon(_minLat, _maxLon);
-  
-  /// the center point 
-  LatLon get center => new LatLon((_minLat + _maxLat) / 2, (_minLon + _maxLon) / 2);
+
+  /// the center point
+  LatLon get center => new LatLon((_minLat + _maxLat) / 2,
+      (_minLon + _maxLon) / 2);
 
   _containsPoint(LatLon p) =>
          p.lat >= _minLat && p.lat <= _maxLat
@@ -75,7 +77,7 @@ class LatLonBounds {
    * * a [LatLon] -> checks whether the point is this bounds
    * * a [LatLonBounds] -> checks whether the bounds are completely in this
    *   bounds
-   *    
+   *
    * Throws [ArgumentError] if [obj] is either null or of an
    * unexpected type.
    */
@@ -86,7 +88,7 @@ class LatLonBounds {
   }
 
   /**
-   * Checks wheter [n] interesects with this bounds.
+   * Checks whether [b] interesects with this bounds.
    *
    * Replies true, if [b] interesects, false otherwise.
    * Throws [ArgumentError] if [b] is null or of an unexpected type

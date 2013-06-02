@@ -30,11 +30,9 @@
 <li><a href="../dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
 <li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
 <li><a href="../dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
-<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
 <li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
 <li><div class="icon-class"></div><strong>TileCache</strong></li>
 <li><a href="../dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
-<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
 <li><a href="../dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
 </ul>
 <h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
@@ -54,21 +52,21 @@ is reached.</p>
 class TileCache {
 
  /// default tile cache size
- static const DEFAULT_SIZE = 200;
+ static const DEFAULT_CAPACITY = 200;
 
  final Map&lt;String, ImageElement&gt;  _map = new Map();
  final Queue&lt;ImageElement&gt; _access = new Queue();
 
- final int size;
+ final int capacity;
 
  /**
-  * Creates the tile cache with [size] as upper
+  * Creates the tile cache with [capacity] as upper
   * capacity limit.
   */
- TileCache({this.size: DEFAULT_SIZE});
+ TileCache({this.capacity: DEFAULT_CAPACITY});
 
  /**
-  *  Lookup (or create) an [ImageElement] for the [url].
+  *  Lookup (or create) an [ImageElement] for [url].
   *
   *  If the image isn't in the cache then [onLoad] and [onError]
   *  are invoked later when the image is successfully loaded or
@@ -83,7 +81,7 @@ class TileCache {
    }
    img = new Element.tag("img");
    _map[url] = img;
-   if (_access.length &gt;= size) {
+   if (_access.length &gt;= capacity) {
      _access.removeLast();
    }
    _access.addFirst(img);
@@ -129,6 +127,7 @@ class TileCache {
   * Purges [obj] from the cache.
   *
   * ## Possible values for [obj]
+  * 
   * * an URL as [String]
   * * an [ImageElement]
   *
@@ -136,7 +135,7 @@ class TileCache {
   *
   * Nothing is purged from the cache if [obj] is null.
   */
- purge(obj) {
+ void purge(obj) {
    if (obj == null) return;
    if (obj is String) {
      obj = _map[obj];
@@ -156,15 +155,16 @@ class TileCache {
 </div>
 <div>
 <h3>Static Properties</h3>
-<div class="field"><h4 id="DEFAULT_SIZE">
+<div class="field"><h4 id="DEFAULT_CAPACITY">
 <button class="show-code">Code</button>
-const         <strong>DEFAULT_SIZE</strong> <a class="anchor-link"
-            href="#DEFAULT_SIZE"
-            title="Permalink to TileCache.DEFAULT_SIZE">#</a>
+const         <strong>DEFAULT_CAPACITY</strong> <a class="anchor-link"
+            href="#DEFAULT_CAPACITY"
+            title="Permalink to TileCache.DEFAULT_CAPACITY">#</a>
         </h4>
         <div class="doc">
+<p>default tile cache size</p>
 <pre class="source">
-DEFAULT_SIZE = 200
+static const DEFAULT_CAPACITY = 200
 </pre>
 </div>
 </div>
@@ -173,29 +173,29 @@ DEFAULT_SIZE = 200
 <h3>Constructors</h3>
 <div class="method"><h4 id="TileCache">
 <button class="show-code">Code</button>
-new <strong>TileCache</strong>({<a href="http://api.dartlang.org/dart_core/int.html">int</a> size: DEFAULT_SIZE}) <a class="anchor-link" href="#TileCache"
+new <strong>TileCache</strong>({<a href="http://api.dartlang.org/dart_core/int.html">int</a> capacity: DEFAULT_CAPACITY}) <a class="anchor-link" href="#TileCache"
               title="Permalink to TileCache.TileCache">#</a></h4>
 <div class="doc">
 <p>Creates the tile cache with 
-<span class="param">size</span> as upper
+<span class="param">capacity</span> as upper
 capacity limit.</p>
 <pre class="source">
-TileCache({this.size: DEFAULT_SIZE});
+TileCache({this.capacity: DEFAULT_CAPACITY});
 </pre>
 </div>
 </div>
 </div>
 <div>
 <h3>Properties</h3>
-<div class="field"><h4 id="size">
+<div class="field"><h4 id="capacity">
 <button class="show-code">Code</button>
-final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>size</strong> <a class="anchor-link"
-            href="#size"
-            title="Permalink to TileCache.size">#</a>
+final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>capacity</strong> <a class="anchor-link"
+            href="#capacity"
+            title="Permalink to TileCache.capacity">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-size
+final int capacity
 </pre>
 </div>
 </div>
@@ -229,7 +229,7 @@ ImageElement get(String url) {
 <a href="http://api.dartlang.org/dart_html/ImageElement.html">ImageElement</a> <strong>lookup</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> url, {onLoad(event), onError(event)}) <a class="anchor-link" href="#lookup"
               title="Permalink to TileCache.lookup">#</a></h4>
 <div class="doc">
-<p> Lookup (or create) an <code>ImageElement</code> for the 
+<p> Lookup (or create) an <code>ImageElement</code> for 
 <span class="param">url</span>.</p>
 <p> If the image isn't in the cache then 
 <span class="param">onLoad</span> and 
@@ -246,7 +246,7 @@ ImageElement lookup(String url, {onLoad(event), onError(event)}){
  }
  img = new Element.tag("img");
  _map[url] = img;
- if (_access.length &gt;= size) {
+ if (_access.length &gt;= capacity) {
    _access.removeLast();
  }
  _access.addFirst(img);
@@ -277,7 +277,7 @@ ImageElement lookup(String url, {onLoad(event), onError(event)}){
 </div>
 <div class="method"><h4 id="purge">
 <button class="show-code">Code</button>
-<strong>purge</strong>(obj) <a class="anchor-link" href="#purge"
+void <strong>purge</strong>(obj) <a class="anchor-link" href="#purge"
               title="Permalink to TileCache.purge">#</a></h4>
 <div class="doc">
 <p>Purges 
@@ -288,7 +288,7 @@ ImageElement lookup(String url, {onLoad(event), onError(event)}){
 <p>Nothing is purged from the cache if 
 <span class="param">obj</span> is null.</p>
 <pre class="source">
-purge(obj) {
+void purge(obj) {
  if (obj == null) return;
  if (obj is String) {
    obj = _map[obj];
@@ -311,7 +311,7 @@ purge(obj) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.424</div>
+          <div>This page was generated at 2013-06-02 17:31:28.023</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

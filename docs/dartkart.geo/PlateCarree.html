@@ -49,8 +49,8 @@ where
 </em>  -90 &lt;= y &lt;= -90</p>
 <pre class="source">
 class PlateCarree implements Projection {
- Point project(LatLon ll) =&gt; new Point(ll.lon, ll.lat);
- LatLon unproject(Point p) =&gt; new LatLon(p.y, p.x);
+ Point2D project(LatLon ll) =&gt; new Point2D(ll.lon, ll.lat);
+ LatLon unproject(Point2D p) =&gt; new LatLon(p.y, p.x);
 }
 </pre>
 </div>
@@ -61,29 +61,29 @@ class PlateCarree implements Projection {
 <h3>Methods</h3>
 <div class="method"><h4 id="project">
 <button class="show-code">Code</button>
-<a href="../dartkart.geometry/Point.html">Point</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
               title="Permalink to PlateCarree.project">#</a></h4>
 <div class="doc">
 <div class="inherited">
-<p>Project a point (lat/lon) from a geographic coordinates into a
-point (x,y) in a projected coordinate system</p>
+<p>Project a point (lat/lon) from a geodetic coordinates into a
+Point2D (x,y) in a projected coordinate system</p>
 <div class="docs-inherited-from">docs inherited from <a href="../dartkart.geo/Projection.html">Projection</a> </div></div>
 <pre class="source">
-Point project(LatLon ll) =&gt; new Point(ll.lon, ll.lat);
+Point2D project(LatLon ll) =&gt; new Point2D(ll.lon, ll.lat);
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="unproject">
 <button class="show-code">Code</button>
-<a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#unproject"
+<a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> p) <a class="anchor-link" href="#unproject"
               title="Permalink to PlateCarree.unproject">#</a></h4>
 <div class="doc">
 <div class="inherited">
-<p>Reverse project a point (x,y) from a projected coordinate system into
-a point (lat/lon) in the geoographic coordinate system.</p>
+<p>Reverse project a Point2D (x,y) from a projected coordinate system into
+a Point2D (lat/lon) in the geodetic coordinate system.</p>
 <div class="docs-inherited-from">docs inherited from <a href="../dartkart.geo/Projection.html">Projection</a> </div></div>
 <pre class="source">
-LatLon unproject(Point p) =&gt; new LatLon(p.y, p.x);
+LatLon unproject(Point2D p) =&gt; new LatLon(p.y, p.x);
 </pre>
 </div>
 </div>
@@ -92,7 +92,7 @@ LatLon unproject(Point p) =&gt; new LatLon(p.y, p.x);
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.220</div>
+          <div>This page was generated at 2013-06-02 17:31:27.968</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

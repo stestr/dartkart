@@ -48,10 +48,10 @@ class PropertyChangeEvent {
  final oldValue;
  ///  the new value
  final newValue;
- const PropertyChangeEvent(this.source, this.name, this.oldValue, this.newValue);
+ PropertyChangeEvent(this.source, this.name, this.oldValue, this.newValue);
 
  String toString() =&gt;
-     "{PropertyChangeEvent: source=$source name=$name, oldValue=$oldValue"
+     "{PropertyChangeEvent: source=$source name=$name, oldValue=$oldValue,"
      " newValue=$newValue";
 }
 </pre>
@@ -60,11 +60,11 @@ class PropertyChangeEvent {
 <h3>Constructors</h3>
 <div class="method"><h4 id="PropertyChangeEvent">
 <button class="show-code">Code</button>
-const <strong>PropertyChangeEvent</strong>(<a href="http://api.dartlang.org/dart_core/Object.html">Object</a> source, <a href="http://api.dartlang.org/dart_core/String.html">String</a> name, oldValue, newValue) <a class="anchor-link" href="#PropertyChangeEvent"
+new <strong>PropertyChangeEvent</strong>(<a href="http://api.dartlang.org/dart_core/Object.html">Object</a> source, <a href="http://api.dartlang.org/dart_core/String.html">String</a> name, oldValue, newValue) <a class="anchor-link" href="#PropertyChangeEvent"
               title="Permalink to PropertyChangeEvent.PropertyChangeEvent">#</a></h4>
 <div class="doc">
 <pre class="source">
-const PropertyChangeEvent(this.source, this.name, this.oldValue, this.newValue);
+PropertyChangeEvent(this.source, this.name, this.oldValue, this.newValue);
 </pre>
 </div>
 </div>
@@ -78,8 +78,9 @@ final <a href="http://api.dartlang.org/dart_core/String.html">String</a>        
             title="Permalink to PropertyChangeEvent.name">#</a>
         </h4>
         <div class="doc">
+<p>the property name</p>
 <pre class="source">
-name
+final String name
 </pre>
 </div>
 </div>
@@ -90,8 +91,9 @@ final         <strong>newValue</strong> <a class="anchor-link"
             title="Permalink to PropertyChangeEvent.newValue">#</a>
         </h4>
         <div class="doc">
+<p> the new value</p>
 <pre class="source">
-newValue
+final newValue
 </pre>
 </div>
 </div>
@@ -102,8 +104,9 @@ final         <strong>oldValue</strong> <a class="anchor-link"
             title="Permalink to PropertyChangeEvent.oldValue">#</a>
         </h4>
         <div class="doc">
+<p>the old value</p>
 <pre class="source">
-oldValue
+final oldValue
 </pre>
 </div>
 </div>
@@ -114,8 +117,9 @@ final <a href="http://api.dartlang.org/dart_core/Object.html">Object</a>        
             title="Permalink to PropertyChangeEvent.source">#</a>
         </h4>
         <div class="doc">
+<p>the source object where the property was changed</p>
 <pre class="source">
-source
+final Object source
 </pre>
 </div>
 </div>
@@ -132,7 +136,7 @@ source
 <div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
 <pre class="source">
 String toString() =&gt;
-   "{PropertyChangeEvent: source=$source name=$name, oldValue=$oldValue"
+   "{PropertyChangeEvent: source=$source name=$name, oldValue=$oldValue,"
    " newValue=$newValue";
 </pre>
 </div>
@@ -142,7 +146,7 @@ String toString() =&gt;
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.189</div>
+          <div>This page was generated at 2013-06-02 17:31:27.946</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

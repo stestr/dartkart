@@ -30,8 +30,8 @@
 <li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
 <li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
 <li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
-<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
-<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/MouseEvent.html"><div class="icon-class"></div>MouseEvent</a></li>
+<li><a href="../dartkart.map/MouseEventStream.html"><div class="icon-class"></div>MouseEventStream</a></li>
 <li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
 <li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
 <li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
@@ -63,13 +63,13 @@ class SimpleZoomControl extends MapControl{
  &lt;/svg&gt;
  """;
 
- @override
  SimpleZoomControl([MapViewport map]) : super(map);
 
  _zoomIn(evt) =&gt; _map.zoomIn();
  _zoomOut(evt) =&gt; _map.zoomOut();
 
- _build() {
+ @override
+ void build() {
    _buildSvg();
    _wireEventHandlers();
  }
@@ -131,7 +131,7 @@ class SimpleZoomControl extends MapControl{
    _subscriptions.add(_root.query(".zoom-out-nob").onClick.listen(_zoomOut));
  }
 
- static var _DEFAULT_POS = new Point(10,20);
+ static var _DEFAULT_POS = new Point2D(10,20);
 
  @override
  get defaultPosition =&gt; _DEFAULT_POS;
@@ -151,13 +151,13 @@ const         <strong>SVG_CONTENT</strong> <a class="anchor-link"
         </h4>
         <div class="doc">
 <pre class="source">
-SVG_CONTENT = """&lt;svg
+static const SVG_CONTENT = """&lt;svg
 xmlns:svg="http://www.w3.org/2000/svg"
 xmlns="http://www.w3.org/2000/svg"
 version="1.1"&gt;
 &lt;!-- for styles see CSS file in the assets directory --&gt;
 &lt;g class="simple-zoom-control"&gt;
-&lt;!-- content is created dynamically --&gt;
+ &lt;!-- content is created dynamically --&gt;
 &lt;/g&gt;
 &lt;/svg&gt;
 """
@@ -173,7 +173,6 @@ new <strong>SimpleZoomControl</strong>([<a href="../dartkart.map/MapViewport.htm
               title="Permalink to SimpleZoomControl.SimpleZoomControl">#</a></h4>
 <div class="doc">
 <pre class="source">
-@override
 SimpleZoomControl([MapViewport map]) : super(map);
 </pre>
 </div>
@@ -226,23 +225,23 @@ Element get root =&gt; _root;
 </div>
 </div>
 </div>
-<div class="inherited">
+<div>
 <h3>Methods</h3>
 <div class="method inherited"><h4 id="applyPosition">
 <button class="show-code">Code</button>
-<strong>applyPosition</strong>() <a class="anchor-link" href="#applyPosition"
+void <strong>applyPosition</strong>() <a class="anchor-link" href="#applyPosition"
               title="Permalink to SimpleZoomControl.applyPosition">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
 <p>Applies the current position to the appropriate DOM element.</p>
 <pre class="source">
-applyPosition() {
- if (_root == null) return;
+void applyPosition() {
+ if (root == null) return;
  var pos = _position == null ? defaultPosition : _position;
  if (pos == null) {
    //TODO: log a warning ?
    return;
  }
- _root.style
+ root.style
    ..left = "${pos.x}px"
    ..top = "${pos.y}px";
 }
@@ -251,14 +250,14 @@ applyPosition() {
 </div>
 <div class="method inherited"><h4 id="attach">
 <button class="show-code">Code</button>
-<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
+void <strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
               title="Permalink to SimpleZoomControl.attach">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
 <p>Attaches this control to the map 
 <span class="param">viewport</span>.</p>
 <pre class="source">
-attach(MapViewport viewport) {
- if (viewport == null) throw new ArgumentError("viewport must not be null");
+void attach(MapViewport viewport) {
+ _require(viewport != null, "viewport must not be null");
  // already attached ?
  if (_map != null) {
    if (_map == viewport) {
@@ -271,27 +270,45 @@ attach(MapViewport viewport) {
  var controlsPane = _map.controlsPane;
  //TODO: log a warning?
  if (controlsPane == null) return;
- _build();
+ build();
  controlsPane.controls.add(this);
- controlsPane.root.children.add(_root);
+ controlsPane.root.children.add(root);
  applyPosition();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="build">
+<button class="show-code">Code</button>
+void <strong>build</strong>() <a class="anchor-link" href="#build"
+              title="Permalink to SimpleZoomControl.build">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Abstract method which builds the DOM tree for the control.
+Override in subclasses.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div></div>
+<pre class="source">
+@override
+void build() {
+ _buildSvg();
+ _wireEventHandlers();
 }
 </pre>
 </div>
 </div>
 <div class="method inherited"><h4 id="detach">
 <button class="show-code">Code</button>
-<strong>detach</strong>() <a class="anchor-link" href="#detach"
+void <strong>detach</strong>() <a class="anchor-link" href="#detach"
               title="Permalink to SimpleZoomControl.detach">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
 <p>Detaches this control from the map viewport it is currently
 attached to (if any).</p>
 <pre class="source">
-detach() {
+void detach() {
  if (_map == null) return;
  if (_root == null) return;
  if (_map._controlsPane == null) return;
- _map.controlsPane.root.children.remove(_root);
+ _map.controlsPane.root.children.remove(root);
  _subscriptions.forEach((s) =&gt; s.cancel());
  _subscriptions.clear();
 }
@@ -300,27 +317,27 @@ detach() {
 </div>
 <div class="method inherited"><h4 id="layout">
 <button class="show-code">Code</button>
-<strong>layout</strong>() <a class="anchor-link" href="#layout"
+void <strong>layout</strong>() <a class="anchor-link" href="#layout"
               title="Permalink to SimpleZoomControl.layout">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
 <p>Invoke this to force to (re-)layout the map control in the current
 map viewport.</p>
 <pre class="source">
-layout() {}
+void layout() {}
 </pre>
 </div>
 </div>
 <div class="method inherited"><h4 id="placeAt">
 <button class="show-code">Code</button>
-<strong>placeAt</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y) <a class="anchor-link" href="#placeAt"
+void <strong>placeAt</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y) <a class="anchor-link" href="#placeAt"
               title="Permalink to SimpleZoomControl.placeAt">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.map/MapControl.html">MapControl</a> </div><div class="doc">
 <p>Places the control at the position (
 <span class="param">x</span>, 
 <span class="param">y</span>).</p>
 <pre class="source">
-placeAt(int x, int y) {
- _position = new Point(x,y);
+void placeAt(int x, int y) {
+ _position = new Point2D(x,y);
  applyPosition();
 }
 </pre>
@@ -331,7 +348,7 @@ placeAt(int x, int y) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.497</div>
+          <div>This page was generated at 2013-06-02 17:31:28.106</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

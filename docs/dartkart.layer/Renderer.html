@@ -30,11 +30,9 @@
 <li><a href="../dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
 <li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
 <li><div class="icon-class"></div><strong>Renderer</strong></li>
-<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
 <li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
 <li><a href="../dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
 <li><a href="../dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
-<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
 <li><a href="../dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
 </ul>
 <h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
@@ -56,25 +54,37 @@ abstract class Renderer {
  Renderer(this._layer);
 
  /// Invoked by a [TileLayer] to render itself
- render() {
+ void render() {
    beforeRender();
    renderTileGrid();
    afterRender();
  }
 
- beforeRender(){}
+ /**
+  * Invoked before the tile grid is rendered using [renderTileGrid].
+  * Default implementation is empty. Override in subclasses if
+  * necessary.
+  */
+ void beforeRender(){}
 
- renderTileGrid() {
+ /**
+  * Renders the tile grid
+  */
+ void renderTileGrid() {
    var map = _layer._map;
    var tileSize = _layer.tileSize;
    var centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
-   var topLeftOnZoomPlane = centerOnZoomPlane - (map.viewportSize / 2).round();
+   var vshalf = (map.viewportSize / 2).toInt();
+   var topLeftOnZoomPlane = new Point2D(
+       centerOnZoomPlane.x - vshalf.width,
+       centerOnZoomPlane.y - vshalf.height
+   );
    var viewportOnZoomPlaneBounds = new Bounds(
        topLeftOnZoomPlane,
        topLeftOnZoomPlane + map.viewportSize
    );
-   tileIntersectsWithViewport(Point t) {
-     var tl = t * tileSize;
+   tileIntersectsWithViewport(Point2D t) {
+     var tl = t.scale(sx:tileSize.width, sy:tileSize.height);
      var tileBounds = new Bounds(
          tl,
          tl + tileSize
@@ -83,20 +93,20 @@ abstract class Renderer {
    }
 
    // the tile covering the map center
-   var tile = new Point(
-       centerOnZoomPlane.x ~/ tileSize.x,
-       centerOnZoomPlane.y ~/ tileSize.y
+   var tile = new Point2D(
+       centerOnZoomPlane.x ~/ tileSize.width,
+       centerOnZoomPlane.y ~/ tileSize.height
    );
 
    // find the first tile to be rendered
    while(true) {
-     var candidate = tile.translate(-1, 0);
+     var candidate = tile.translate(dx:-1);
      if (candidate.x &lt; 0) break;
      if (! tileIntersectsWithViewport(candidate)) break;
      tile = candidate;
    }
    while(true) {
-     var candidate = tile.translate(0, -1);
+     var candidate = tile.translate(dy:-1);
      if (candidate.y &lt; 0) break;
      if (! tileIntersectsWithViewport(candidate)) break;
      tile = candidate;
@@ -105,19 +115,28 @@ abstract class Renderer {
    // render the tile grid intersecting with the viewport
    var maxTileX = (1 &lt;&lt; map.zoom);
    var maxTileY = (1 &lt;&lt; map.zoom);
-   var cur = new Point.from(tile);
+   var cur = new Point2D.from(tile);
    while(cur.x &lt; maxTileX &amp;&amp; tileIntersectsWithViewport(cur)) {
      while(cur.y &lt; maxTileY &amp;&amp; tileIntersectsWithViewport(cur)) {
        renderTile(cur);
-       cur = cur.translate(0,1);
+       cur = cur.translate(dy:1);
      }
-     cur = new Point(cur.x + 1, tile.y);
+     cur = new Point2D(cur.x + 1, tile.y);
    }
  }
 
- afterRender(){}
+ /**
+  * Invoked after the tile grid is rendered using [renderTileGrid].
+  * Default implementation is empty. Override in subclasses if
+  * necessary.
+  */
+ void afterRender(){}
 
- renderTile(Point tilePos);
+ /**
+  * Renders the tile at position [tileCoord] in the current
+  * tile plane.
+  */
+ void renderTile(Point2D tileCoord);
 }
 </pre>
 </div>
@@ -143,32 +162,38 @@ Renderer(this._layer);
 <h3>Methods</h3>
 <div class="method"><h4 id="afterRender">
 <button class="show-code">Code</button>
-<strong>afterRender</strong>() <a class="anchor-link" href="#afterRender"
+void <strong>afterRender</strong>() <a class="anchor-link" href="#afterRender"
               title="Permalink to Renderer.afterRender">#</a></h4>
 <div class="doc">
+<p>Invoked after the tile grid is rendered using <a class="crossref" href="../dartkart.layer/Renderer.html#renderTileGrid">renderTileGrid</a>.
+Default implementation is empty. Override in subclasses if
+necessary.</p>
 <pre class="source">
-afterRender(){}
+void afterRender(){}
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="beforeRender">
 <button class="show-code">Code</button>
-<strong>beforeRender</strong>() <a class="anchor-link" href="#beforeRender"
+void <strong>beforeRender</strong>() <a class="anchor-link" href="#beforeRender"
               title="Permalink to Renderer.beforeRender">#</a></h4>
 <div class="doc">
+<p>Invoked before the tile grid is rendered using <a class="crossref" href="../dartkart.layer/Renderer.html#renderTileGrid">renderTileGrid</a>.
+Default implementation is empty. Override in subclasses if
+necessary.</p>
 <pre class="source">
-beforeRender(){}
+void beforeRender(){}
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="render">
 <button class="show-code">Code</button>
-<strong>render</strong>() <a class="anchor-link" href="#render"
+void <strong>render</strong>() <a class="anchor-link" href="#render"
               title="Permalink to Renderer.render">#</a></h4>
 <div class="doc">
 <p>Invoked by a <a class="crossref" href="../dartkart.layer/TileLayer.html">TileLayer</a> to render itself</p>
 <pre class="source">
-render() {
+void render() {
  beforeRender();
  renderTileGrid();
  afterRender();
@@ -177,28 +202,36 @@ render() {
 </div>
 </div>
 <div class="method"><h4 id="renderTile">
-abstract <strong>renderTile</strong>(<a href="../dartkart.geometry/Point.html">Point</a> tilePos) <a class="anchor-link" href="#renderTile"
+abstract void <strong>renderTile</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> tileCoord) <a class="anchor-link" href="#renderTile"
               title="Permalink to Renderer.renderTile">#</a></h4>
 <div class="doc">
+<p>Renders the tile at position 
+<span class="param">tileCoord</span> in the current
+tile plane.</p>
 </div>
 </div>
 <div class="method"><h4 id="renderTileGrid">
 <button class="show-code">Code</button>
-<strong>renderTileGrid</strong>() <a class="anchor-link" href="#renderTileGrid"
+void <strong>renderTileGrid</strong>() <a class="anchor-link" href="#renderTileGrid"
               title="Permalink to Renderer.renderTileGrid">#</a></h4>
 <div class="doc">
+<p>Renders the tile grid</p>
 <pre class="source">
-renderTileGrid() {
+void renderTileGrid() {
  var map = _layer._map;
  var tileSize = _layer.tileSize;
  var centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
- var topLeftOnZoomPlane = centerOnZoomPlane - (map.viewportSize / 2).round();
+ var vshalf = (map.viewportSize / 2).toInt();
+ var topLeftOnZoomPlane = new Point2D(
+     centerOnZoomPlane.x - vshalf.width,
+     centerOnZoomPlane.y - vshalf.height
+ );
  var viewportOnZoomPlaneBounds = new Bounds(
      topLeftOnZoomPlane,
      topLeftOnZoomPlane + map.viewportSize
  );
- tileIntersectsWithViewport(Point t) {
-   var tl = t * tileSize;
+ tileIntersectsWithViewport(Point2D t) {
+   var tl = t.scale(sx:tileSize.width, sy:tileSize.height);
    var tileBounds = new Bounds(
        tl,
        tl + tileSize
@@ -207,20 +240,20 @@ renderTileGrid() {
  }
 
  // the tile covering the map center
- var tile = new Point(
-     centerOnZoomPlane.x ~/ tileSize.x,
-     centerOnZoomPlane.y ~/ tileSize.y
+ var tile = new Point2D(
+     centerOnZoomPlane.x ~/ tileSize.width,
+     centerOnZoomPlane.y ~/ tileSize.height
  );
 
  // find the first tile to be rendered
  while(true) {
-   var candidate = tile.translate(-1, 0);
+   var candidate = tile.translate(dx:-1);
    if (candidate.x &lt; 0) break;
    if (! tileIntersectsWithViewport(candidate)) break;
    tile = candidate;
  }
  while(true) {
-   var candidate = tile.translate(0, -1);
+   var candidate = tile.translate(dy:-1);
    if (candidate.y &lt; 0) break;
    if (! tileIntersectsWithViewport(candidate)) break;
    tile = candidate;
@@ -229,13 +262,13 @@ renderTileGrid() {
  // render the tile grid intersecting with the viewport
  var maxTileX = (1 &lt;&lt; map.zoom);
  var maxTileY = (1 &lt;&lt; map.zoom);
- var cur = new Point.from(tile);
+ var cur = new Point2D.from(tile);
  while(cur.x &lt; maxTileX &amp;&amp; tileIntersectsWithViewport(cur)) {
    while(cur.y &lt; maxTileY &amp;&amp; tileIntersectsWithViewport(cur)) {
      renderTile(cur);
-     cur = cur.translate(0,1);
+     cur = cur.translate(dy:1);
    }
-   cur = new Point(cur.x + 1, tile.y);
+   cur = new Point2D(cur.x + 1, tile.y);
  }
 }
 </pre>
@@ -246,7 +279,7 @@ renderTileGrid() {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.479</div>
+          <div>This page was generated at 2013-06-02 17:31:28.081</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

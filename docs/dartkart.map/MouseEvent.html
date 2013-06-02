@@ -2,19 +2,19 @@
         <html>
         <head>
                 <meta charset="utf-8">
-        <title>MouseGesturePrimitive class / dartkart.map Library / Dart Documentation</title>
+        <title>MouseEvent class / dartkart.map Library / Dart Documentation</title>
         <link rel="stylesheet" type="text/css"
             href="../styles.css">
         <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
         <link rel="shortcut icon" href="../favicon.ico">
         
         </head>
-        <body data-library="dartkart.map" data-type="MouseGesturePrimitive">
+        <body data-library="dartkart.map" data-type="MouseEvent">
         <div class="page">
         <div class="header">
           <a href="../index.html"><div class="logo"></div></a>
           <a href="../index.html">Dart Documentation</a>
-         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MouseGesturePrimitive.html">MouseGesturePrimitive</a>        <div id="search-box">
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MouseEvent.html">MouseEvent</a>        <div id="search-box">
           <input type="search" name="q" id="q" autocomplete="off"
               class="search-input" placeholder="Search API">
         </div>
@@ -30,8 +30,8 @@
 <li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
 <li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
 <li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
-<li><div class="icon-class"></div><strong>MouseGesturePrimitive</strong></li>
-<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><div class="icon-class"></div><strong>MouseEvent</strong></li>
+<li><a href="../dartkart.map/MouseEventStream.html"><div class="icon-class"></div>MouseEventStream</a></li>
 <li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
 <li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
 <li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
@@ -40,14 +40,19 @@
 </ul>
 </div>
 <div class="content">
-        <h2><strong>MouseGesturePrimitive</strong>
+        <h2><strong>MouseEvent</strong>
           class
         </h2>
         
 <button id="show-inherited" class="show-inherited">Hide inherited</button>
 <div class="doc">
+<p>MouseEvent is an event triggered by mouse gestures. In contrast
+to the fundamental <code>html.MouseEvent</code> class it can represent 
+the mouse events in a drag operation. Instead of a bare bone
+'mouse move' event it can represent a 'mouse hover' or 
+a 'mouse drag' event.</p>
 <pre class="source">
-class MouseGesturePrimitive {
+class MouseEvent {
  static const int CLICK = 0;
  static const int DOUBLE_CLICK = 1;
  static const int DRAG_START = 2;
@@ -55,16 +60,18 @@ class MouseGesturePrimitive {
  static const int DRAG_END = 4;
  static const int HOVER = 5;
 
+ /// the type of the mouse event 
  final int type;
- final MouseEvent event;
- MouseGesturePrimitive(this.type, this.event);
- MouseGesturePrimitive.click(event) : this(CLICK, event);
- MouseGesturePrimitive.doubleClick(event) : this(DOUBLE_CLICK, event);
- MouseGesturePrimitive.drag(event) : this(DRAG, event);
- MouseGesturePrimitive.hover(event) : this(HOVER, event);
- MouseGesturePrimitive.dragStart(event) : this(DRAG_START, event);
- MouseGesturePrimitive.dragEnd(event) : this(DRAG_END, event);
-
+ 
+ /// the underlying DOM mouse event 
+ final html.MouseEvent event;
+ 
+ /**
+  * Create a mouse event of type [type] connected to the 
+  * underlying DOM mouse [event].
+  */
+ MouseEvent(this.type, this.event);
+ 
  String get _typeAsString {
    switch(type) {
      case CLICK: return "CLICK";
@@ -76,11 +83,13 @@ class MouseGesturePrimitive {
    }
  }
 
- bool get isDragPrimitive =&gt; type == DRAG_START || type == DRAG ||
+ /// returns true if this mouse event is a drag event
+ bool get isDragEvent =&gt; type == DRAG_START || type == DRAG ||
      type == DRAG_END;
 
- toString() =&gt; "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
-    "y=${event.offset.y}";
+ @override
+ toString() =&gt; "{MouseEvent: type=${_typeAsString}, x=${event.offset.x},"
+    " y=${event.offset.y}";
 }
 </pre>
 </div>
@@ -90,11 +99,11 @@ class MouseGesturePrimitive {
 <button class="show-code">Code</button>
 const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>CLICK</strong> <a class="anchor-link"
             href="#CLICK"
-            title="Permalink to MouseGesturePrimitive.CLICK">#</a>
+            title="Permalink to MouseEvent.CLICK">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-CLICK = 0
+static const int CLICK = 0
 </pre>
 </div>
 </div>
@@ -102,11 +111,11 @@ CLICK = 0
 <button class="show-code">Code</button>
 const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DOUBLE_CLICK</strong> <a class="anchor-link"
             href="#DOUBLE_CLICK"
-            title="Permalink to MouseGesturePrimitive.DOUBLE_CLICK">#</a>
+            title="Permalink to MouseEvent.DOUBLE_CLICK">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-DOUBLE_CLICK = 1
+static const int DOUBLE_CLICK = 1
 </pre>
 </div>
 </div>
@@ -114,11 +123,11 @@ DOUBLE_CLICK = 1
 <button class="show-code">Code</button>
 const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DRAG</strong> <a class="anchor-link"
             href="#DRAG"
-            title="Permalink to MouseGesturePrimitive.DRAG">#</a>
+            title="Permalink to MouseEvent.DRAG">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-DRAG = 3
+static const int DRAG = 3
 </pre>
 </div>
 </div>
@@ -126,11 +135,11 @@ DRAG = 3
 <button class="show-code">Code</button>
 const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DRAG_END</strong> <a class="anchor-link"
             href="#DRAG_END"
-            title="Permalink to MouseGesturePrimitive.DRAG_END">#</a>
+            title="Permalink to MouseEvent.DRAG_END">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-DRAG_END = 4
+static const int DRAG_END = 4
 </pre>
 </div>
 </div>
@@ -138,11 +147,11 @@ DRAG_END = 4
 <button class="show-code">Code</button>
 const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>DRAG_START</strong> <a class="anchor-link"
             href="#DRAG_START"
-            title="Permalink to MouseGesturePrimitive.DRAG_START">#</a>
+            title="Permalink to MouseEvent.DRAG_START">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-DRAG_START = 2
+static const int DRAG_START = 2
 </pre>
 </div>
 </div>
@@ -150,84 +159,28 @@ DRAG_START = 2
 <button class="show-code">Code</button>
 const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>HOVER</strong> <a class="anchor-link"
             href="#HOVER"
-            title="Permalink to MouseGesturePrimitive.HOVER">#</a>
+            title="Permalink to MouseEvent.HOVER">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
-HOVER = 5
+static const int HOVER = 5
 </pre>
 </div>
 </div>
 </div>
 <div>
 <h3>Constructors</h3>
-<div class="method"><h4 id="MouseGesturePrimitive">
+<div class="method"><h4 id="MouseEvent">
 <button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> type, <a href="http://api.dartlang.org/dart_html/MouseEvent.html">MouseEvent</a> event) <a class="anchor-link" href="#MouseGesturePrimitive"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive">#</a></h4>
+new <strong>MouseEvent</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> type, <a href="http://api.dartlang.org/dart_html/MouseEvent.html">MouseEvent</a> event) <a class="anchor-link" href="#MouseEvent"
+              title="Permalink to MouseEvent.MouseEvent">#</a></h4>
 <div class="doc">
+<p>Create a mouse event of type 
+<span class="param">type</span> connected to the 
+underlying DOM mouse 
+<span class="param">event</span>.</p>
 <pre class="source">
-MouseGesturePrimitive(this.type, this.event);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="MouseGesturePrimitive.click">
-<button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive.click</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.click"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.click">#</a></h4>
-<div class="doc">
-<pre class="source">
-MouseGesturePrimitive.click(event) : this(CLICK, event);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="MouseGesturePrimitive.doubleClick">
-<button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive.doubleClick</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.doubleClick"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.doubleClick">#</a></h4>
-<div class="doc">
-<pre class="source">
-MouseGesturePrimitive.doubleClick(event) : this(DOUBLE_CLICK, event);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="MouseGesturePrimitive.drag">
-<button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive.drag</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.drag"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.drag">#</a></h4>
-<div class="doc">
-<pre class="source">
-MouseGesturePrimitive.drag(event) : this(DRAG, event);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="MouseGesturePrimitive.dragEnd">
-<button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive.dragEnd</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.dragEnd"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.dragEnd">#</a></h4>
-<div class="doc">
-<pre class="source">
-MouseGesturePrimitive.dragEnd(event) : this(DRAG_END, event);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="MouseGesturePrimitive.dragStart">
-<button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive.dragStart</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.dragStart"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.dragStart">#</a></h4>
-<div class="doc">
-<pre class="source">
-MouseGesturePrimitive.dragStart(event) : this(DRAG_START, event);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="MouseGesturePrimitive.hover">
-<button class="show-code">Code</button>
-new <strong>MouseGesturePrimitive.hover</strong>(event) <a class="anchor-link" href="#MouseGesturePrimitive.hover"
-              title="Permalink to MouseGesturePrimitive.MouseGesturePrimitive.hover">#</a></h4>
-<div class="doc">
-<pre class="source">
-MouseGesturePrimitive.hover(event) : this(HOVER, event);
+MouseEvent(this.type, this.event);
 </pre>
 </div>
 </div>
@@ -238,23 +191,25 @@ MouseGesturePrimitive.hover(event) : this(HOVER, event);
 <button class="show-code">Code</button>
 final <a href="http://api.dartlang.org/dart_html/MouseEvent.html">MouseEvent</a>         <strong>event</strong> <a class="anchor-link"
             href="#event"
-            title="Permalink to MouseGesturePrimitive.event">#</a>
+            title="Permalink to MouseEvent.event">#</a>
         </h4>
         <div class="doc">
+<p>the underlying DOM mouse event </p>
 <pre class="source">
-event
+final html.MouseEvent event
 </pre>
 </div>
 </div>
-<div class="field"><h4 id="isDragPrimitive">
+<div class="field"><h4 id="isDragEvent">
 <button class="show-code">Code</button>
-final <a href="http://api.dartlang.org/dart_core/bool.html">bool</a>         <strong>isDragPrimitive</strong> <a class="anchor-link"
-            href="#isDragPrimitive"
-            title="Permalink to MouseGesturePrimitive.isDragPrimitive">#</a>
+final <a href="http://api.dartlang.org/dart_core/bool.html">bool</a>         <strong>isDragEvent</strong> <a class="anchor-link"
+            href="#isDragEvent"
+            title="Permalink to MouseEvent.isDragEvent">#</a>
         </h4>
         <div class="doc">
+<p>returns true if this mouse event is a drag event</p>
 <pre class="source">
-bool get isDragPrimitive =&gt; type == DRAG_START || type == DRAG ||
+bool get isDragEvent =&gt; type == DRAG_START || type == DRAG ||
    type == DRAG_END;
 </pre>
 </div>
@@ -263,11 +218,12 @@ bool get isDragPrimitive =&gt; type == DRAG_START || type == DRAG ||
 <button class="show-code">Code</button>
 final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>type</strong> <a class="anchor-link"
             href="#type"
-            title="Permalink to MouseGesturePrimitive.type">#</a>
+            title="Permalink to MouseEvent.type">#</a>
         </h4>
         <div class="doc">
+<p>the type of the mouse event </p>
 <pre class="source">
-type
+final int type
 </pre>
 </div>
 </div>
@@ -276,15 +232,16 @@ type
 <h3>Methods</h3>
 <div class="method"><h4 id="toString">
 <button class="show-code">Code</button>
-<strong>toString</strong>() <a class="anchor-link" href="#toString"
-              title="Permalink to MouseGesturePrimitive.toString">#</a></h4>
+dynamic <strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to MouseEvent.toString">#</a></h4>
 <div class="doc">
 <div class="inherited">
 <p>Returns a string representation of this object.</p>
 <div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
 <pre class="source">
-toString() =&gt; "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offset.x},"
-  "y=${event.offset.y}";
+@override
+toString() =&gt; "{MouseEvent: type=${_typeAsString}, x=${event.offset.x},"
+  " y=${event.offset.y}";
 </pre>
 </div>
 </div>
@@ -293,7 +250,7 @@ toString() =&gt; "{MouseGesturePrimitive: type=${_typeAsString}, x=${event.offse
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.525</div>
+          <div>This page was generated at 2013-06-02 17:31:28.096</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

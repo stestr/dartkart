@@ -45,11 +45,21 @@
 <p>The abstract base class for a projected coordinate reference systems.</p>
 <pre class="source">
 abstract class ProjectedCRS  implements CoordinateReferenceSystem {
+
  LatLonBounds get geographicBounds;
  Bounds get projectedBounds;
 
- Point project(LatLon ll);
- LatLon unproject(Point p);
+ /**
+  * Projects a point [ll] in geodetic coordinates
+  * into a projected coordinate reference system.
+  */
+ Point2D project(LatLon ll);
+
+ /**
+  * Maps a point [p] in the projected coordinate reference system to
+  * a point in the geodetic coordinate system.
+  */
+ LatLon unproject(Point2D p);
 }
 </pre>
 </div>
@@ -83,7 +93,7 @@ final <a href="http://api.dartlang.org/dart_core/String.html">String</a>        
             title="Permalink to ProjectedCRS.code">#</a>
         </h4>
         <div class="inherited-from">inherited from <a href="../dartkart.geo/CoordinateReferenceSystem.html">CoordinateReferenceSystem</a> </div><div class="doc">
-<p>The standardized identifier for this reference system</p>
+<p>The standardized identifier for this reference system.</p>
 <p>A coordinate references system can be assigned more than
 one idetifier, see also <code>aliases</code></p>
 <pre class="source">
@@ -119,15 +129,21 @@ Bounds get projectedBounds;
 <div>
 <h3>Methods</h3>
 <div class="method"><h4 id="project">
-abstract <a href="../dartkart.geometry/Point.html">Point</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
+abstract <a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
               title="Permalink to ProjectedCRS.project">#</a></h4>
 <div class="doc">
+<p>Projects a point 
+<span class="param">ll</span> in geodetic coordinates
+into a projected coordinate reference system.</p>
 </div>
 </div>
 <div class="method"><h4 id="unproject">
-abstract <a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#unproject"
+abstract <a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> p) <a class="anchor-link" href="#unproject"
               title="Permalink to ProjectedCRS.unproject">#</a></h4>
 <div class="doc">
+<p>Maps a point 
+<span class="param">p</span> in the projected coordinate reference system to
+a point in the geodetic coordinate system.</p>
 </div>
 </div>
 </div>
@@ -135,7 +151,7 @@ abstract <a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</str
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.242</div>
+          <div>This page was generated at 2013-06-02 17:31:27.981</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

@@ -1,0 +1,495 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>Point2D class / dartkart.geometry Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="dartkart.geometry" data-type="Point2D">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../dartkart.geometry.html">dartkart.geometry</a> &rsaquo; <a href="../dartkart.geometry/Point2D.html">Point2D</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="../dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><ul class="icon">
+<li><a href="../dartkart.geometry/Bounds.html"><div class="icon-class"></div>Bounds</a></li>
+<li><a href="../dartkart.geometry/Dimension.html"><div class="icon-class"></div>Dimension</a></li>
+<li><div class="icon-class"></div><strong>Point2D</strong></li>
+</ul>
+<h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
+<div class="content">
+        <h2><strong>Point2D</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>A point in 2D cartesian space.</p>
+<pre class="source">
+class Point2D implements Comparable&lt;Point2D&gt;{
+ /// the x-coordinate
+ final num x;
+
+ /// the y-coordinate
+ final num y;
+
+ /**
+  * Creates a point for the [x] and [y] coordinate.
+  */
+ Point2D(this.x, this.y);
+
+ /**
+  * Creates a point from another object [other].
+  *
+  * ## Possible values for [other]
+  *
+  * * another [Point2D], in which case [other] is cloned
+  * * a [List] with exactly two [num] values.
+  *
+  * ## Examples
+  *
+  *     var p1 = new Point2D.from([0,1]);
+  *     var p2 = new Point2D.from(p1);
+  */
+ factory Point2D.from(other) {
+   fromPoint(other) =&gt; new Point2D(other.x, other.y);
+   fromList(other) {
+     _require(other.length == 2, "expected list of length 2");
+     _require(other.every((e) =&gt; e is num), "expected elements of type num only");
+     return new Point2D(other[0], other[1]);
+   }
+   if (other is Point2D) return fromPoint(other);
+   if (other is List) return fromList(other);
+   _require(false, "expected Point2D or List, got $other");
+ }
+
+ /**
+  * Creates a new point at position (0,0)
+  */
+ Point2D.origin() : this(0,0);
+
+ int compareTo(Point2D other) {
+   var c = x.compareTo(other.x);
+   if (c != 0) return c;
+   return y.compareTo(other.y);
+ }
+
+ bool operator==(other) =&gt; x == other.x &amp;&amp; y == other.y;
+
+ /**
+  * Creates a new point by adding [other] to this point.
+  * 
+  * ### Possible values for [other]
+  * * [Point2D]  - vector addition 
+  * * [Dimension] - adds `x` and `width`, and `y` and `height`
+  */
+ Point2D operator +(other) {
+   if (other is Point2D) return new Point2D(x + other.x, y + other.y);
+   if (other is Dimension) return new Point2D(x + other.width, y + other.height);
+   throw new ArgumentError("expected Point2D or Dimension, got $other");
+ }
+ 
+ Point2D operator -() =&gt; new Point2D(-x, -y);
+ 
+ /**
+  * Creates a new point by subtracting [other] from this point.
+  * 
+  * ### Possible values for [other]
+  * * [Point2D]  - vector subtraction 
+  * * [Dimension] - subtracts `width` from `x`, and `height` from `y`
+  */
+ Point2D operator -(other) {
+   if (other is Point2D) return new Point2D(x - other.x, y - other.y);
+   if (other is Dimension) return new Point2D(x - other.width, y - other.height);
+   throw new ArgumentError("expected Point2D or Dimension, got $other");
+ }
+ Point2D operator *(num factor) =&gt; new Point2D(x * factor, y * factor);
+ Point2D operator /(num divisor) =&gt; new Point2D(x / divisor, y / divisor);
+
+ int get hashCode =&gt; x.hashCode * 31 + y.hashCode;
+
+ /// returns a new point whose coordinates are converted to [int]
+ Point2D toInt() =&gt; new Point2D(x.toInt(), y.toInt());
+
+ /// returns a new point with the minimal coordinates of this and [other]
+ Point2D min(other) =&gt; new Point2D(math.min(x, other.x), math.min(y, other.y));
+
+ /// returns a new point with the maximal coordinates of this and [other]
+ Point2D max(other) =&gt; new Point2D(math.max(x, other.x), math.max(y, other.y));
+
+ /// returns a new point translate by [dx] in x direction and [dy] in
+ /// y direction
+ Point2D translate({num dx:0, num dy: 0}) =&gt; new Point2D(x + dx, y + dy);
+
+ /// returns a new point scaled by [sx] in x direction and by [sy]
+ /// in y direction
+ Point2D scale({num sx:1, num sy:1}) =&gt; new Point2D(x* sx, y * sy);
+
+ /// returns a new point for which the sign of the y-coordinates is inverted
+ Point2D flipY() =&gt; scale(sy:-1);
+
+ /**
+  * returns a new point whose coordinates are truncated to
+  * [afterDecimalPoint] digits after the decimal point.
+  */
+ Point2D truncate([num afterDecimalPoint=0]) {
+   var d = math.pow(10, afterDecimalPoint);
+   var x= (this.x * d).truncateToDouble() / d;
+   var y= (this.y * d).truncateToDouble() / d;
+   return new Point2D(x,y);
+ }
+
+ String toString() =&gt; "{Point2D: x=$x, y=$y}";
+
+}
+</pre>
+</div>
+<h3>Implements</h3>
+<p>
+<span class="type-box"><span class="icon-class"></span><a href="../dart_core/Comparable.html">Comparable&lt;Point2D&gt;</a></span></p>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="Point2D">
+<button class="show-code">Code</button>
+new <strong>Point2D</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> x, <a href="http://api.dartlang.org/dart_core/num.html">num</a> y) <a class="anchor-link" href="#Point2D"
+              title="Permalink to Point2D.Point2D">#</a></h4>
+<div class="doc">
+<p>Creates a point for the 
+<span class="param">x</span> and 
+<span class="param">y</span> coordinate.</p>
+<pre class="source">
+Point2D(this.x, this.y);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="Point2D.from">
+<button class="show-code">Code</button>
+factory <strong>Point2D.from</strong>(other) <a class="anchor-link" href="#Point2D.from"
+              title="Permalink to Point2D.Point2D.from">#</a></h4>
+<div class="doc">
+<p>Creates a point from another object 
+<span class="param">other</span>.</p>
+<h2>Possible values for 
+<span class="param">other</span></h2><ul><li>another <a class="crossref" href="../dartkart.geometry/Point2D.html#Point2D">Point2D</a>, in which case 
+<span class="param">other</span> is cloned</li><li>a <code>List</code> with exactly two <code>num</code> values.</li></ul>
+<h2>Examples</h2>
+<pre><code>var p1 = new Point2D.from([0,1]);
+var p2 = new Point2D.from(p1);
+</code></pre>
+<pre class="source">
+factory Point2D.from(other) {
+ fromPoint(other) =&gt; new Point2D(other.x, other.y);
+ fromList(other) {
+   _require(other.length == 2, "expected list of length 2");
+   _require(other.every((e) =&gt; e is num), "expected elements of type num only");
+   return new Point2D(other[0], other[1]);
+ }
+ if (other is Point2D) return fromPoint(other);
+ if (other is List) return fromList(other);
+ _require(false, "expected Point2D or List, got $other");
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="Point2D.origin">
+<button class="show-code">Code</button>
+new <strong>Point2D.origin</strong>() <a class="anchor-link" href="#Point2D.origin"
+              title="Permalink to Point2D.Point2D.origin">#</a></h4>
+<div class="doc">
+<p>Creates a new point at position (0,0)</p>
+<pre class="source">
+Point2D.origin() : this(0,0);
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="hashCode">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>hashCode</strong> <a class="anchor-link"
+            href="#hashCode"
+            title="Permalink to Point2D.hashCode">#</a>
+        </h4>
+        <div class="doc">
+<div class="inherited">
+<p>Get a hash code for this object.</p>
+<p>All objects have hash codes. Hash codes are guaranteed to be the
+same for objects that are equal when compared using the equality
+operator <code>==</code>. Other than that there are no guarantees about
+the hash codes. They will not be consistent between runs and
+there are no distribution guarantees.</p>
+<p>If a subclass overrides <a class="crossref" href="../dartkart.geometry/Point2D.html#hashCode">hashCode</a> it should override the
+equality operator as well to maintain consistency.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+int get hashCode =&gt; x.hashCode * 31 + y.hashCode;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="x">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/num.html">num</a>         <strong>x</strong> <a class="anchor-link"
+            href="#x"
+            title="Permalink to Point2D.x">#</a>
+        </h4>
+        <div class="doc">
+<p>the x-coordinate</p>
+<pre class="source">
+final num x
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="y">
+<button class="show-code">Code</button>
+final <a href="http://api.dartlang.org/dart_core/num.html">num</a>         <strong>y</strong> <a class="anchor-link"
+            href="#y"
+            title="Permalink to Point2D.y">#</a>
+        </h4>
+        <div class="doc">
+<p>the y-coordinate</p>
+<pre class="source">
+final num y
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Operators</h3>
+<div class="method"><h4 id="+">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>operator +</strong>(other) <a class="anchor-link" href="#+"
+              title="Permalink to Point2D.operator +">#</a></h4>
+<div class="doc">
+<p>Creates a new point by adding 
+<span class="param">other</span> to this point.</p>
+<h3>Possible values for 
+<span class="param">other</span></h3><ul><li><a class="crossref" href="../dartkart.geometry/Point2D.html#Point2D">Point2D</a>  - vector addition </li><li><a class="crossref" href="../dartkart.geometry/Dimension.html">Dimension</a> - adds <code>x</code> and <code>width</code>, and <code>y</code> and <code>height</code></li></ul>
+<pre class="source">
+Point2D operator +(other) {
+ if (other is Point2D) return new Point2D(x + other.x, y + other.y);
+ if (other is Dimension) return new Point2D(x + other.width, y + other.height);
+ throw new ArgumentError("expected Point2D or Dimension, got $other");
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="unary-">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>operator -</strong>() <a class="anchor-link" href="#unary-"
+              title="Permalink to Point2D.operator -">#</a></h4>
+<div class="doc">
+<pre class="source">
+Point2D operator -() =&gt; new Point2D(-x, -y);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="-">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>operator -</strong>(other) <a class="anchor-link" href="#-"
+              title="Permalink to Point2D.operator -">#</a></h4>
+<div class="doc">
+<p>Creates a new point by subtracting 
+<span class="param">other</span> from this point.</p>
+<h3>Possible values for 
+<span class="param">other</span></h3><ul><li><a class="crossref" href="../dartkart.geometry/Point2D.html#Point2D">Point2D</a>  - vector subtraction </li><li><a class="crossref" href="../dartkart.geometry/Dimension.html">Dimension</a> - subtracts <code>width</code> from <code>x</code>, and <code>height</code> from <code>y</code></li></ul>
+<pre class="source">
+Point2D operator -(other) {
+ if (other is Point2D) return new Point2D(x - other.x, y - other.y);
+ if (other is Dimension) return new Point2D(x - other.width, y - other.height);
+ throw new ArgumentError("expected Point2D or Dimension, got $other");
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="*">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>operator *</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> factor) <a class="anchor-link" href="#*"
+              title="Permalink to Point2D.operator *">#</a></h4>
+<div class="doc">
+<pre class="source">
+Point2D operator *(num factor) =&gt; new Point2D(x * factor, y * factor);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="/">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>operator /</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> divisor) <a class="anchor-link" href="#/"
+              title="Permalink to Point2D.operator /">#</a></h4>
+<div class="doc">
+<pre class="source">
+Point2D operator /(num divisor) =&gt; new Point2D(x / divisor, y / divisor);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="==">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> <strong>operator ==</strong>(other) <a class="anchor-link" href="#=="
+              title="Permalink to Point2D.operator ==">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>The equality operator.</p>
+<p>The default behavior for all <code>Object</code>s is to return true if and
+only if <code>this</code> and 
+<span class="param">other</span> are the same object.</p>
+<p>If a subclass overrides the equality operator it should override
+the <a class="crossref" href="../dartkart.geometry/Point2D.html#hashCode">hashCode</a> method as well to maintain consistency.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+bool operator==(other) =&gt; x == other.x &amp;&amp; y == other.y;
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="compareTo">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/int.html">int</a> <strong>compareTo</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> other) <a class="anchor-link" href="#compareTo"
+              title="Permalink to Point2D.compareTo">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Compares this object to another <code>Comparable</code></p>
+<p>Returns a value like a <code>Comparator</code> when comparing <code>this</code> to 
+<span class="param">other</span>.</p>
+<p>May throw an <code>ArgumentError</code> if 
+<span class="param">other</span> is of a type that
+is not comparable to <code>this</code>.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Comparable.html">Comparable</a>&lt;<a href="../dartkart.geometry/Point2D.html">Point2D</a>&gt; </div></div>
+<pre class="source">
+int compareTo(Point2D other) {
+ var c = x.compareTo(other.x);
+ if (c != 0) return c;
+ return y.compareTo(other.y);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="flipY">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>flipY</strong>() <a class="anchor-link" href="#flipY"
+              title="Permalink to Point2D.flipY">#</a></h4>
+<div class="doc">
+<p>returns a new point for which the sign of the y-coordinates is inverted</p>
+<pre class="source">
+Point2D flipY() =&gt; scale(sy:-1);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="max">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>max</strong>(other) <a class="anchor-link" href="#max"
+              title="Permalink to Point2D.max">#</a></h4>
+<div class="doc">
+<p>returns a new point with the maximal coordinates of this and 
+<span class="param">other</span></p>
+<pre class="source">
+Point2D max(other) =&gt; new Point2D(math.max(x, other.x), math.max(y, other.y));
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="min">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>min</strong>(other) <a class="anchor-link" href="#min"
+              title="Permalink to Point2D.min">#</a></h4>
+<div class="doc">
+<p>returns a new point with the minimal coordinates of this and 
+<span class="param">other</span></p>
+<pre class="source">
+Point2D min(other) =&gt; new Point2D(math.min(x, other.x), math.min(y, other.y));
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="scale">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>scale</strong>({<a href="http://api.dartlang.org/dart_core/num.html">num</a> sx: 1, <a href="http://api.dartlang.org/dart_core/num.html">num</a> sy: 1}) <a class="anchor-link" href="#scale"
+              title="Permalink to Point2D.scale">#</a></h4>
+<div class="doc">
+<p>returns a new point scaled by 
+<span class="param">sx</span> in x direction and by 
+<span class="param">sy</span>
+in y direction</p>
+<pre class="source">
+Point2D scale({num sx:1, num sy:1}) =&gt; new Point2D(x* sx, y * sy);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="toInt">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>toInt</strong>() <a class="anchor-link" href="#toInt"
+              title="Permalink to Point2D.toInt">#</a></h4>
+<div class="doc">
+<p>returns a new point whose coordinates are converted to <code>int</code></p>
+<pre class="source">
+Point2D toInt() =&gt; new Point2D(x.toInt(), y.toInt());
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="toString">
+<button class="show-code">Code</button>
+<a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to Point2D.toString">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Returns a string representation of this object.</p>
+<div class="docs-inherited-from">docs inherited from <a href="http://api.dartlang.org/dart_core/Object.html">Object</a> </div></div>
+<pre class="source">
+String toString() =&gt; "{Point2D: x=$x, y=$y}";
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="translate">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>translate</strong>({<a href="http://api.dartlang.org/dart_core/num.html">num</a> dx: 0, <a href="http://api.dartlang.org/dart_core/num.html">num</a> dy: 0}) <a class="anchor-link" href="#translate"
+              title="Permalink to Point2D.translate">#</a></h4>
+<div class="doc">
+<p>returns a new point translate by 
+<span class="param">dx</span> in x direction and 
+<span class="param">dy</span> in
+y direction</p>
+<pre class="source">
+Point2D translate({num dx:0, num dy: 0}) =&gt; new Point2D(x + dx, y + dy);
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="truncate">
+<button class="show-code">Code</button>
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>truncate</strong>([<a href="http://api.dartlang.org/dart_core/num.html">num</a> afterDecimalPoint = 0]) <a class="anchor-link" href="#truncate"
+              title="Permalink to Point2D.truncate">#</a></h4>
+<div class="doc">
+<p>returns a new point whose coordinates are truncated to
+
+<span class="param">afterDecimalPoint</span> digits after the decimal point.</p>
+<pre class="source">
+Point2D truncate([num afterDecimalPoint=0]) {
+ var d = math.pow(10, afterDecimalPoint);
+ var x= (this.x * d).truncateToDouble() / d;
+ var y= (this.y * d).truncateToDouble() / d;
+ return new Point2D(x,y);
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2013-06-02 17:31:28.009</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

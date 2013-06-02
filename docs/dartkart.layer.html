@@ -30,17 +30,15 @@
 <li><a href="dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
 <li><a href="dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
 <li><a href="dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
-<li><a href="dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
 <li><a href="dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
 <li><a href="dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
 <li><a href="dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
-<li><a href="dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
 <li><a href="dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
 </ul>
 <h2><div class="icon-library"></div><a href="dartkart.map.html">dartkart.map</a></h2></div>
 <div class="content">
 <h2><strong>dartkart.layer</strong> library</h2>
-<div class="doc"><p>The library <em>dartkart.layer</em> provides various types of layers which
+<div class="doc"><p>The library <code>dartkart.layer</code> provides various types of layers which
 can be added to a <code>MapViewport</code>.</p></div>
 <div>
 <h3>Properties</h3>
@@ -51,8 +49,13 @@ const         <strong>CANVAS_RENDERER</strong> <a class="anchor-link"
             title="Permalink to CANVAS_RENDERER">#</a>
         </h4>
         <div class="doc">
+<p>Renderer constant for <a class="crossref" href="dartkart.layer/CanvasRenderer.html">CanvasRenderer</a>. Use it when creating a tile
+layer.</p>
+<h3>Example</h3>
+<pre><code>  var layer = new OsmTileLayer(renderer: CANVAS_RENDERER);
+</code></pre>
 <pre class="source">
-CANVAS_RENDERER = 1
+const CANVAS_RENDERER = 1
 </pre>
 </div>
 </div>
@@ -63,8 +66,13 @@ const         <strong>IMG_GRID_RENDERER</strong> <a class="anchor-link"
             title="Permalink to IMG_GRID_RENDERER">#</a>
         </h4>
         <div class="doc">
+<p>Renderer constant for <a class="crossref" href="dartkart.layer/ImgGridRenderer.html">ImgGridRenderer</a>. Use it when creating a tile
+layer.</p>
+<h3>Example</h3>
+<pre><code>   var layer = new OsmTileLayer(renderer: IMG_GRID_RENDERER);
+</code></pre>
 <pre class="source">
-IMG_GRID_RENDERER = 0
+const IMG_GRID_RENDERER = 0
 </pre>
 </div>
 </div>
@@ -112,12 +120,6 @@ IMG_GRID_RENDERER = 0
           
           <div class="type">
           <h4>
-            <a href="dartkart.layer/SimpleFeatureLayer.html"><strong>SimpleFeatureLayer</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
             <a href="dartkart.layer/Tile.html"><strong>Tile</strong></a>
           </h4>
           </div>
@@ -135,20 +137,11 @@ IMG_GRID_RENDERER = 0
           </div>
           
 </div>
-<div>
-<h3>Typedefs</h3>
-          <div class="type">
-          <h4>
-            <a href="dartkart.layer/TileUrlBuilder.html"><strong>TileUrlBuilder</strong></a>
-          </h4>
-          </div>
-          
-</div>
         </div>
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.404</div>
+          <div>This page was generated at 2013-06-02 17:31:28.016</div>
         </div>
         <script async src="client-static.js"></script>
         </body></html>

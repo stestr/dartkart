@@ -5,9 +5,20 @@
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, install the
- * [unittest package](http://pub.dartlang.org/packages/unittest) via the pub
- * package manager. See the [Getting Started](http://pub.dartlang.org/doc)
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       unittest: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [unittest package on pub.dartlang.org][pkg].
+ *
+ * See the [Getting Started](http://pub.dartlang.org/doc)
  * guide for more details.
  *
  * ##Concepts##
@@ -17,10 +28,10 @@
  *  * __Checks__: Test expectations can be specified via [expect]
  *  * __Matchers__: [expect] assertions are written declaratively using the
  *    [Matcher] class.
- *  * __Configuration__: The framework can be adapted by calling [configure] with a
- *    [Configuration]. See the other libraries in the `unittest` package for
- *    alternative implementations of [Configuration] including
- *    `compact_vm_config.dart`, `html_config.dart` and
+ *  * __Configuration__: The framework can be adapted by setting
+ *    [unittestConfiguration] with a [Configuration]. See the other libraries
+ *    in the `unittest` package for alternative implementations of
+ *    [Configuration] including `compact_vm_config.dart`, `html_config.dart` and
  *    `html_enhanced_config.dart`.
  *
  * ##Examples##
@@ -150,73 +161,151 @@
  *       });
  *     }
  *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/unittest
  */
 library unittest;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:isolate';
+import 'dart:math' show max;
 import 'matcher.dart';
 export 'matcher.dart';
-
-// TODO(amouravski): We should not need to import mock here, but it's necessary
-// to enable dartdoc on the mock library, as it's not picked up normally.
-import 'mock.dart';
 
 part 'src/config.dart';
 part 'src/test_case.dart';
 
-/** [Configuration] used by the unittest library. */
-Configuration _config = null;
-
-Configuration get config => _config;
+Configuration _config;
 
 /**
- * Set the [Configuration] used by the unittest library. Returns any
- * previous configuration.
- * TODO: consider deprecating in favor of a setter now we have a getter.
+ * [Configuration] used by the unittest library. Note that if a
+ * configuration has not been set, calling this getter will create
+ * a default configuration.
  */
-Configuration configure(Configuration config) {
-  Configuration _oldConfig = _config;
-  _config = config;
-  return _oldConfig;
+Configuration get unittestConfiguration {
+  if (_config == null) {
+    _config = new Configuration();
+  }
+  return _config;
 }
 
-void logMessage(String message) => _config.logMessage(message);
+/**
+ * Sets the [Configuration] used by the unittest library.
+ *
+ * Throws a [StateError] if there is an existing, incompatible value.
+ */
+void set unittestConfiguration(Configuration value) {
+  if(!identical(_config, value)) {
+    if(_config != null) {
+      throw new StateError('unittestConfiguration has already been set');
+    }
+    _config = value;
+  }
+}
 
 /**
- * Description text of the current test group. If multiple groups are nested,
- * this will contain all of their text concatenated.
+ * Can be called by tests to log status. Tests should use this
+ * instead of [print].
  */
-String _currentGroup = '';
+void logMessage(String message) =>
+    _config.onLogMessage(currentTestCase, message);
 
 /** Separator used between group names and test names. */
 String groupSep = ' ';
 
-/** Tests executed in this suite. */
-List<TestCase> _tests;
+final List<TestCase> _testCases = new List<TestCase>();
 
-/** Get the list of tests. */
-List<TestCase> get testCases => _tests;
+/** Tests executed in this suite. */
+final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
 /**
- * Callback used to run tests. Entrypoints can replace this with their own
- * if they want.
+ * The set of tests to run can be restricted by using [solo_test] and
+ * [solo_group].
+ * As groups can be nested we use a counter to keep track of the nest level
+ * of soloing, and a flag to tell if we have seen any solo tests.
  */
-Function _testRunner;
+int _soloNestingLevel = 0;
+bool _soloTestSeen = false;
 
-/** Setup function called before each test in a group */
-Function _testSetup;
+/**
+ * Setup and teardown functions for a group and its parents, the latter
+ * for chaining.
+ */
+class _GroupContext {
+  final _GroupContext parent;
 
-/** Teardown function called after each test in a group */
-Function _testTeardown;
+  /** Description text of the current test group. */
+  final String _name;
 
-/** Current test being executed. */
-int _currentTest = 0;
-TestCase _currentTestCase;
+  /** Setup function called before each test in a group. */
+  Function _testSetup;
 
+  get testSetup => _testSetup;
+
+  get parentSetup => (parent == null) ? null : parent.testSetup;
+
+  set testSetup(Function setup) {
+    var preSetup = parentSetup;
+    if (preSetup == null) {
+      _testSetup = setup;
+    } else {
+      _testSetup = () {
+        var f = preSetup();
+        if (f is Future) {
+          return f.then((_) => setup());
+        } else {
+          return setup();
+        }
+      };
+    }
+  }
+
+  /** Teardown function called after each test in a group. */
+  Function _testTeardown;
+
+  get testTeardown => _testTeardown;
+
+  get parentTeardown => (parent == null) ? null : parent.testTeardown;
+
+  set testTeardown(Function teardown) {
+    var postTeardown = parentTeardown;
+    if (postTeardown == null) {
+      _testTeardown = teardown;
+    } else {
+      _testTeardown = () {
+        var f = teardown();
+        if (f is Future) {
+          return f.then((_) => postTeardown());
+        } else {
+          return postTeardown();
+        }
+      };
+    }
+  }
+
+  String get fullName => (parent == null || parent == _rootContext)
+      ? _name
+      : "${parent.fullName}$groupSep$_name";
+
+  _GroupContext([this.parent, this._name = '']) {
+    _testSetup = parentSetup;
+    _testTeardown = parentTeardown;
+  }
+}
+
+// We use a 'dummy' context for the top level to eliminate null
+// checks when querying the context. This allows us to easily
+//  support top-level setUp/tearDown functions as well.
+final _rootContext = new _GroupContext();
+_GroupContext _currentContext = _rootContext;
+
+int _currentTestCaseIndex = 0;
+
+/** [TestCase] currently being executed. */
 TestCase get currentTestCase =>
-    (_currentTest >= 0 && _currentTest < _tests.length)
-        ? _tests[_currentTest]
+    (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < testCases.length)
+        ? testCases[_currentTestCaseIndex]
         : null;
 
 /** Whether the framework is in an initialized state. */
@@ -232,9 +321,6 @@ String _uncaughtErrorMessage = null;
 const PASS  = 'pass';
 const FAIL  = 'fail';
 const ERROR = 'error';
-
-/** If set, then all other test cases will be ignored. */
-TestCase _soloTest;
 
 /**
  * A map that can be used to communicate state between a test driver
@@ -252,30 +338,45 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _tests.add(new TestCase._internal(_tests.length + 1, _fullSpec(spec), body));
+  if (!_soloTestSeen || _soloNestingLevel > 0) {
+    var testcase = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                        body);
+    _testCases.add(testcase);
+  }
 }
+
+/** Convenience function for skipping a test. */
+void skip_test(String spec, TestFunction body){}
 
 /**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
  *
- * "solo_" means that this will be the only test that is run. All other tests
- * will be skipped. This is a convenience function to let you quickly isolate
- * a single test by adding "solo_" before it to temporarily disable all other
- * tests.
+ * If we use [solo_test] (or [solo_group]) instead of test, then all non-solo
+ * tests will be disabled. Note that if we use [solo_group], all tests in
+ * the group will be enabled, regardless of whether they use [test] or
+ * [solo_test], or whether they are in a nested [group] vs [solo_group]. Put
+ * another way, if there are any calls to [solo_test] or [solo_group] in a test
+ * file, all tests that are not inside a [solo_group] will be disabled unless
+ * they are [solo_test]s.
+ *
+ * [skip_test] and [skip_group] take precedence over soloing, by virtue of the
+ * fact that they are effectively no-ops.
  */
 void solo_test(String spec, TestFunction body) {
-  // TODO(rnystrom): Support multiple solos. If more than one test is solo-ed,
-  // all of the solo-ed tests and none of the non-solo-ed ones should run.
-  if (_soloTest != null) {
-    throw new Exception('Only one test can be soloed right now.');
-  }
-
   ensureInitialized();
-
-  _soloTest = new TestCase._internal(_tests.length + 1, _fullSpec(spec), body);
-  _tests.add(_soloTest);
+  if (!_soloTestSeen) {
+    _soloTestSeen = true;
+    // This is the first solo-ed test. Discard all tests up to now.
+    _testCases.clear();
+  }
+  ++_soloNestingLevel;
+  try {
+    test(spec, body);
+  } finally {
+    --_soloNestingLevel;
+  }
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -291,10 +392,9 @@ class _SpreadArgsHelper {
   final int minExpectedCalls;
   final int maxExpectedCalls;
   final Function isDone;
-  final int testNum;
   final String id;
   int actualCalls = 0;
-  TestCase testCase;
+  final TestCase testCase;
   bool complete;
   static const sentinel = const _Sentinel();
 
@@ -306,19 +406,14 @@ class _SpreadArgsHelper {
             ? minExpected
             : maxExpected,
         this.isDone = isDone,
-        testNum = _currentTest,
+        this.testCase = currentTestCase,
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
-    if (!(_currentTest >= 0 &&
-           _currentTest < _tests.length &&
-           _tests[_currentTest] != null)) {
-      print("No valid test, did you forget to run your test inside a call "
-          "to test()?");
+    if (testCase == null) {
+      throw new StateError("No valid test. Did you forget to run your test "
+          "inside a call to test()?");
     }
-    assert(_currentTest >= 0 &&
-           _currentTest < _tests.length &&
-           _tests[_currentTest] != null);
-    testCase = _tests[_currentTest];
+
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
       complete = false;
@@ -327,7 +422,7 @@ class _SpreadArgsHelper {
     }
   }
 
-  static _makeCallbackId(String id, Function callback) {
+  static String _makeCallbackId(String id, Function callback) {
     // Try to create a reasonable id.
     if (id != null) {
       return "$id ";
@@ -348,7 +443,7 @@ class _SpreadArgsHelper {
     return '';
   }
 
-  shouldCallBack() {
+  bool shouldCallBack() {
     ++actualCalls;
     if (testCase.isComplete) {
       // Don't run if the test is done. We don't throw here as this is not
@@ -368,7 +463,7 @@ class _SpreadArgsHelper {
     return true;
   }
 
-  after() {
+  void after() {
     if (!complete) {
       if (minExpectedCalls > 0 && actualCalls < minExpectedCalls) return;
       if (isDone != null && !isDone()) return;
@@ -380,31 +475,6 @@ class _SpreadArgsHelper {
     }
   }
 
-  invoke([arg0 = sentinel, arg1 = sentinel, arg2 = sentinel,
-          arg3 = sentinel, arg4 = sentinel]) {
-    return _guardAsync(() {
-      if (!shouldCallBack()) {
-        return;
-      } else if (arg0 == sentinel) {
-        return callback();
-      } else if (arg1 == sentinel) {
-        return callback(arg0);
-      } else if (arg2 == sentinel) {
-        return callback(arg0, arg1);
-      } else if (arg3 == sentinel) {
-        return callback(arg0, arg1, arg2);
-      } else if (arg4 == sentinel) {
-        return callback(arg0, arg1, arg2, arg3);
-      } else {
-        testCase.error(
-           'unittest lib does not support callbacks with more than'
-              ' 4 arguments.',
-           '');
-      }
-    },
-    after, testNum);
-  }
-
   invoke0() {
     return _guardAsync(
         () {
@@ -412,7 +482,7 @@ class _SpreadArgsHelper {
             return callback();
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke1(arg1) {
@@ -422,7 +492,7 @@ class _SpreadArgsHelper {
             return callback(arg1);
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke2(arg1, arg2) {
@@ -432,23 +502,8 @@ class _SpreadArgsHelper {
             return callback(arg1, arg2);
           }
         },
-        after, testNum);
+        after, testCase);
   }
-}
-
-/**
- * Indicate that [callback] is expected to be called a [count] number of times
- * (by default 1). The unittest framework will wait for the callback to run the
- * specified [count] times before it continues with the following test.  Using
- * [_expectAsync] will also ensure that errors that occur within [callback] are
- * tracked and reported. [callback] should take between 0 and 4 positional
- * arguments (named arguments are not supported here). [id] can be used
- * to provide more descriptive error messages if the callback is called more
- * often than expected.
- */
-Function _expectAsync(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke;
 }
 
 /**
@@ -488,20 +543,6 @@ Function expectAsync2(Function callback,
 
 /**
  * Indicate that [callback] is expected to be called until [isDone] returns
- * true. The unittest framework checks [isDone] after each callback and only
- * when it returns true will it continue with the following test. Using
- * [expectAsyncUntil] will also ensure that errors that occur within
- * [callback] are tracked and reported. [callback] should take between 0 and
- * 4 positional arguments (named arguments are not supported). [id] can be
- * used to identify the callback in error messages (for example if it is called
- * after the test case is complete).
- */
-Function _expectAsyncUntil(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke;
-}
-
-/**
- * Indicate that [callback] is expected to be called until [isDone] returns
  * true. The unittest framework check [isDone] after each callback and only
  * when it returns true will it continue with the following test. Using
  * [expectAsyncUntil0] will also ensure that errors that occur within
@@ -529,19 +570,6 @@ Function expectAsyncUntil1(Function callback, Function isDone, {String id}) {
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
   return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
-}
-
-/**
- * Wraps the [callback] in a new function and returns that function. The new
- * function will be able to handle exceptions by directing them to the correct
- * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
- * might optionally be called but may never be called during the test.
- * [callback] should take between 0 and 4 positional arguments (named arguments
- * are not supported). [id] can be used to identify the callback in error
- * messages (for example if it is called after the test case is complete).
- */
-Function _protectAsync(Function callback, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke;
 }
 
 /**
@@ -580,46 +608,46 @@ Function protectAsync2(Function callback, {String id}) {
  */
 void group(String description, void body()) {
   ensureInitialized();
-  // Concatenate the new group.
-  final parentGroup = _currentGroup;
-  if (_currentGroup != '') {
-    // Add a space.
-    _currentGroup = '$_currentGroup$groupSep$description';
-  } else {
-    // The first group.
-    _currentGroup = description;
-  }
-
-  // Groups can be nested, so we need to preserve the current
-  // settings for test setup/teardown.
-  Function parentSetup = _testSetup;
-  Function parentTeardown = _testTeardown;
-
+  _currentContext = new _GroupContext(_currentContext, description);
   try {
-    _testSetup = null;
-    _testTeardown = null;
     body();
   } catch (e, trace) {
     var stack = (trace == null) ? '' : ': ${trace.toString()}';
     _uncaughtErrorMessage = "${e.toString()}$stack";
   } finally {
     // Now that the group is over, restore the previous one.
-    _currentGroup = parentGroup;
-    _testSetup = parentSetup;
-    _testTeardown = parentTeardown;
+    _currentContext = _currentContext.parent;
+  }
+}
+
+/** Like [skip_test], but for groups. */
+void skip_group(String description, void body()) {}
+
+/** Like [solo_test], but for groups. */
+void solo_group(String description, void body()) {
+  ensureInitialized();
+  if (!_soloTestSeen) {
+    _soloTestSeen = true;
+    // This is the first solo-ed group. Discard all tests up to now.
+    _testCases.clear();
+  }
+  ++_soloNestingLevel;
+  try {
+    group(description, body);
+  } finally {
+    --_soloNestingLevel;
   }
 }
 
 /**
  * Register a [setUp] function for a test [group]. This function will
- * be called before each test in the group is run. Note that if groups
- * are nested only the most locally scoped [setUpTest] function will be run.
+ * be called before each test in the group is run.
  * [setUp] and [tearDown] should be called within the [group] before any
  * calls to [test]. The [setupTest] function can be asynchronous; in this
  * case it must return a [Future].
  */
 void setUp(Function setupTest) {
-  _testSetup = setupTest;
+  _currentContext.testSetup = setupTest;
 }
 
 /**
@@ -631,14 +659,14 @@ void setUp(Function setupTest) {
  * case it must return a [Future].
  */
 void tearDown(Function teardownTest) {
-  _testTeardown = teardownTest;
+  _currentContext.testTeardown = teardownTest;
 }
 
 /** Advance to the next test case. */
 void _nextTestCase() {
-  _defer(() {
-    _currentTest++;
-    _testRunner();
+  runAsync(() {
+    _currentTestCaseIndex++;
+    _nextBatch();
   });
 }
 
@@ -647,25 +675,12 @@ void _nextTestCase() {
  *  error was caught outside of this library.
  */
 void _reportTestError(String msg, String trace) {
- if (_currentTest < _tests.length) {
-    final testCase = _tests[_currentTest];
+ if (_currentTestCaseIndex < testCases.length) {
+    final testCase = testCases[_currentTestCaseIndex];
     testCase.error(msg, trace);
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
   }
-}
-
-/**
- * Runs [callback] at the end of the event loop. Note that we don't wrap
- * the callback in guardAsync; this is for test framework functions which
- * should not be throwing unexpected exceptions that end up failing test
- * cases! Furthermore, we need the final exception to be thrown but not
- * caught by the test framework if any test cases failed. However, tests
- * that make use of a similar defer function *should* wrap the callback
- * (as we do in unitttest_test.dart).
- */
-_defer(void callback()) {
-  (new Future.immediate(null)).then((_) => callback());
 }
 
 void rerunTests() {
@@ -689,23 +704,18 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests.retainWhere(filterFunction);
+  _testCases.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
 void runTests() {
-  _currentTest = 0;
-  _currentGroup = '';
-
-  // If we are soloing a test, remove all the others.
-  if (_soloTest != null) {
-    filterTests((t) => t == _soloTest);
-  }
+  _ensureInitialized(false);
+  _currentTestCaseIndex = 0;
 
   _config.onStart();
 
-  _defer(() {
-    _testRunner();
+  runAsync(() {
+    _nextBatch();
   });
 }
 
@@ -716,15 +726,15 @@ void runTests() {
  * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
 guardAsync(Function tryBody) {
-  return _guardAsync(tryBody, null, _currentTest);
+  return _guardAsync(tryBody, null, currentTestCase);
 }
 
-_guardAsync(Function tryBody, Function finallyBody, int testNum) {
-  assert(testNum >= 0);
+_guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
+  assert(testCase != null);
   try {
     return tryBody();
   } catch (e, trace) {
-    _registerException(testNum, e, trace);
+    _registerException(testCase, e, trace);
   } finally {
     if (finallyBody != null) finallyBody();
   }
@@ -734,19 +744,19 @@ _guardAsync(Function tryBody, Function finallyBody, int testNum) {
  * Registers that an exception was caught for the current test.
  */
 void registerException(e, [trace]) {
-  _registerException(_currentTest, e, trace);
+  _registerException(currentTestCase, e, trace);
 }
 
 /**
  * Registers that an exception was caught for the current test.
  */
-_registerException(testNum, e, [trace]) {
+void _registerException(TestCase testCase, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
-  if (_tests[testNum].result == null) {
-    _tests[testNum].fail(message, trace);
+  if (testCase.result == null) {
+    testCase.fail(message, trace);
   } else {
-    _tests[testNum].error(message, trace);
+    testCase.error(message, trace);
   }
 }
 
@@ -755,53 +765,58 @@ _registerException(testNum, e, [trace]) {
  * running. Tests will resume executing when such asynchronous test calls
  * [done] or if it fails with an exception.
  */
-_nextBatch() {
+void _nextBatch() {
   while (true) {
-    if (_currentTest >= _tests.length) {
+    if (_currentTestCaseIndex >= testCases.length) {
       _completeTests();
       break;
     }
-    final testCase = _tests[_currentTest];
-    var f = _guardAsync(testCase._run, null, _currentTest);
+    final testCase = testCases[_currentTestCaseIndex];
+    var f = _guardAsync(testCase._run, null, testCase);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
       });
       break;
     }
-    _currentTest++;
+    _currentTestCaseIndex++;
   }
 }
 
 /** Publish results on the page and notify controller. */
-_completeTests() {
+void _completeTests() {
   if (!_initialized) return;
   int passed = 0;
   int failed = 0;
   int errors = 0;
 
-  for (TestCase t in _tests) {
+  for (TestCase t in testCases) {
     switch (t.result) {
       case PASS:  passed++; break;
       case FAIL:  failed++; break;
       case ERROR: errors++; break;
     }
   }
-  _config.onSummary(passed, failed, errors, _tests, _uncaughtErrorMessage);
+  _config.onSummary(passed, failed, errors, testCases, _uncaughtErrorMessage);
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
       _uncaughtErrorMessage == null);
   _initialized = false;
 }
 
 String _fullSpec(String spec) {
-  if (spec == null) return '$_currentGroup';
-  return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
+  var group = '${_currentContext.fullName}';
+  if (spec == null) return group;
+  return group != '' ? '$group$groupSep$spec' : spec;
 }
 
 /**
  * Lazily initializes the test library if not already initialized.
  */
 void ensureInitialized() {
+  _ensureInitialized(true);
+}
+
+void _ensureInitialized(bool configAutoStart) {
   if (_initialized) {
     return;
   }
@@ -809,41 +824,30 @@ void ensureInitialized() {
   // Hook our async guard into the matcher library.
   wrapAsync = (f, [id]) => expectAsync1(f, id: id);
 
-  _tests = <TestCase>[];
-  _testRunner = _nextBatch;
   _uncaughtErrorMessage = null;
 
-  if (_config == null) {
-    _config = new Configuration();
-  }
-  _config.onInit();
+  unittestConfiguration.onInit();
 
-  if (_config.autoStart) {
+  if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
-    _defer(runTests);
+    runAsync(runTests);
   }
 }
 
 /** Select a solo test by ID. */
-void setSoloTest(int id) {
-  for (var i = 0; i < _tests.length; i++) {
-    if (_tests[i].id == id) {
-      _soloTest = _tests[i];
-      break;
-    }
-  }
-}
+void setSoloTest(int id) =>
+  _testCases.retainWhere((t) => t.id == id);
 
 /** Enable/disable a test by ID. */
 void _setTestEnabledState(int testId, bool state) {
   // Try fast path first.
-  if (_tests.length > testId && _tests[testId].id == testId) {
-    _tests[testId].enabled = state;
+  if (testCases.length > testId && testCases[testId].id == testId) {
+    testCases[testId].enabled = state;
   } else {
-    for (var i = 0; i < _tests.length; i++) {
-      if (_tests[i].id == testId) {
-        _tests[i].enabled = state;
+    for (var i = 0; i < testCases.length; i++) {
+      if (testCases[i].id == testId) {
+        testCases[i].enabled = state;
         break;
       }
     }
@@ -858,3 +862,80 @@ void disableTest(int testId) => _setTestEnabledState(testId, false);
 
 /** Signature for a test function. */
 typedef dynamic TestFunction();
+
+// Stack formatting utility. Strips extraneous content from a stack trace.
+// Stack frame lines are parsed with a regexp, which has been tested
+// in Chrome, Firefox and the VM. If a line fails to be parsed it is
+// included in the output to be conservative.
+//
+// The output stack consists of everything after the call to TestCase._run.
+// If we see an 'expect' in the frame we will prune everything above that
+// as well.
+final _frameRegExp = new RegExp(
+    r'^\s*' // Skip leading spaces.
+    r'(?:'  // Group of choices for the prefix.
+      r'(?:#\d+\s*)|' // Skip VM's #<frameNumber>.
+      r'(?:at )|'     // Skip Firefox's 'at '.
+      r'(?:))'        // Other environments have nothing here.
+    r'(.+)'           // Extract the function/method.
+    r'\s*[@\(]'       // Skip space and @ or (.
+    r'('              // This group of choices is for the source file.
+      r'(?:.+:\/\/.+\/[^:]*)|' // Handle file:// or http:// URLs.
+      r'(?:dart:[^:]*)|'  // Handle dart:<lib>.
+      r'(?:package:[^:]*)' // Handle package:<path>
+    r'):([:\d]+)[\)]?$'); // Get the line number and optional column number.
+
+String _formatStack(stack) {
+  var lines;
+  if (stack is StackTrace) {
+    lines = stack.toString().split('\n');
+  } else if (stack is String) {
+    lines = stack.split('\n');
+  } else {
+    return stack.toString();
+  }
+
+  // Calculate the max width of first column so we can
+  // pad to align the second columns.
+  int padding = lines.fold(0, (n, line) {
+    var match = _frameRegExp.firstMatch(line);
+    if (match == null) return n;
+    return max(n, match[1].length + 1);
+  });
+
+  // We remove all entries that have a location in unittest.
+  // We strip out anything before _nextBatch too.
+  var sb = new StringBuffer();
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (line == '') continue;
+    var match = _frameRegExp.firstMatch(line);
+    if (match == null) {
+      sb.write(line);
+      sb.write('\n');
+    } else {
+      var member = match[1];
+      var location = match[2];
+      var position = match[3];
+      if (member.indexOf('TestCase._runTest') >= 0) {
+        // Don't include anything after this.
+        break;
+      } else if (member.indexOf('expect') >= 0) {
+        // It looks like this was an expect() failure;
+        // drop all the frames up to here.
+        sb.clear();
+      } else {
+        sb.write(member);
+        // Pad second column to a fixed position.
+        for (var j = 0; j <= padding - member.length; j++) {
+          sb.write(' ');
+        }
+        sb.write(location);
+        sb.write(' ');
+        sb.write(position);
+        sb.write('\n');
+      }
+    }
+  }
+  return sb.toString();
+}

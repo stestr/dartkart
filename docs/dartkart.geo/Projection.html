@@ -46,16 +46,16 @@
 <pre class="source">
 abstract class Projection {
  /**
-  * Project a point (lat/lon) from a geographic coordinates into a
-  * point (x,y) in a projected coordinate system
+  * Project a point (lat/lon) from a geodetic coordinates into a
+  * Point2D (x,y) in a projected coordinate system
   */
- Point project(LatLon ll);
+ Point2D project(LatLon ll);
 
  /**
-  * Reverse project a point (x,y) from a projected coordinate system into
-  * a point (lat/lon) in the geoographic coordinate system.
+  * Reverse project a Point2D (x,y) from a projected coordinate system into
+  * a Point2D (lat/lon) in the geodetic coordinate system.
   */
- LatLon unproject(Point p);
+ LatLon unproject(Point2D p);
 }
 </pre>
 </div>
@@ -65,19 +65,19 @@ abstract class Projection {
 <div>
 <h3>Methods</h3>
 <div class="method"><h4 id="project">
-abstract <a href="../dartkart.geometry/Point.html">Point</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
+abstract <a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
               title="Permalink to Projection.project">#</a></h4>
 <div class="doc">
-<p>Project a point (lat/lon) from a geographic coordinates into a
-point (x,y) in a projected coordinate system</p>
+<p>Project a point (lat/lon) from a geodetic coordinates into a
+Point2D (x,y) in a projected coordinate system</p>
 </div>
 </div>
 <div class="method"><h4 id="unproject">
-abstract <a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#unproject"
+abstract <a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> p) <a class="anchor-link" href="#unproject"
               title="Permalink to Projection.unproject">#</a></h4>
 <div class="doc">
-<p>Reverse project a point (x,y) from a projected coordinate system into
-a point (lat/lon) in the geoographic coordinate system.</p>
+<p>Reverse project a Point2D (x,y) from a projected coordinate system into
+a Point2D (lat/lon) in the geodetic coordinate system.</p>
 </div>
 </div>
 </div>
@@ -85,7 +85,7 @@ a point (lat/lon) in the geoographic coordinate system.</p>
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.230</div>
+          <div>This page was generated at 2013-06-02 17:31:27.974</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

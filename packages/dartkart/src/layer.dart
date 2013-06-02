@@ -1,5 +1,5 @@
 /**
- * The library *dartkart.layer* provides various types of layers which
+ * The library `dartkart.layer` provides various types of layers which
  * can be added to a [MapViewport].
  *
  */
@@ -20,6 +20,8 @@ import "geo.dart";
 
 part 'layer/base.dart';
 part 'layer/tile_layer.dart';
-part 'layer/simplefeature_layer.dart';
+//part 'layer/simplefeature_layer.dart';
 
-
+_require(cond, [msg=""]) {
+  if (!cond) throw new ArgumentError(msg);
+}

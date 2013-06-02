@@ -8,6 +8,9 @@
  * IFrame, so the configuration consists of two parts - a 'parent'
  * config that manages all the tests, and a 'child' config for the
  * IFrame that runs the individual tests.
+ * 
+ * Note: this unit test configuration will not work with the debugger (the tests
+ * are executed in a separate IFrame).
  */
 library unittest_interactive_html_config;
 
@@ -131,7 +134,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
    * messages in turn get passed to this method, which adds
    * a timestamp and posts them back to the parent window.
    */
-  void logTestCaseMessage(TestCase testCase, String message) {
+  void onLogMessage(TestCase testCase, String message) {
     int elapsed;
     if (testCase == null) {
       elapsed = -1;
@@ -359,7 +362,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
   // Actually test logging is handled by the child, then posted
   // back to the parent. So here we know that the [message] argument
   // is in the format used by [_Message].
-  void logTestCaseMessage(TestCase testCase, String message) {
+  void onLogMessage(TestCase testCase, String message) {
     var msg = new _Message.fromString(message);
     if (msg.elapsed < 0) { // No associated test case.
       document.query('#otherlogs').nodes.add(
@@ -380,7 +383,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     if (!testCase.enabled) return;
     super.onTestResult(testCase);
     if (testCase.message != '') {
-      logTestCaseMessage(testCase,
+      onLogMessage(testCase,
           _Message.text(_Message.LOG, -1, testCase.message));
     }
     int id = testCase.id;
@@ -462,18 +465,23 @@ void _prepareDom() {
 }
 
 /**
- * Allocate a Configuration. We allocate either a parent or
- * child, depending on whether the URL has a search part.
+ * Allocate a Configuration. We allocate either a parent or child, depending on
+ * whether the URL has a search part.
+ * 
+ * Note: this unit test configuration will not work with the debugger (the tests
+ * are executed in a separate IFrame).
  */
 void useInteractiveHtmlConfiguration() {
-  if (config != null) return;
   if (window.location.search == '') { // This is the parent.
     _prepareDom();
-    configure(new ParentInteractiveHtmlConfiguration());
+    unittestConfiguration = _singletonParent;
   } else {
-    configure(new ChildInteractiveHtmlConfiguration());
+    unittestConfiguration = _singletonChild;
   }
 }
+
+final _singletonParent = new ParentInteractiveHtmlConfiguration();
+final _singletonChild = new ChildInteractiveHtmlConfiguration();
 
 String _CSS = """
 body {

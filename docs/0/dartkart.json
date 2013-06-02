@@ -1,1 +1,1 @@
-{"id":"dartkart","uri":"file:///home/karl/repositories/dartkart/lib/dartkart.dart","kind":"library","line":"1"}
+{"comment":"\ndartkart is a framwork for web cartografy in the tradition of the \nJavaScript libraries OpenLayers and Leaflet. It is neither a 1:1 port \nnor does it provide the full functionality of either of them, but it has \na similar structure and borrows a lot of ideas from them.\n","uri":"file:///home/karl/repositories/dartkart/lib/dartkart.dart","id":"dartkart","line":"7","kind":"library"}

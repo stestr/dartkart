@@ -63,9 +63,9 @@ class EPSG3857 extends ProjectedCRS {
 
  LatLonBounds get geographicBounds =&gt; _geographicBounds;
 
- Point project(LatLon ll) =&gt; _projection.project(ll);
+ Point2D project(LatLon ll) =&gt; _projection.project(ll);
 
- LatLon unproject(Point p) =&gt; _projection.unproject(p);
+ LatLon unproject(Point2D p) =&gt; _projection.unproject(p);
 }
 </pre>
 </div>
@@ -99,7 +99,7 @@ final <a href="http://api.dartlang.org/dart_core/String.html">String</a>        
         </h4>
         <div class="doc">
 <div class="inherited">
-<p>The standardized identifier for this reference system</p>
+<p>The standardized identifier for this reference system.</p>
 <p>A coordinate references system can be assigned more than
 one idetifier, see also <a class="crossref" href="../dartkart.geo/EPSG3857.html#aliases">aliases</a></p>
 <div class="docs-inherited-from">docs inherited from <a href="../dartkart.geo/CoordinateReferenceSystem.html">CoordinateReferenceSystem</a> </div></div>
@@ -137,21 +137,31 @@ Bounds get projectedBounds =&gt; _projectedBounds;
 <h3>Methods</h3>
 <div class="method"><h4 id="project">
 <button class="show-code">Code</button>
-<a href="../dartkart.geometry/Point.html">Point</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
+<a href="../dartkart.geometry/Point2D.html">Point2D</a> <strong>project</strong>(<a href="../dartkart.geo/LatLon.html">LatLon</a> ll) <a class="anchor-link" href="#project"
               title="Permalink to EPSG3857.project">#</a></h4>
 <div class="doc">
+<div class="inherited">
+<p>Projects a point 
+<span class="param">ll</span> in geodetic coordinates
+into a projected coordinate reference system.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.geo/ProjectedCRS.html">ProjectedCRS</a> </div></div>
 <pre class="source">
-Point project(LatLon ll) =&gt; _projection.project(ll);
+Point2D project(LatLon ll) =&gt; _projection.project(ll);
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="unproject">
 <button class="show-code">Code</button>
-<a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point.html">Point</a> p) <a class="anchor-link" href="#unproject"
+<a href="../dartkart.geo/LatLon.html">LatLon</a> <strong>unproject</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> p) <a class="anchor-link" href="#unproject"
               title="Permalink to EPSG3857.unproject">#</a></h4>
 <div class="doc">
+<div class="inherited">
+<p>Maps a point 
+<span class="param">p</span> in the projected coordinate reference system to
+a point in the geodetic coordinate system.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.geo/ProjectedCRS.html">ProjectedCRS</a> </div></div>
 <pre class="source">
-LatLon unproject(Point p) =&gt; _projection.unproject(p);
+LatLon unproject(Point2D p) =&gt; _projection.unproject(p);
 </pre>
 </div>
 </div>
@@ -160,7 +170,7 @@ LatLon unproject(Point p) =&gt; _projection.unproject(p);
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.238</div>
+          <div>This page was generated at 2013-06-02 17:31:27.978</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

@@ -2,7 +2,7 @@
         <html>
         <head>
                 <meta charset="utf-8">
-        <title>PropertyObservable class / dartkart.core Library / Dart Documentation</title>
+        <title>PropertyObservable abstract class / dartkart.core Library / Dart Documentation</title>
         <link rel="stylesheet" type="text/css"
             href="../styles.css">
         <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
@@ -31,22 +31,75 @@
 <h2><div class="icon-library"></div><a href="../dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><a href="../dartkart.geometry.html">dartkart.geometry</a></h2><h2><div class="icon-library"></div><a href="../dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
 <div class="content">
         <h2><strong>PropertyObservable</strong>
-          class
+          abstract class
         </h2>
         
 <button id="show-inherited" class="show-inherited">Hide inherited</button>
 <div class="doc">
+<p>A mixin class which provides the basic infrastructure for notifying
+clients about property changes.</p>
+<h2>Example</h2>
+<pre><code>class Layer extends Object with PropertyObservable {
+   String _name;
+   set name(String value) {
+      var oldValue = _name;
+      _name = value;
+      // notify observers about property changes
+      notify(this, "name", oldValue, value);
+   }
+}
+</code></pre>
 <pre class="source">
-class PropertyObservable {
- final StreamController _controller = new StreamController();
+abstract class PropertyObservable {
+ final StreamController&lt;PropertyChangeEvent&gt; _controller =
+     new StreamController&lt;PropertyChangeEvent&gt;();
+ Stream&lt;PropertyChangeEvent&gt; _stream;
 
- Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
-     _controller.stream;
+ /**
+  * the stream of property change events
+  *
+  * ## Example
+  *
+  *      // an observable with a mixed in PropertyObservable
+  *      var observable = ...;
+  *      // listen for property change events for the property
+  *      // 'my_property'
+  *      observable.onPropertyChanged
+  *        .where((evt) =&gt; evt.name == "my_property")
+  *        .listen((evt) =&gt; print("new value: ${evt.newValue}"));
+  */
+ Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged {
+   //TODO: fix this - if at least one listener is present,
+   // change events are emitted, regardless of whether the
+   // individual listeners are paused or not. Consequence:
+   // lots of change events are possibly queued up in
+   // paused listener streams. =&gt; need a custom implementation
+   // of a multiplexing stream which disards events if
+   // they are streamed to a disabled listener
+   //
+   if (_stream == null) {
+     _stream = _controller.stream.asBroadcastStream();
+   }
+   return _stream;
+ }
 
- notify(source, String property, oldValue, newValue) =&gt;
+ /**
+  * Notifies observers about an update of the property with
+  * name [property] in this object. [oldValue] was replaced
+  * by [newValue].
+  *
+  * Observers are only notified, provided [newValue] is different
+  * from [oldValue] and if there is at least one listener.
+  *
+  */
+ void notify(String property, oldValue, newValue) {
+   if (oldValue == newValue) return;
+   //TODO: fix me - see notes in onPropertyChanged
+   if (!_controller.hasListener || _controller.isPaused) return;
    _controller.sink.add(
-       new PropertyChangeEvent(source, property, oldValue,newValue)
+       new PropertyChangeEvent(this, property,oldValue,newValue)
    );
+ }
 }
 </pre>
 </div>
@@ -59,9 +112,31 @@ final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a 
             title="Permalink to PropertyObservable.onPropertyChanged">#</a>
         </h4>
         <div class="doc">
+<p>the stream of property change events</p>
+<h2>Example</h2>
+<pre><code> // an observable with a mixed in PropertyObservable
+ var observable = ...;
+ // listen for property change events for the property
+ // 'my_property'
+ observable.onPropertyChanged
+   .where((evt) =&gt; evt.name == "my_property")
+   .listen((evt) =&gt; print("new value: ${evt.newValue}"));
+</code></pre>
 <pre class="source">
-Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
-   _controller.stream;
+Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged {
+ //TODO: fix this - if at least one listener is present,
+ // change events are emitted, regardless of whether the
+ // individual listeners are paused or not. Consequence:
+ // lots of change events are possibly queued up in
+ // paused listener streams. =&gt; need a custom implementation
+ // of a multiplexing stream which disards events if
+ // they are streamed to a disabled listener
+ //
+ if (_stream == null) {
+   _stream = _controller.stream.asBroadcastStream();
+ }
+ return _stream;
+}
 </pre>
 </div>
 </div>
@@ -70,14 +145,28 @@ Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
 <h3>Methods</h3>
 <div class="method"><h4 id="notify">
 <button class="show-code">Code</button>
-<strong>notify</strong>(source, <a href="http://api.dartlang.org/dart_core/String.html">String</a> property, oldValue, newValue) <a class="anchor-link" href="#notify"
+void <strong>notify</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> property, oldValue, newValue) <a class="anchor-link" href="#notify"
               title="Permalink to PropertyObservable.notify">#</a></h4>
 <div class="doc">
+<p>Notifies observers about an update of the property with
+name 
+<span class="param">property</span> in this object. 
+<span class="param">oldValue</span> was replaced
+by 
+<span class="param">newValue</span>.</p>
+<p>Observers are only notified, provided 
+<span class="param">newValue</span> is different
+from 
+<span class="param">oldValue</span> and if there is at least one listener.</p>
 <pre class="source">
-notify(source, String property, oldValue, newValue) =&gt;
+void notify(String property, oldValue, newValue) {
+ if (oldValue == newValue) return;
+ //TODO: fix me - see notes in onPropertyChanged
+ if (!_controller.hasListener || _controller.isPaused) return;
  _controller.sink.add(
-     new PropertyChangeEvent(source, property, oldValue,newValue)
+     new PropertyChangeEvent(this, property,oldValue,newValue)
  );
+}
 </pre>
 </div>
 </div>
@@ -86,7 +175,7 @@ notify(source, String property, oldValue, newValue) =&gt;
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.181</div>
+          <div>This page was generated at 2013-06-02 17:31:27.939</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

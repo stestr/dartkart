@@ -5,6 +5,25 @@
 /**
  * A simple mocking/spy library.
  *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       unittest: any
+ *
+ * Then run `pub install`.
+ *
+ * Import this into your Dart code with:
+ *
+ *     import 'package:unittest/mock.dart';
+ *
+ * For more information, see the [unittest package on pub.dartlang.org]
+ * (http://pub.dartlang.org/packages/unittest).
+ *
+ * ## Using ##
+ *
  * To create a mock objects for some class T, create a new class using:
  *
  *     class MockT extends Mock implements T {};
@@ -87,9 +106,27 @@
  *       }
  *     }
  *
+ * However, there is an even easier way, by calling [Mock.spy], e.g.:
+ *
+ *      var foo = new Foo();
+ *      var spy = new Mock.spy(foo);
+ *      print(spy.bar(1, 2, 3));
+ *
+ * Spys created with Mock.spy do not have user-defined behavior;
+ * they are simply proxies,  and thus will throw an exception if
+ * you call [when]. They capture all calls in the log, so you can
+ * do assertions on their history, such as:
+ *
+ *       spy.getLogs(callsTo('bar')).verify(happenedOnce);
+ *
+ * [pub]: http://pub.dartlang.org
  */
 
 library mock;
+
+import 'dart:mirrors';
+import 'dart:collection' show LinkedHashMap;
+
 import 'matcher.dart';
 
 /**
@@ -513,7 +550,8 @@ class LogEntryList {
             actionMatcher.matches(entry, matchState)) {
           rtn.add(entry);
           if (destructive) {
-            logs.removeRange(i--, 1);
+            int startIndex = i--;
+            logs.removeRange(startIndex, startIndex + 1);
           }
         }
       }
@@ -621,7 +659,7 @@ class LogEntryList {
     int pos = findLogEntry(logFilter, 0, defaultPosition);
     if (inPlace) {
       if (pos < logs.length) {
-        logs.removeRange(pos, logs.length - pos);
+        logs.removeRange(pos, logs.length);
       }
       filter = description;
       return this;
@@ -671,7 +709,7 @@ class LogEntryList {
    * list is created.
    */
   LogEntryList after(DateTime when, [bool inPlace = false]) =>
-      _tail((e) => e.time > when, inPlace, 'after $when', logs.length);
+      _tail((e) => e.time.isAfter(when), inPlace, 'after $when', logs.length);
 
   /**
    * Returns log events that happened from [when] onwards. If
@@ -680,7 +718,7 @@ class LogEntryList {
    * a new list is created.
    */
   LogEntryList from(DateTime when, [bool inPlace = false]) =>
-      _tail((e) => e.time >= when, inPlace, 'from $when', logs.length);
+      _tail((e) => !e.time.isBefore(when), inPlace, 'from $when', logs.length);
 
   /**
    * Returns log events that happened until [when]. If [inPlace]
@@ -689,7 +727,7 @@ class LogEntryList {
    * list is created.
    */
   LogEntryList until(DateTime when, [bool inPlace = false]) =>
-      _head((e) => e.time > when, inPlace, 'until $when', logs.length);
+      _head((e) => e.time.isAfter(when), inPlace, 'until $when', logs.length);
 
   /**
    * Returns log events that happened before [when]. If [inPlace]
@@ -698,7 +736,10 @@ class LogEntryList {
    * list is created.
    */
   LogEntryList before(DateTime when, [bool inPlace = false]) =>
-      _head((e) => e.time >= when, inPlace, 'before $when', logs.length);
+      _head((e) => !e.time.isBefore(when),
+            inPlace,
+            'before $when',
+            logs.length);
 
   /**
    * Returns log events that happened after [logEntry]'s time.
@@ -1214,13 +1255,16 @@ class Mock {
   final String name;
 
   /** The set of [Behavior]s supported. */
-  Map<String,Behavior> _behaviors;
+  LinkedHashMap<String,Behavior> _behaviors;
 
   /** The [log] of calls made. Only used if [name] is null. */
   LogEntryList log;
 
   /** How to handle unknown method calls - swallow or throw. */
   final bool _throwIfNoBehavior;
+
+  /** For spys, the real object that we are spying on. */
+  Object _realObject;
 
   /** Whether to create an audit log or not. */
   bool _logging;
@@ -1239,7 +1283,7 @@ class Mock {
    */
   Mock() : _throwIfNoBehavior = false, log = null, name = null {
     logging = true;
-    _behaviors = new Map<String,Behavior>();
+    _behaviors = new LinkedHashMap<String,Behavior>();
   }
 
   /**
@@ -1258,7 +1302,20 @@ class Mock {
       throw new Exception("Mocks with shared logs must have a name.");
     }
     logging = enableLogging;
-    _behaviors = new Map<String,Behavior>();
+    _behaviors = new LinkedHashMap<String,Behavior>();
+  }
+
+  /**
+   * This constructor creates a spy with no user-defined behavior.
+   * This is simply a proxy for a real object that passes calls
+   * through to that real object but captures an audit trail of
+   * calls made to the object that can be queried and validated
+   * later.
+   */
+  Mock.spy(this._realObject, {this.name, this.log})
+    : _behaviors = null,
+     _throwIfNoBehavior = true {
+    logging = true;
   }
 
   /**
@@ -1288,8 +1345,8 @@ class Mock {
    * return value. If we find no [Behavior] to apply an exception is
    * thrown.
    */
-  noSuchMethod(InvocationMirror invocation) {
-    var method = invocation.memberName;
+  noSuchMethod(Invocation invocation) {
+    var method = MirrorSystem.getName(invocation.memberName);
     var args = invocation.positionalArguments;
     if (invocation.isGetter) {
       method = 'get $method';
@@ -1298,6 +1355,17 @@ class Mock {
       // Remove the trailing '='.
       if (method[method.length-1] == '=') {
         method = method.substring(0, method.length - 1);
+      }
+    }
+    if (_behaviors == null) { // Spy.
+      var mirror = reflect(_realObject);
+      try {
+        var result = mirror.delegate(invocation);
+        log.add(new LogEntry(name, method, args, Action.PROXY, result));
+        return result;
+      } catch (e) {
+        log.add(new LogEntry(name, method, args, Action.THROW, e));
+        throw e;
       }
     }
     bool matchedMethodName = false;
@@ -1336,7 +1404,8 @@ class Mock {
           throw value;
         } else if (action == Action.PROXY) {
           // TODO(gram): Replace all this with:
-          //     var rtn = invocation.invokeOn(value);
+          //     var rtn = reflect(value).apply(invocation.positionalArguments,
+          //         invocation.namedArguments);
           // once that is supported.
           var rtn;
           switch (args.length) {

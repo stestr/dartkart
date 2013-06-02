@@ -42,18 +42,23 @@
         
 <button id="show-inherited" class="show-inherited">Hide inherited</button>
 <div class="doc">
+<p>Abstract base class for a coordinate reference system</p>
 <pre class="source">
 abstract class CoordinateReferenceSystem {
- /// The standardized identifier for this reference system
- ///
- /// A coordinate references system can be assigned more than
- /// one idetifier, see also [aliases]
+ /**
+  * The standardized identifier for this reference system.
+  *
+  * A coordinate references system can be assigned more than
+  * one idetifier, see also [aliases]
+  */
  String get code;
 
- /// A list of code aliases for this reference system.
- ///
- /// The empty list, if no alternative codes are known for this
- /// coordinate reference system.
+ /**
+  * A list of code aliases for this reference system.
+  *
+  * The empty list, if no alternative codes are known for this
+  * coordinate reference system.
+  */
  List&lt;String&gt; get aliases;
 }
 </pre>
@@ -85,7 +90,7 @@ final <a href="http://api.dartlang.org/dart_core/String.html">String</a>        
             title="Permalink to CoordinateReferenceSystem.code">#</a>
         </h4>
         <div class="doc">
-<p>The standardized identifier for this reference system</p>
+<p>The standardized identifier for this reference system.</p>
 <p>A coordinate references system can be assigned more than
 one idetifier, see also <a class="crossref" href="../dartkart.geo/CoordinateReferenceSystem.html#aliases">aliases</a></p>
 <pre class="source">
@@ -98,7 +103,7 @@ String get code;
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.244</div>
+          <div>This page was generated at 2013-06-02 17:31:27.988</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

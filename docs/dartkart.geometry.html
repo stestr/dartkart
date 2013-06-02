@@ -26,139 +26,15 @@
         
 <h2><div class="icon-library"></div><a href="dartkart.html">dartkart</a></h2><h2><div class="icon-library"></div><a href="dartkart.core.html">dartkart.core</a></h2><h2><div class="icon-library"></div><a href="dartkart.geo.html">dartkart.geo</a></h2><h2><div class="icon-library"></div><strong>dartkart.geometry</strong></h2><ul class="icon">
 <li><a href="dartkart.geometry/Bounds.html"><div class="icon-class"></div>Bounds</a></li>
-<li><a href="dartkart.geometry/Curve.html"><div class="icon-class"></div>Curve</a></li>
-<li><a href="dartkart.geometry/Feature.html"><div class="icon-class"></div>Feature</a></li>
-<li><a href="dartkart.geometry/FeatureCollection.html"><div class="icon-class"></div>FeatureCollection</a></li>
-<li><a href="dartkart.geometry/Geometry.html"><div class="icon-class"></div>Geometry</a></li>
-<li><a href="dartkart.geometry/GeometryCollection.html"><div class="icon-class"></div>GeometryCollection</a></li>
-<li><a href="dartkart.geometry/LineString.html"><div class="icon-class"></div>LineString</a></li>
-<li><a href="dartkart.geometry/MultiCurve.html"><div class="icon-class"></div>MultiCurve</a></li>
-<li><a href="dartkart.geometry/MultiLineString.html"><div class="icon-class"></div>MultiLineString</a></li>
-<li><a href="dartkart.geometry/MultiPoint.html"><div class="icon-class"></div>MultiPoint</a></li>
-<li><a href="dartkart.geometry/MultiPolygon.html"><div class="icon-class"></div>MultiPolygon</a></li>
-<li><a href="dartkart.geometry/MultiSurface.html"><div class="icon-class"></div>MultiSurface</a></li>
-<li><a href="dartkart.geometry/Point.html"><div class="icon-class"></div>Point</a></li>
-<li><a href="dartkart.geometry/Polygon.html"><div class="icon-class"></div>Polygon</a></li>
-<li><a href="dartkart.geometry/Surface.html"><div class="icon-class"></div>Surface</a></li>
+<li><a href="dartkart.geometry/Dimension.html"><div class="icon-class"></div>Dimension</a></li>
+<li><a href="dartkart.geometry/Point2D.html"><div class="icon-class"></div>Point2D</a></li>
 </ul>
 <h2><div class="icon-library"></div><a href="dartkart.layer.html">dartkart.layer</a></h2><h2><div class="icon-library"></div><a href="dartkart.map.html">dartkart.map</a></h2></div>
 <div class="content">
 <h2><strong>dartkart.geometry</strong> library</h2>
-<div>
-<h3>Functions</h3>
-<div class="method"><h4 id="parseGeoJson">
-<button class="show-code">Code</button>
-<strong>parseGeoJson</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> geoJson) <a class="anchor-link" href="#parseGeoJson"
-              title="Permalink to parseGeoJson">#</a></h4>
-<div class="doc">
-<p>Parses GeoJSON.</p>
-<p>Replies either a <a class="crossref" href="dartkart.geometry/Geometry.html">Geometry</a>, a <a class="crossref" href="dartkart.geometry/Feature.html">Feature</a> or a <a class="crossref" href="dartkart.geometry/FeatureCollection.html">FeatureCollection</a>.</p>
-<pre class="source">
-parseGeoJson(String geoJson) {
- var value = json.parse(geoJson);
- assert(value is Map);
-
- Point pos(coord) =&gt; new Point(coord[0], coord[1]);
- List&lt;Point&gt; poslist(l) =&gt; l.map(pos).toList();
-
- deserializePoint(Map gj) =&gt;
-     pos(gj["coordinates"]);
-
- deserializeMultiPoint(Map gj) =&gt;
-     new MultiPoint(poslist(gj["coordinates"]));
-
- deserializeLineString(Map gj) =&gt;
-     new LineString(poslist(gj["coordinates"]));
-
- deserializeMultiLineString(Map gj) =&gt;
-   new MultiLineString(
-     gj["coordinates"]
-     .map((ls) =&gt; new LineString(poslist(ls)))
-     .toList()
-   );
-
- polygonFromCoordinates(coords) {
-   var rings = coords
-   .map((l) =&gt; poslist(l))
-   .map((poslist) =&gt; new LineString.linearRing(poslist))
-   .toList();
-   var externalRing = rings[0];
-   var internalRings = rings.length &lt;= 1
-       ? null
-       : rings.getRange(1, rings.length -1);
-   return new Polygon(externalRing, internalRings);
- }
-
- deserializePolygon(Map gj) =&gt;
-   polygonFromCoordinates(gj["coordinates"]);
-
- deserializeMultipolygon(Map gj) =&gt;
-     new MultiPolygon(
-         gj["coordinates"]
-         .map((coords) =&gt; polygonFromCoordinates(coords))
-         .toList()
-     );
-
- var deserialize;
-
- deserializeGeometryCollection(Map gj) =&gt;
-     new GeometryCollection(gj["geometries"]
-       .map((o) =&gt; deserialize(o))
-       .toList()
-     );
-
- deserializeFeature(Map gj) {
-   var geometry = deserialize(gj["geometry"]);
-   var properties = gj["properties"];
-   return new Feature(geometry, properties);
- }
-
- deserializeFeatureCollection(Map gj) {
-   var features = gj["features"]
-     .map((f) =&gt; deserializeFeature(f))
-     .toList();
-   return new FeatureCollection(features);
- }
-
- deserialize = (Map gj) {
-   switch(gj["type"]) {
-     case "Point":      return deserializePoint(gj);
-     case "MultiPoint": return deserializeMultiPoint(gj);
-     case "LineString": return deserializeLineString(gj);
-     case "MultiLineString": return deserializeMultiLineString(gj);
-     case "Polygon":    return deserializePolygon(gj);
-     case "MultiPolygon": return deserializeMultipolygon(gj);
-     case "GeometryCollection": return deserializeGeometryCollection(gj);
-     case "Feature": return deserializeFeature(gj);
-     case "FeatureCollection" : return deserializeFeatureCollection(gj);
-     default:
-       throw new FormatException(
-           "unknown GeoJson object type '${gj['type']}"
-       );
-   }
- };
-
- return deserialize(value);
-}
-</pre>
-</div>
-</div>
-</div>
-<div>
-<h3>Abstract Classes</h3>
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/Curve.html"><strong>Curve</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/Geometry.html"><strong>Geometry</strong></a>
-          </h4>
-          </div>
-          
-</div>
+<div class="doc"><p>The library <code>dartkart.geometry</code> provides classes for basic geometric
+concepts like a 2-dimensional point, a dimension, or a boundary
+box.</p></div>
 <div>
 <h3>Classes</h3>
           <div class="type">
@@ -169,73 +45,13 @@ parseGeoJson(String geoJson) {
           
           <div class="type">
           <h4>
-            <a href="dartkart.geometry/Feature.html"><strong>Feature</strong></a>
+            <a href="dartkart.geometry/Dimension.html"><strong>Dimension</strong></a>
           </h4>
           </div>
           
           <div class="type">
           <h4>
-            <a href="dartkart.geometry/FeatureCollection.html"><strong>FeatureCollection</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/GeometryCollection.html"><strong>GeometryCollection</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/LineString.html"><strong>LineString</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/MultiCurve.html"><strong>MultiCurve</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/MultiLineString.html"><strong>MultiLineString</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/MultiPoint.html"><strong>MultiPoint</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/MultiPolygon.html"><strong>MultiPolygon</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/MultiSurface.html"><strong>MultiSurface</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/Point.html"><strong>Point</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/Polygon.html"><strong>Polygon</strong></a>
-          </h4>
-          </div>
-          
-          <div class="type">
-          <h4>
-            <a href="dartkart.geometry/Surface.html"><strong>Surface</strong></a>
+            <a href="dartkart.geometry/Point2D.html"><strong>Point2D</strong></a>
           </h4>
           </div>
           
@@ -244,7 +60,7 @@ parseGeoJson(String geoJson) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.247</div>
+          <div>This page was generated at 2013-06-02 17:31:27.988</div>
         </div>
         <script async src="client-static.js"></script>
         </body></html>

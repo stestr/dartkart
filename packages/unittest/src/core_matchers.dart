@@ -177,9 +177,8 @@ class _DeepMatcher extends BaseMatcher {
         var aType = typeName(actual);
         var includeTypes = eType != aType;
         // If we have recursed, show the expected value too; if not,
-        // expect() will show it for us. As expect will not show type
-        // mismatches at the top level we handle those here too.
-        if (includeTypes || depth > 1) {
+        // expect() will show it for us.
+        if (depth > 0) {
           reason.add('expected ');
           if (includeTypes) {
             reason.add(eType).add(':');
@@ -191,6 +190,9 @@ class _DeepMatcher extends BaseMatcher {
           reason.add(aType).add(':');
         }
         reason.addDescriptionOf(actual);
+        if (includeTypes && depth == 0) {
+          reason.add(' (not type ').add(eType).add(')');
+        }
       }
     }
     if (reason != null && location.length > 0) {
@@ -326,16 +328,17 @@ class Throws extends BaseMatcher {
       // completes.
       item.then((value) {
         done(() => fail("Expected future to fail, but succeeded with '$value'."));
-      }, onError: (e) {
+      }, onError: (error) {
         done(() {
           if (_matcher == null) return;
           var reason;
-          if (e.stackTrace != null) {
-            var stackTrace = e.stackTrace.toString();
+          var trace = getAttachedStackTrace(error);
+          if (trace != null) {
+            var stackTrace = trace.toString();
             stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
             reason = "Actual exception trace:\n$stackTrace";
           }
-          expect(e.error, _matcher, reason: reason);
+          expect(error, _matcher, reason: reason);
         });
       });
       // It hasn't failed yet.
@@ -599,7 +602,7 @@ class _HasLength extends BaseMatcher {
  * Returns a matcher that matches if the match argument contains
  * the expected value. For [String]s this means substring matching;
  * for [Map]s it means the map has the key, and for [Iterable]s
- * (including [Collection]s) it means the iterable has a matching
+ * (including [Iterable]s) it means the iterable has a matching
  * element. In the case of iterables, [expected] can itself be a
  * matcher.
  */
@@ -645,7 +648,7 @@ class _In extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (_expected is String) {
       return _expected.indexOf(item) >= 0;
-    } else if (_expected is Collection) {
+    } else if (_expected is Iterable) {
       return _expected.any((e) => e == item);
     } else if (_expected is Map) {
       return _expected.containsKey(item);
@@ -705,8 +708,8 @@ class CustomMatcher extends BaseMatcher {
   final String _featureName;
   final Matcher _matcher;
 
-  const CustomMatcher(this._featureDescription, this._featureName,
-      this._matcher);
+  CustomMatcher(this._featureDescription, this._featureName, matcher)
+      : this._matcher = wrapMatcher(matcher);
 
   /** Override this to extract the interesting feature.*/
   featureValueOf(actual) => actual;

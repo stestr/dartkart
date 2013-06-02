@@ -30,8 +30,8 @@
 <li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
 <li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
 <li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
-<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
-<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/MouseEvent.html"><div class="icon-class"></div>MouseEvent</a></li>
+<li><a href="../dartkart.map/MouseEventStream.html"><div class="icon-class"></div>MouseEventStream</a></li>
 <li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
 <li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
 <li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
@@ -63,14 +63,14 @@ class ControlsPane {
  DivElement get root =&gt; _root;
 
  /// Detach this pane from the map viewport.
- detach() {
+ void detach() {
    _viewport = null;
  }
 
  /// Attach this control pane to the [viewport]. [viewport]
  /// must not be null.
- attach(MapViewport viewport) {
-   assert(viewport != null);
+ void attach(MapViewport viewport) {
+   _require(viewport != null, "viewport must not be null");
    _viewport = viewport;
    _root.style
      ..width = "100%"
@@ -82,7 +82,8 @@ class ControlsPane {
    // the map viewport takes care of this
  }
 
- layout() {
+ /// layout the contronls pane
+ void layout() {
    controls.forEach((c) =&gt; c.layout());
  }
 }
@@ -113,7 +114,7 @@ final <a href="http://api.dartlang.org/dart_core/List.html">List</a>&lt;<a href=
         </h4>
         <div class="doc">
 <pre class="source">
-controls = []
+final List&lt;MapControl&gt; controls = []
 </pre>
 </div>
 </div>
@@ -135,7 +136,7 @@ DivElement get root =&gt; _root;
 <h3>Methods</h3>
 <div class="method"><h4 id="attach">
 <button class="show-code">Code</button>
-<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
+void <strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#attach"
               title="Permalink to ControlsPane.attach">#</a></h4>
 <div class="doc">
 <p>Attach this control pane to the 
@@ -143,8 +144,8 @@ DivElement get root =&gt; _root;
 <span class="param">viewport</span>
 must not be null.</p>
 <pre class="source">
-attach(MapViewport viewport) {
- assert(viewport != null);
+void attach(MapViewport viewport) {
+ _require(viewport != null, "viewport must not be null");
  _viewport = viewport;
  _root.style
    ..width = "100%"
@@ -160,12 +161,12 @@ attach(MapViewport viewport) {
 </div>
 <div class="method"><h4 id="detach">
 <button class="show-code">Code</button>
-<strong>detach</strong>() <a class="anchor-link" href="#detach"
+void <strong>detach</strong>() <a class="anchor-link" href="#detach"
               title="Permalink to ControlsPane.detach">#</a></h4>
 <div class="doc">
 <p>Detach this pane from the map viewport.</p>
 <pre class="source">
-detach() {
+void detach() {
  _viewport = null;
 }
 </pre>
@@ -173,11 +174,12 @@ detach() {
 </div>
 <div class="method"><h4 id="layout">
 <button class="show-code">Code</button>
-<strong>layout</strong>() <a class="anchor-link" href="#layout"
+void <strong>layout</strong>() <a class="anchor-link" href="#layout"
               title="Permalink to ControlsPane.layout">#</a></h4>
 <div class="doc">
+<p>layout the contronls pane</p>
 <pre class="source">
-layout() {
+void layout() {
  controls.forEach((c) =&gt; c.layout());
 }
 </pre>
@@ -188,7 +190,7 @@ layout() {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.519</div>
+          <div>This page was generated at 2013-06-02 17:31:28.136</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

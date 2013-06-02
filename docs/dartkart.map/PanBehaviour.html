@@ -30,8 +30,8 @@
 <li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
 <li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
 <li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
-<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
-<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/MouseEvent.html"><div class="icon-class"></div>MouseEvent</a></li>
+<li><a href="../dartkart.map/MouseEventStream.html"><div class="icon-class"></div>MouseEventStream</a></li>
 <li><div class="icon-class"></div><strong>PanBehaviour</strong></li>
 <li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
 <li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
@@ -46,16 +46,24 @@
         
 <button id="show-inherited" class="show-inherited">Hide inherited</button>
 <div class="doc">
+<p><code>PanBehaviour</code> controls animated panning of a map viewport.</p>
 <pre class="source">
 class PanBehaviour {
  const double ACCELERATION = -2.0; // px / (100ms)²
  const double SPEED = 20.0;        // px / 100ms
  const int DELTA_T = 20;           // ms, duration of animation step
 
+ /// the map viewport controlled by this behaviour
  final MapViewport viewport;
+ 
+ /// Creates a new behaviour controlling [viewport].
  PanBehaviour(this.viewport);
 
- animate(Point panBy) {
+ /**
+  * Animate the panning of the map viewport by a vector given
+  * by [panBy].
+  */
+ void animate(Point2D panBy) {
    var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
    var theta = math.asin(panBy.y / dist);
    if (panBy.x &lt;= 0) {
@@ -70,8 +78,8 @@ class PanBehaviour {
    now() =&gt; new DateTime.now().millisecondsSinceEpoch;
 
    pan(dx,dy) {
-     var p = new Point(dx,dy).toInt();
-     if (p != new Point.origin()) viewport.pan(p);
+     var p = new Point2D(dx,dy).toInt();
+     if (p != new Point2D.origin()) viewport.pan(p);
    }
 
    bounded(num v, num bound) =&gt; bound &lt; 0
@@ -80,8 +88,8 @@ class PanBehaviour {
 
    // pan long distance (fast) as much and possible, the complete
    // the future with the remaining pan distance
-   Future&lt;Point&gt; panLongDistance(Point panBy) {
-     var completer = new Completer&lt;Point&gt;();
+   Future&lt;Point2D&gt; panLongDistance(Point2D panBy) {
+     var completer = new Completer&lt;Point2D&gt;();
      var pannedX = 0;
      var pannedY = 0;
      bool isLongDistance() =&gt;
@@ -92,7 +100,7 @@ class PanBehaviour {
      step(Timer timer){
        if (!isLongDistance()) {
          timer.cancel();
-         var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+         var rest = new Point2D(panBy.x - pannedX, panBy.y - pannedY);
          completer.complete(rest);
        } else {
          var dx = bounded(40 * fx, panBy.x).toInt();
@@ -108,7 +116,7 @@ class PanBehaviour {
 
    // pan a short distance, deaccelerate and make sure the final
    // point is reached
-   panShortDistance(Point panBy) {
+   panShortDistance(Point2D panBy) {
      panBy = panBy.toInt();
      var lastX = 0;
      var lastY = 0;
@@ -122,7 +130,7 @@ class PanBehaviour {
        var x = bounded(p * fx, panBy.x).toInt();
        var y = bounded(p * fy, panBy.y).toInt();
        var v = ACCELERATION * t + SPEED;
-       if (v &lt;= 0 || panBy == new Point(x,y)){
+       if (v &lt;= 0 || panBy == new Point2D(x,y)){
          // last step - pan to the end point
          x = panBy.x;
          y = panBy.y;
@@ -152,6 +160,8 @@ class PanBehaviour {
 new <strong>PanBehaviour</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> viewport) <a class="anchor-link" href="#PanBehaviour"
               title="Permalink to PanBehaviour.PanBehaviour">#</a></h4>
 <div class="doc">
+<p>Creates a new behaviour controlling 
+<span class="param">viewport</span>.</p>
 <pre class="source">
 PanBehaviour(this.viewport);
 </pre>
@@ -168,7 +178,7 @@ const <a href="http://api.dartlang.org/dart_core/double.html">double</a>        
         </h4>
         <div class="doc">
 <pre class="source">
-ACCELERATION = -2.0
+const double ACCELERATION = -2.0
 </pre>
 </div>
 </div>
@@ -180,7 +190,7 @@ const <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <stro
         </h4>
         <div class="doc">
 <pre class="source">
-DELTA_T = 20
+const int DELTA_T = 20
 </pre>
 </div>
 </div>
@@ -192,7 +202,7 @@ const <a href="http://api.dartlang.org/dart_core/double.html">double</a>        
         </h4>
         <div class="doc">
 <pre class="source">
-SPEED = 20.0
+const double SPEED = 20.0
 </pre>
 </div>
 </div>
@@ -203,8 +213,9 @@ final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong
             title="Permalink to PanBehaviour.viewport">#</a>
         </h4>
         <div class="doc">
+<p>the map viewport controlled by this behaviour</p>
 <pre class="source">
-viewport
+final MapViewport viewport
 </pre>
 </div>
 </div>
@@ -213,11 +224,14 @@ viewport
 <h3>Methods</h3>
 <div class="method"><h4 id="animate">
 <button class="show-code">Code</button>
-<strong>animate</strong>(<a href="../dartkart.geometry/Point.html">Point</a> panBy) <a class="anchor-link" href="#animate"
+void <strong>animate</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> panBy) <a class="anchor-link" href="#animate"
               title="Permalink to PanBehaviour.animate">#</a></h4>
 <div class="doc">
+<p>Animate the panning of the map viewport by a vector given
+by 
+<span class="param">panBy</span>.</p>
 <pre class="source">
-animate(Point panBy) {
+void animate(Point2D panBy) {
  var dist = math.sqrt(math.pow(panBy.x,2) + math.pow(panBy.y,2));
  var theta = math.asin(panBy.y / dist);
  if (panBy.x &lt;= 0) {
@@ -232,8 +246,8 @@ animate(Point panBy) {
  now() =&gt; new DateTime.now().millisecondsSinceEpoch;
 
  pan(dx,dy) {
-   var p = new Point(dx,dy).toInt();
-   if (p != new Point.origin()) viewport.pan(p);
+   var p = new Point2D(dx,dy).toInt();
+   if (p != new Point2D.origin()) viewport.pan(p);
  }
 
  bounded(num v, num bound) =&gt; bound &lt; 0
@@ -242,8 +256,8 @@ animate(Point panBy) {
 
  // pan long distance (fast) as much and possible, the complete
  // the future with the remaining pan distance
- Future&lt;Point&gt; panLongDistance(Point panBy) {
-   var completer = new Completer&lt;Point&gt;();
+ Future&lt;Point2D&gt; panLongDistance(Point2D panBy) {
+   var completer = new Completer&lt;Point2D&gt;();
    var pannedX = 0;
    var pannedY = 0;
    bool isLongDistance() =&gt;
@@ -254,7 +268,7 @@ animate(Point panBy) {
    step(Timer timer){
      if (!isLongDistance()) {
        timer.cancel();
-       var rest = new Point(panBy.x - pannedX, panBy.y - pannedY);
+       var rest = new Point2D(panBy.x - pannedX, panBy.y - pannedY);
        completer.complete(rest);
      } else {
        var dx = bounded(40 * fx, panBy.x).toInt();
@@ -270,7 +284,7 @@ animate(Point panBy) {
 
  // pan a short distance, deaccelerate and make sure the final
  // point is reached
- panShortDistance(Point panBy) {
+ panShortDistance(Point2D panBy) {
    panBy = panBy.toInt();
    var lastX = 0;
    var lastY = 0;
@@ -284,7 +298,7 @@ animate(Point panBy) {
      var x = bounded(p * fx, panBy.x).toInt();
      var y = bounded(p * fy, panBy.y).toInt();
      var v = ACCELERATION * t + SPEED;
-     if (v &lt;= 0 || panBy == new Point(x,y)){
+     if (v &lt;= 0 || panBy == new Point2D(x,y)){
        // last step - pan to the end point
        x = panBy.x;
        y = panBy.y;
@@ -312,7 +326,7 @@ animate(Point panBy) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.521</div>
+          <div>This page was generated at 2013-06-02 17:31:28.148</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

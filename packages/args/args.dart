@@ -6,6 +6,19 @@
  * This library lets you define parsers for parsing raw command-line arguments
  * into a set of options and values using [GNU][] and [POSIX][] style options.
  *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       args: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [args package on pub.dartlang.org](http://pub.dartlang.org/packages/args).
+ *
  * ## Defining options ##
  *
  * To use this library, you create an [ArgParser] object which will contain
@@ -209,6 +222,7 @@
  *
  * [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
  * [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
+ * [pub]: http://pub.dartlang.org
  */
 library args;
 
@@ -285,11 +299,6 @@ class ArgParser {
 
     // Make sure the abbreviation isn't too long or in use.
     if (abbr != null) {
-      if (abbr.length > 1) {
-        throw new ArgumentError(
-            'Abbreviation "$abbr" is longer than one character.');
-      }
-
       var existing = findByAbbreviation(abbr);
       if (existing != null) {
         throw new ArgumentError(
@@ -331,7 +340,7 @@ class ArgParser {
    * that abbreviation.
    */
   Option findByAbbreviation(String abbr) {
-    return options.values.firstMatching((option) => option.abbreviation == abbr,
+    return options.values.firstWhere((option) => option.abbreviation == abbr,
         orElse: () => null);
   }
 }
@@ -342,7 +351,7 @@ class ArgParser {
 class Option {
   final String name;
   final String abbreviation;
-  final List allowed;
+  final List<String> allowed;
   final defaultValue;
   final Function callback;
   final String help;
@@ -353,7 +362,33 @@ class Option {
 
   Option(this.name, this.abbreviation, this.help, this.allowed,
       this.allowedHelp, this.defaultValue, this.callback, {this.isFlag,
-      this.negatable, this.allowMultiple: false});
+      this.negatable, this.allowMultiple: false}) {
+
+    if (name.isEmpty) {
+      throw new ArgumentError('Name cannot be empty.');
+    } else if (name.startsWith('-')) {
+      throw new ArgumentError('Name $name cannot start with "-".');
+    }
+
+    // Ensure name does not contain any invalid characters.
+    if (_invalidChars.hasMatch(name)) {
+      throw new ArgumentError('Name "$name" contains invalid characters.');
+    }
+
+    if (abbreviation != null) {
+      if (abbreviation.length != 1) {
+        throw new ArgumentError('Abbreviation must be null or have length 1.');
+      } else if(abbreviation == '-') {
+        throw new ArgumentError('Abbreviation cannot be "-".');
+      }
+
+      if (_invalidChars.hasMatch(abbreviation)) {
+        throw new ArgumentError('Abbreviation is an invalid character.');
+      }
+    }
+  }
+
+  static final _invalidChars = new RegExp(r'''[ \t\r\n"'\\/]''');
 }
 
 /**
@@ -396,7 +431,7 @@ class ArgResults {
     return _options[name];
   }
 
-  /** Get the names of the options as a [Collection]. */
-  Collection<String> get options => _options.keys.toList(growable: false);
+  /** Get the names of the options as an [Iterable]. */
+  Iterable<String> get options => _options.keys;
 }
 

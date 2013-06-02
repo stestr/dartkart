@@ -77,6 +77,7 @@ class LatLonBounds {
   * Create a bounds objects from another value [other].
   *
   * ## Possible values for [other]
+  *
   * * a [LatLonBounds] -&gt; creates a copy of [other]
   */
  factory LatLonBounds.from(other) {
@@ -89,18 +90,19 @@ class LatLonBounds {
    throw new ArgumentError("can't create a LatLonBounds from $other");
  }
 
- /// the south-west corner 
+ /// the south-west corner
  LatLon get southWest =&gt; new LatLon(_minLat, _maxLon);
- /// the south-east corner 
+ /// the south-east corner
  LatLon get southEast =&gt; new LatLon(_minLat, _maxLon);
- /// the north-east corner 
+ /// the north-east corner
  LatLon get northEast =&gt; new LatLon(_maxLat, _maxLon);
- 
- /// the north-west corner 
+
+ /// the north-west corner
  LatLon get northWest =&gt; new LatLon(_minLat, _maxLon);
- 
- /// the center point 
- LatLon get center =&gt; new LatLon((_minLat + _maxLat) / 2, (_minLon + _maxLon) / 2);
+
+ /// the center point
+ LatLon get center =&gt; new LatLon((_minLat + _maxLat) / 2,
+     (_minLon + _maxLon) / 2);
 
  _containsPoint(LatLon p) =&gt;
         p.lat &gt;= _minLat &amp;&amp; p.lat &lt;= _maxLat
@@ -116,7 +118,7 @@ class LatLonBounds {
   * * a [LatLon] -&gt; checks whether the point is this bounds
   * * a [LatLonBounds] -&gt; checks whether the bounds are completely in this
   *   bounds
-  *    
+  *
   * Throws [ArgumentError] if [obj] is either null or of an
   * unexpected type.
   */
@@ -127,7 +129,7 @@ class LatLonBounds {
  }
 
  /**
-  * Checks wheter [n] interesects with this bounds.
+  * Checks whether [b] interesects with this bounds.
   *
   * Replies true, if [b] interesects, false otherwise.
   * Throws [ArgumentError] if [b] is null or of an unexpected type
@@ -205,9 +207,10 @@ final <a href="../dartkart.geo/LatLon.html">LatLon</a>         <strong>center</s
             title="Permalink to LatLonBounds.center">#</a>
         </h4>
         <div class="doc">
-<p>the center point </p>
+<p>the center point</p>
 <pre class="source">
-LatLon get center =&gt; new LatLon((_minLat + _maxLat) / 2, (_minLon + _maxLon) / 2);
+LatLon get center =&gt; new LatLon((_minLat + _maxLat) / 2,
+   (_minLon + _maxLon) / 2);
 </pre>
 </div>
 </div>
@@ -218,7 +221,7 @@ final <a href="../dartkart.geo/LatLon.html">LatLon</a>         <strong>northEast
             title="Permalink to LatLonBounds.northEast">#</a>
         </h4>
         <div class="doc">
-<p>the north-east corner </p>
+<p>the north-east corner</p>
 <pre class="source">
 LatLon get northEast =&gt; new LatLon(_maxLat, _maxLon);
 </pre>
@@ -231,7 +234,7 @@ final <a href="../dartkart.geo/LatLon.html">LatLon</a>         <strong>northWest
             title="Permalink to LatLonBounds.northWest">#</a>
         </h4>
         <div class="doc">
-<p>the north-west corner </p>
+<p>the north-west corner</p>
 <pre class="source">
 LatLon get northWest =&gt; new LatLon(_minLat, _maxLon);
 </pre>
@@ -244,7 +247,7 @@ final <a href="../dartkart.geo/LatLon.html">LatLon</a>         <strong>southEast
             title="Permalink to LatLonBounds.southEast">#</a>
         </h4>
         <div class="doc">
-<p>the south-east corner </p>
+<p>the south-east corner</p>
 <pre class="source">
 LatLon get southEast =&gt; new LatLon(_minLat, _maxLon);
 </pre>
@@ -257,7 +260,7 @@ final <a href="../dartkart.geo/LatLon.html">LatLon</a>         <strong>southWest
             title="Permalink to LatLonBounds.southWest">#</a>
         </h4>
         <div class="doc">
-<p>the south-west corner </p>
+<p>the south-west corner</p>
 <pre class="source">
 LatLon get southWest =&gt; new LatLon(_minLat, _maxLon);
 </pre>
@@ -294,7 +297,8 @@ bool contains(obj) {
 <a href="http://api.dartlang.org/dart_core/bool.html">bool</a> <strong>intersects</strong>(<a href="../dartkart.geo/LatLonBounds.html">LatLonBounds</a> b) <a class="anchor-link" href="#intersects"
               title="Permalink to LatLonBounds.intersects">#</a></h4>
 <div class="doc">
-<p>Checks wheter <code>n</code> interesects with this bounds.</p>
+<p>Checks whether 
+<span class="param">b</span> interesects with this bounds.</p>
 <p>Replies true, if 
 <span class="param">b</span> interesects, false otherwise.
 Throws <code>ArgumentError</code> if 
@@ -313,7 +317,7 @@ bool intersects(LatLonBounds b) {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.204</div>
+          <div>This page was generated at 2013-06-02 17:31:27.956</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

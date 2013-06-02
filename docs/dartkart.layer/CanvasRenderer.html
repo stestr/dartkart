@@ -30,11 +30,9 @@
 <li><a href="../dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
 <li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
 <li><a href="../dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
-<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
 <li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
 <li><a href="../dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
 <li><a href="../dartkart.layer/TileLayer.html"><div class="icon-class"></div>TileLayer</a></li>
-<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
 <li><a href="../dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
 </ul>
 <h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
@@ -50,7 +48,11 @@
 class CanvasRenderer extends Renderer {
 
  CanvasElement _canvas;
- CanvasRenderingContext2D _context;
+ CanvasRenderingContext2D get _context {
+   if (_canvas == null) return null;
+   return _canvas.context2D;
+ }
+ 
  List&lt;Tile&gt; _tiles = [];
 
  CanvasRenderer(TileLayer layer): super(layer);
@@ -66,10 +68,10 @@ class CanvasRenderer extends Renderer {
    _tiles.clear();
  }
 
- beforeRender() {
+ @override 
+ void beforeRender() {
    if (_layer.map == null) {
      _canvas = null;
-     _context = null;
    } else {
      if (_canvas == null) {
        _canvas = new Element.tag("canvas");
@@ -81,7 +83,6 @@ class CanvasRenderer extends Renderer {
          ..left="0px"
          ..position="relative"
          ..zIndex = "inherit";
-       _context = _canvas.context2d;
      }
      _updateSize();
      _clear();
@@ -92,20 +93,21 @@ class CanvasRenderer extends Renderer {
    var vs = _layer.map.viewportSize;
    // make sure the _canvas size is equal to the map
    // size
-   if (vs.x != _canvas.width || vs.y != _canvas.height) {
+   if (vs.width != _canvas.width || vs.height != _canvas.height) {
      _canvas
-       ..width=vs.x
-       ..height=vs.y;
+       ..width=vs.width
+       ..height=vs.height;
    }
  }
 
- renderTile(Point tile) {
-   Tile t = new Tile(tile, _canvas, _layer);
+ @override
+ void renderTile(Point2D tileCoord) {
+   Tile t = new Tile(tileCoord, _canvas, _layer);
    _tiles.add(t);
    t.load();
  }
 
- /* ---------------------- rendering the tile border - for debugging  --- */
+ /* ------------- rendering the tile border - for debugging  --- */
  bool renderTileBorders = false;
 }
 </pre>
@@ -136,7 +138,7 @@ CanvasRenderer(TileLayer layer): super(layer);
         </h4>
         <div class="doc">
 <pre class="source">
-renderTileBorders = false
+bool renderTileBorders = false
 </pre>
 </div>
 </div>
@@ -145,24 +147,32 @@ renderTileBorders = false
 <h3>Methods</h3>
 <div class="method inherited"><h4 id="afterRender">
 <button class="show-code">Code</button>
-<strong>afterRender</strong>() <a class="anchor-link" href="#afterRender"
+void <strong>afterRender</strong>() <a class="anchor-link" href="#afterRender"
               title="Permalink to CanvasRenderer.afterRender">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div><div class="doc">
+<p>Invoked after the tile grid is rendered using <code>renderTileGrid</code>.
+Default implementation is empty. Override in subclasses if
+necessary.</p>
 <pre class="source">
-afterRender(){}
+void afterRender(){}
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="beforeRender">
 <button class="show-code">Code</button>
-<strong>beforeRender</strong>() <a class="anchor-link" href="#beforeRender"
+void <strong>beforeRender</strong>() <a class="anchor-link" href="#beforeRender"
               title="Permalink to CanvasRenderer.beforeRender">#</a></h4>
 <div class="doc">
+<div class="inherited">
+<p>Invoked before the tile grid is rendered using <code>renderTileGrid</code>.
+Default implementation is empty. Override in subclasses if
+necessary.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div></div>
 <pre class="source">
-beforeRender() {
+@override 
+void beforeRender() {
  if (_layer.map == null) {
    _canvas = null;
-   _context = null;
  } else {
    if (_canvas == null) {
      _canvas = new Element.tag("canvas");
@@ -174,7 +184,6 @@ beforeRender() {
        ..left="0px"
        ..position="relative"
        ..zIndex = "inherit";
-     _context = _canvas.context2d;
    }
    _updateSize();
    _clear();
@@ -185,12 +194,12 @@ beforeRender() {
 </div>
 <div class="method inherited"><h4 id="render">
 <button class="show-code">Code</button>
-<strong>render</strong>() <a class="anchor-link" href="#render"
+void <strong>render</strong>() <a class="anchor-link" href="#render"
               title="Permalink to CanvasRenderer.render">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div><div class="doc">
 <p>Invoked by a <a class="crossref" href="../dartkart.layer/TileLayer.html">TileLayer</a> to render itself</p>
 <pre class="source">
-render() {
+void render() {
  beforeRender();
  renderTileGrid();
  afterRender();
@@ -200,12 +209,18 @@ render() {
 </div>
 <div class="method"><h4 id="renderTile">
 <button class="show-code">Code</button>
-<strong>renderTile</strong>(<a href="../dartkart.geometry/Point.html">Point</a> tile) <a class="anchor-link" href="#renderTile"
+void <strong>renderTile</strong>(<a href="../dartkart.geometry/Point2D.html">Point2D</a> tileCoord) <a class="anchor-link" href="#renderTile"
               title="Permalink to CanvasRenderer.renderTile">#</a></h4>
 <div class="doc">
+<div class="inherited">
+<p>Renders the tile at position 
+<span class="param">tileCoord</span> in the current
+tile plane.</p>
+<div class="docs-inherited-from">docs inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div></div>
 <pre class="source">
-renderTile(Point tile) {
- Tile t = new Tile(tile, _canvas, _layer);
+@override
+void renderTile(Point2D tileCoord) {
+ Tile t = new Tile(tileCoord, _canvas, _layer);
  _tiles.add(t);
  t.load();
 }
@@ -214,21 +229,26 @@ renderTile(Point tile) {
 </div>
 <div class="method inherited"><h4 id="renderTileGrid">
 <button class="show-code">Code</button>
-<strong>renderTileGrid</strong>() <a class="anchor-link" href="#renderTileGrid"
+void <strong>renderTileGrid</strong>() <a class="anchor-link" href="#renderTileGrid"
               title="Permalink to CanvasRenderer.renderTileGrid">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Renderer.html">Renderer</a> </div><div class="doc">
+<p>Renders the tile grid</p>
 <pre class="source">
-renderTileGrid() {
+void renderTileGrid() {
  var map = _layer._map;
  var tileSize = _layer.tileSize;
  var centerOnZoomPlane = map.mapToZoomPlane(map.earthToMap(map.center));
- var topLeftOnZoomPlane = centerOnZoomPlane - (map.viewportSize / 2).round();
+ var vshalf = (map.viewportSize / 2).toInt();
+ var topLeftOnZoomPlane = new Point2D(
+     centerOnZoomPlane.x - vshalf.width,
+     centerOnZoomPlane.y - vshalf.height
+ );
  var viewportOnZoomPlaneBounds = new Bounds(
      topLeftOnZoomPlane,
      topLeftOnZoomPlane + map.viewportSize
  );
- tileIntersectsWithViewport(Point t) {
-   var tl = t * tileSize;
+ tileIntersectsWithViewport(Point2D t) {
+   var tl = t.scale(sx:tileSize.width, sy:tileSize.height);
    var tileBounds = new Bounds(
        tl,
        tl + tileSize
@@ -237,20 +257,20 @@ renderTileGrid() {
  }
 
  // the tile covering the map center
- var tile = new Point(
-     centerOnZoomPlane.x ~/ tileSize.x,
-     centerOnZoomPlane.y ~/ tileSize.y
+ var tile = new Point2D(
+     centerOnZoomPlane.x ~/ tileSize.width,
+     centerOnZoomPlane.y ~/ tileSize.height
  );
 
  // find the first tile to be rendered
  while(true) {
-   var candidate = tile.translate(-1, 0);
+   var candidate = tile.translate(dx:-1);
    if (candidate.x &lt; 0) break;
    if (! tileIntersectsWithViewport(candidate)) break;
    tile = candidate;
  }
  while(true) {
-   var candidate = tile.translate(0, -1);
+   var candidate = tile.translate(dy:-1);
    if (candidate.y &lt; 0) break;
    if (! tileIntersectsWithViewport(candidate)) break;
    tile = candidate;
@@ -259,13 +279,13 @@ renderTileGrid() {
  // render the tile grid intersecting with the viewport
  var maxTileX = (1 &lt;&lt; map.zoom);
  var maxTileY = (1 &lt;&lt; map.zoom);
- var cur = new Point.from(tile);
+ var cur = new Point2D.from(tile);
  while(cur.x &lt; maxTileX &amp;&amp; tileIntersectsWithViewport(cur)) {
    while(cur.y &lt; maxTileY &amp;&amp; tileIntersectsWithViewport(cur)) {
      renderTile(cur);
-     cur = cur.translate(0,1);
+     cur = cur.translate(dy:1);
    }
-   cur = new Point(cur.x + 1, tile.y);
+   cur = new Point2D(cur.x + 1, tile.y);
  }
 }
 </pre>
@@ -276,7 +296,7 @@ renderTileGrid() {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.460</div>
+          <div>This page was generated at 2013-06-02 17:31:28.075</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

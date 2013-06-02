@@ -1,3 +1,6 @@
+/**
+ * The library `dartkart.core` provides basic infrastructure classes.
+ */
 library dartkart.core;
 
 import "dart:async";

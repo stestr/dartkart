@@ -30,11 +30,9 @@
 <li><a href="../dartkart.layer/Layer.html"><div class="icon-class"></div>Layer</a></li>
 <li><a href="../dartkart.layer/OsmTileLayer.html"><div class="icon-class"></div>OsmTileLayer</a></li>
 <li><a href="../dartkart.layer/Renderer.html"><div class="icon-class"></div>Renderer</a></li>
-<li><a href="../dartkart.layer/SimpleFeatureLayer.html"><div class="icon-class"></div>SimpleFeatureLayer</a></li>
 <li><a href="../dartkart.layer/Tile.html"><div class="icon-class"></div>Tile</a></li>
 <li><a href="../dartkart.layer/TileCache.html"><div class="icon-class"></div>TileCache</a></li>
 <li><div class="icon-class"></div><strong>TileLayer</strong></li>
-<li><a href="../dartkart.layer/TileUrlBuilder.html"><div class="icon-interface"></div>TileUrlBuilder</a></li>
 <li><a href="../dartkart.layer/WMSLayer.html"><div class="icon-class"></div>WMSLayer</a></li>
 </ul>
 <h2><div class="icon-library"></div><a href="../dartkart.map.html">dartkart.map</a></h2></div>
@@ -51,7 +49,7 @@ map tiles.</p>
 abstract class TileLayer extends Layer {
 
  /// the default tile dimensions
- static final Point DEFAULT_TILE_SIZE = new Point(256,256);
+ static final Dimension DEFAULT_TILE_SIZE = new Dimension(256,256);
 
  final TileCache _cache = new TileCache();
  Renderer _renderer;
@@ -83,14 +81,16 @@ abstract class TileLayer extends Layer {
    else if (renderer is Renderer) initCustom(renderer);
    else if(renderer == null) _renderer = new CanvasRenderer(this);
    else
-     throw new ArgumentError("renderer: expected int or Renderer, got $renderer");
+     throw new ArgumentError(
+         "renderer: expected int or Renderer, got $renderer");
  }
 
  /**
   * Creates the tile renderer.
   *
   * ### Possible values for [renderer]
-  * * either [IMG_GRID_RENDERER] or [CANVAS_RENDERER]
+  * 
+  * * [IMG_GRID_RENDERER] or [CANVAS_RENDERER]
   * * an instance of a [Renderer]
   * * the default value if missing or null is [CANVAS_RENDERER]
   */
@@ -102,14 +102,11 @@ abstract class TileLayer extends Layer {
      ..style.overflow = "hidden";
  }
 
- /**
-  * The tile size used by this tile layer. Replies a
-  * [Point], `x` is the tile width, `y` the tile
-  * heigth.
-  */
- Point get tileSize =&gt; DEFAULT_TILE_SIZE;
+ /// the tile size used by this tile layer
+ Dimension get tileSize =&gt; DEFAULT_TILE_SIZE;
 
- attach(MapViewport m) {
+ @override
+ void attach(MapViewport m) {
    super.attach(m);
    var viewportSize = map.viewportSize;
    var tl = map.topLeftInPage;
@@ -121,9 +118,12 @@ abstract class TileLayer extends Layer {
      ..top = "0px";
  }
 
- bindTileToUrl(int x, int y, int zoom);
+ /// returns a tile URL for the tile at tile coordinates [x], [y]
+ /// in the tile plane at zoom level [zoom]
+ String bindTileToUrl(int x, int y, int zoom);
 
- render() {
+ @override
+ void render() {
    if (!visible) return;
    _renderer.render();
  }
@@ -132,7 +132,7 @@ abstract class TileLayer extends Layer {
 </div>
 <h3>Extends</h3>
 <p>
-<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/Layer.html">Layer</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>TileLayer</strong></span></p>
+<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/Object_PropertyObservable.html">Object_PropertyObservable</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/Layer.html">Layer</a></span>&nbsp;&gt;&nbsp;<span class="type-box"><span class="icon-class"></span><strong>TileLayer</strong></span></p>
 <h3>Subclasses</h3>
 <p>
 <span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/OsmTileLayer.html">OsmTileLayer</a></span>, <span class="type-box"><span class="icon-class"></span><a href="../dartkart.layer/WMSLayer.html">WMSLayer</a></span></p>
@@ -140,13 +140,14 @@ abstract class TileLayer extends Layer {
 <h3>Static Properties</h3>
 <div class="field"><h4 id="DEFAULT_TILE_SIZE">
 <button class="show-code">Code</button>
-final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>DEFAULT_TILE_SIZE</strong> <a class="anchor-link"
+final <a href="../dartkart.geometry/Dimension.html">Dimension</a>         <strong>DEFAULT_TILE_SIZE</strong> <a class="anchor-link"
             href="#DEFAULT_TILE_SIZE"
             title="Permalink to TileLayer.DEFAULT_TILE_SIZE">#</a>
         </h4>
         <div class="doc">
+<p>the default tile dimensions</p>
 <pre class="source">
-DEFAULT_TILE_SIZE = new Point(256,256)
+static final Dimension DEFAULT_TILE_SIZE = new Dimension(256,256)
 </pre>
 </div>
 </div>
@@ -160,7 +161,7 @@ new <strong>TileLayer</strong>({renderer: CANVAS_RENDERER}) <a class="anchor-lin
 <div class="doc">
 <p>Creates the tile renderer.</p>
 <h3>Possible values for 
-<span class="param">renderer</span></h3><ul><li>either [IMG_GRID_RENDERER] or <a class="crossref" href="../dartkart.layer.html#CANVAS_RENDERER">CANVAS_RENDERER</a></li><li>an instance of a <a class="crossref" href="../dartkart.layer/Renderer.html">Renderer</a></li><li>the default value if missing or null is <a class="crossref" href="../dartkart.layer.html#CANVAS_RENDERER">CANVAS_RENDERER</a></li></ul>
+<span class="param">renderer</span></h3><ul><li>[IMG_GRID_RENDERER] or <a class="crossref" href="../dartkart.layer.html#CANVAS_RENDERER">CANVAS_RENDERER</a></li><li>an instance of a <a class="crossref" href="../dartkart.layer/Renderer.html">Renderer</a></li><li>the default value if missing or null is <a class="crossref" href="../dartkart.layer.html#CANVAS_RENDERER">CANVAS_RENDERER</a></li></ul>
 <pre class="source">
 TileLayer({renderer:CANVAS_RENDERER}) {
  _initRenderer(renderer);
@@ -182,7 +183,6 @@ final <a href="http://api.dartlang.org/dart_html/DivElement.html">DivElement</a>
             title="Permalink to TileLayer.container">#</a>
         </h4>
         <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
-<p>The <code>Element</code> this layer uses as container.</p>
 <pre class="source">
 DivElement get container =&gt; _container;
 </pre>
@@ -201,14 +201,14 @@ String get domId =&gt; _container.attributes["id"];
 </div>
 <div class="method inherited"><h4 id="domId=">
 <button class="show-code">Code</button>
-<strong>set domId</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#domId="
+void <strong>set domId</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#domId="
               title="Permalink to TileLayer.set domId">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
 <p>Sets the DOM  id on the layer <code>container</code>.</p>
 <p>If 
 <span class="param">value</span> is null or empty, sets a default id.</p>
 <pre class="source">
-set domId(String value) {
+void set domId(String value) {
  if (value != null) value = value.trim();
  if (value == null || value.isEmpty) {
    value = _defaultDOMId();
@@ -225,7 +225,7 @@ final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <stro
             title="Permalink to TileLayer.id">#</a>
         </h4>
         <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
-<p>replies the unique numeric id for this layer</p>
+<p>the unique numeric id for this layer</p>
 <pre class="source">
 int get id =&gt; _nid;
 </pre>
@@ -238,7 +238,7 @@ final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong
             title="Permalink to TileLayer.map">#</a>
         </h4>
         <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
-<p>the map this layer is attached to, or null</p>
+<p>the map this layer is attached to, or <code>null</code></p>
 <pre class="source">
 MapViewport get map =&gt; _map;
 </pre>
@@ -251,28 +251,31 @@ MapViewport get map =&gt; _map;
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
 <p>the layer name</p>
 <pre class="source">
-String get name =&gt; _name;
+String get name {
+ if (_name == null) return _defaultName;
+ return _name;
+}
 </pre>
 </div>
 </div>
 <div class="method inherited"><h4 id="name=">
 <button class="show-code">Code</button>
-<strong>set name</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#name="
+void <strong>set name</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> value) <a class="anchor-link" href="#name="
               title="Permalink to TileLayer.set name">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
 <p>sets the layer name. If 
-<span class="param">value</span> is null or white space only,
-chooses a default name.</p>
+<span class="param">value</span> is null or consists of white space only,
+a default name is chosen.</p>
 <pre class="source">
-set name(String value) {
+void set name(String value) {
  if (value != null) value = value.trim();
  var old = _name;
  if (value == null || value.isEmpty) {
-   _name = "Layer ${_nextLayerId}";
+   _name = null;
  } else {
    _name = value;
  }
- notify("name", old, _name);
+ notify("name", old, name);
 }
 </pre>
 </div>
@@ -283,10 +286,32 @@ final <a href="http://api.dartlang.org/dart_async/Stream.html">Stream</a>&lt;<a 
             href="#onPropertyChanged"
             title="Permalink to TileLayer.onPropertyChanged">#</a>
         </h4>
-        <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+        <div class="inherited-from">inherited from <a href="../dartkart.layer/Object_PropertyObservable.html">Object_PropertyObservable</a> </div><div class="doc">
+<p>the stream of property change events</p>
+<h2>Example</h2>
+<pre><code> // an observable with a mixed in PropertyObservable
+ var observable = ...;
+ // listen for property change events for the property
+ // 'my_property'
+ observable.onPropertyChanged
+   .where((evt) =&gt; evt.name == "my_property")
+   .listen((evt) =&gt; print("new value: ${evt.newValue}"));
+</code></pre>
 <pre class="source">
-Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged =&gt;
-   _controller.stream;
+Stream&lt;PropertyChangeEvent&gt; get onPropertyChanged {
+ //TODO: fix this - if at least one listener is present,
+ // change events are emitted, regardless of whether the
+ // individual listeners are paused or not. Consequence:
+ // lots of change events are possibly queued up in
+ // paused listener streams. =&gt; need a custom implementation
+ // of a multiplexing stream which disards events if
+ // they are streamed to a disabled listener
+ //
+ if (_stream == null) {
+   _stream = _controller.stream.asBroadcastStream();
+ }
+ return _stream;
+}
 </pre>
 </div>
 </div>
@@ -303,14 +328,14 @@ double get opacity =&gt; _opacity;
 </div>
 <div class="method inherited"><h4 id="opacity=">
 <button class="show-code">Code</button>
-<strong>set opacity</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> value) <a class="anchor-link" href="#opacity="
+void <strong>set opacity</strong>(<a href="http://api.dartlang.org/dart_core/num.html">num</a> value) <a class="anchor-link" href="#opacity="
               title="Permalink to TileLayer.set opacity">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
 <p>set the opacity of this layer. 
 <span class="param">value</span> is a <code>num</code> in the range
 (0.0 - 1.0). The lower the value, the more transparent the layer.</p>
 <pre class="source">
-set opacity(num value) {
+void set opacity(num value) {
  value = math.max(0, value);
  value = math.min(value, 1);
  var oldvalue = _opacity;
@@ -327,16 +352,14 @@ set opacity(num value) {
 </div>
 <div class="field"><h4 id="tileSize">
 <button class="show-code">Code</button>
-final <a href="../dartkart.geometry/Point.html">Point</a>         <strong>tileSize</strong> <a class="anchor-link"
+final <a href="../dartkart.geometry/Dimension.html">Dimension</a>         <strong>tileSize</strong> <a class="anchor-link"
             href="#tileSize"
             title="Permalink to TileLayer.tileSize">#</a>
         </h4>
         <div class="doc">
-<p>The tile size used by this tile layer. Replies a
-<code>Point</code>, <code>x</code> is the tile width, <code>y</code> the tile
-heigth.</p>
+<p>the tile size used by this tile layer</p>
 <pre class="source">
-Point get tileSize =&gt; DEFAULT_TILE_SIZE;
+Dimension get tileSize =&gt; DEFAULT_TILE_SIZE;
 </pre>
 </div>
 </div>
@@ -353,12 +376,12 @@ bool get visible =&gt; _visible;
 </div>
 <div class="method inherited"><h4 id="visible=">
 <button class="show-code">Code</button>
-<strong>set visible</strong>(<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> value) <a class="anchor-link" href="#visible="
+void <strong>set visible</strong>(<a href="http://api.dartlang.org/dart_core/bool.html">bool</a> value) <a class="anchor-link" href="#visible="
               title="Permalink to TileLayer.set visible">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
 <p>sets whether this layer is visible or not</p>
 <pre class="source">
-set visible(bool value) {
+void set visible(bool value) {
  var old = _visible;
  if (value != old) {
    if (_container != null) {
@@ -377,7 +400,7 @@ set visible(bool value) {
 <h3>Methods</h3>
 <div class="method"><h4 id="attach">
 <button class="show-code">Code</button>
-<strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> m) <a class="anchor-link" href="#attach"
+void <strong>attach</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> m) <a class="anchor-link" href="#attach"
               title="Permalink to TileLayer.attach">#</a></h4>
 <div class="doc">
 <div class="inherited">
@@ -386,7 +409,8 @@ set visible(bool value) {
 <p>Throws <code>StateError</code> if this layer is already attached.</p>
 <div class="docs-inherited-from">docs inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div></div>
 <pre class="source">
-attach(MapViewport m) {
+@override
+void attach(MapViewport m) {
  super.attach(m);
  var viewportSize = map.viewportSize;
  var tl = map.topLeftInPage;
@@ -401,20 +425,25 @@ attach(MapViewport m) {
 </div>
 </div>
 <div class="method"><h4 id="bindTileToUrl">
-abstract <strong>bindTileToUrl</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y, <a href="http://api.dartlang.org/dart_core/int.html">int</a> zoom) <a class="anchor-link" href="#bindTileToUrl"
+abstract <a href="http://api.dartlang.org/dart_core/String.html">String</a> <strong>bindTileToUrl</strong>(<a href="http://api.dartlang.org/dart_core/int.html">int</a> x, <a href="http://api.dartlang.org/dart_core/int.html">int</a> y, <a href="http://api.dartlang.org/dart_core/int.html">int</a> zoom) <a class="anchor-link" href="#bindTileToUrl"
               title="Permalink to TileLayer.bindTileToUrl">#</a></h4>
 <div class="doc">
+<p>returns a tile URL for the tile at tile coordinates 
+<span class="param">x</span>, 
+<span class="param">y</span>
+in the tile plane at zoom level 
+<span class="param">zoom</span></p>
 </div>
 </div>
 <div class="method inherited"><h4 id="detach">
 <button class="show-code">Code</button>
-<strong>detach</strong>() <a class="anchor-link" href="#detach"
+void <strong>detach</strong>() <a class="anchor-link" href="#detach"
               title="Permalink to TileLayer.detach">#</a></h4>
 <div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
 <p>Detaches this layer from the map viewport it is
 currently attached to.</p>
 <pre class="source">
-detach(){
+void detach(){
  _map = null;
 }
 </pre>
@@ -422,29 +451,42 @@ detach(){
 </div>
 <div class="method inherited"><h4 id="notify">
 <button class="show-code">Code</button>
-<strong>notify</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> property, oldValue, newValue) <a class="anchor-link" href="#notify"
+void <strong>notify</strong>(<a href="http://api.dartlang.org/dart_core/String.html">String</a> property, oldValue, newValue) <a class="anchor-link" href="#notify"
               title="Permalink to TileLayer.notify">#</a></h4>
-<div class="inherited-from">inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div><div class="doc">
+<div class="inherited-from">inherited from <a href="../dartkart.layer/Object_PropertyObservable.html">Object_PropertyObservable</a> </div><div class="doc">
+<p>Notifies observers about an update of the property with
+name 
+<span class="param">property</span> in this object. 
+<span class="param">oldValue</span> was replaced
+by 
+<span class="param">newValue</span>.</p>
+<p>Observers are only notified, provided 
+<span class="param">newValue</span> is different
+from 
+<span class="param">oldValue</span> and if there is at least one listener.</p>
 <pre class="source">
-notify(String property, oldValue, newValue) {
+void notify(String property, oldValue, newValue) {
  if (oldValue == newValue) return;
+ //TODO: fix me - see notes in onPropertyChanged
+ if (!_controller.hasListener || _controller.isPaused) return;
  _controller.sink.add(
-     new PropertyChangeEvent(this, property, oldValue,newValue)
-  );
+     new PropertyChangeEvent(this, property,oldValue,newValue)
+ );
 }
 </pre>
 </div>
 </div>
 <div class="method"><h4 id="render">
 <button class="show-code">Code</button>
-<strong>render</strong>() <a class="anchor-link" href="#render"
+void <strong>render</strong>() <a class="anchor-link" href="#render"
               title="Permalink to TileLayer.render">#</a></h4>
 <div class="doc">
 <div class="inherited">
-<p>Renders the layer.</p>
+<p>renders the layer</p>
 <div class="docs-inherited-from">docs inherited from <a href="../dartkart.layer/Layer.html">Layer</a> </div></div>
 <pre class="source">
-render() {
+@override
+void render() {
  if (!visible) return;
  _renderer.render();
 }
@@ -456,7 +498,7 @@ render() {
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.455</div>
+          <div>This page was generated at 2013-06-02 17:31:28.069</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

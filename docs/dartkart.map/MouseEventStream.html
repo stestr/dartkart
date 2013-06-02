@@ -2,19 +2,19 @@
         <html>
         <head>
                 <meta charset="utf-8">
-        <title>MouseGestureStream class / dartkart.map Library / Dart Documentation</title>
+        <title>MouseEventStream class / dartkart.map Library / Dart Documentation</title>
         <link rel="stylesheet" type="text/css"
             href="../styles.css">
         <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
         <link rel="shortcut icon" href="../favicon.ico">
         
         </head>
-        <body data-library="dartkart.map" data-type="MouseGestureStream">
+        <body data-library="dartkart.map" data-type="MouseEventStream">
         <div class="page">
         <div class="header">
           <a href="../index.html"><div class="logo"></div></a>
           <a href="../index.html">Dart Documentation</a>
-         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MouseGestureStream.html">MouseGestureStream</a>        <div id="search-box">
+         &rsaquo; <a href="../dartkart.map.html">dartkart.map</a> &rsaquo; <a href="../dartkart.map/MouseEventStream.html">MouseEventStream</a>        <div id="search-box">
           <input type="search" name="q" id="q" autocomplete="off"
               class="search-input" placeholder="Search API">
         </div>
@@ -30,8 +30,8 @@
 <li><a href="../dartkart.map/LayerEvent.html"><div class="icon-class"></div>LayerEvent</a></li>
 <li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
 <li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
-<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
-<li><div class="icon-class"></div><strong>MouseGestureStream</strong></li>
+<li><a href="../dartkart.map/MouseEvent.html"><div class="icon-class"></div>MouseEvent</a></li>
+<li><div class="icon-class"></div><strong>MouseEventStream</strong></li>
 <li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
 <li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
 <li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
@@ -40,15 +40,19 @@
 </ul>
 </div>
 <div class="content">
-        <h2><strong>MouseGestureStream</strong>
+        <h2><strong>MouseEventStream</strong>
           class
         </h2>
         
 <button id="show-inherited" class="show-inherited">Hide inherited</button>
 <div class="doc">
+<p><code>MouseEventStream</code> transforms the bare bone DOM events into a stream
+of higher level <code>MouseEvents</code>. </p>
+<p>A <code>MouseEventStream</code> originates at an DOM <code>Element</code> 
+which the stream is attached to.</p>
 <pre class="source">
-class MouseGestureStream {
- var _controler = new StreamController.broadcast();
+class MouseEventStream {
+ var _controler = new StreamController();
  var _subscriptions = [];
 
  var _lastMouseDownPos = null;
@@ -56,23 +60,26 @@ class MouseGestureStream {
  var _mouseDown = false;
  var _isDragging = false;
 
- MouseGestureStream();
- MouseGestureStream.from(Element source) {
+ /// Creates a new stream which isn't attached to any element
+ MouseEventStream();
+ 
+ /// Creates a new stream which is attached to [source]. 
+ MouseEventStream.from(Element source) {
    attach(source);
  }
 
- var deferredEvent = null;
+ var _deferredEvent = null;
 
  _fireDeferred() {
-   if (deferredEvent != null) {
-     var e = deferredEvent;
-     deferredEvent = null;
-     _controler.sink.add(new MouseGesturePrimitive.click(e));
+   if (_deferredEvent != null) {
+     var e = _deferredEvent;
+     _deferredEvent = null;
+     _controler.sink.add(new MouseEvent(MouseEvent.CLICK, e));
    }
  }
 
- _rawMouseClick(evt) {
-   if (deferredEvent == null) {
+ void _rawMouseClick(html.MouseEvent evt) {
+   if (_deferredEvent == null) {
      var ts = new DateTime.now().millisecondsSinceEpoch;
      if (ts - _lastMouseDownTimestamp &gt; 150) {
        // a click generated at the end of a drag sequence
@@ -80,43 +87,43 @@ class MouseGestureStream {
        // Ignore it.
        return;
      }
-     deferredEvent = evt;
+     _deferredEvent = evt;
      new Timer(const Duration(milliseconds: 200), () =&gt; _fireDeferred());
    } else {
-     deferredEvent = null;
-     _controler.sink.add(new MouseGesturePrimitive.doubleClick(evt));
+     _deferredEvent = null;
+     _controler.sink.add(new MouseEvent(MouseEvent.DOUBLE_CLICK,evt));
    }
  }
 
- _rawMouseMove(evt){
+ void _rawMouseMove(html.MouseEvent evt){
    if (_mouseDown) {
       if (!_isDragging) {
-        _controler.sink.add(new MouseGesturePrimitive.dragStart(evt));
+        _controler.sink.add(new MouseEvent(MouseEvent.DRAG_START, evt));
       }
      _isDragging = true;
    }
    if (_isDragging) {
-     _controler.sink.add(new MouseGesturePrimitive.drag(evt));
+     _controler.sink.add(new MouseEvent(MouseEvent.DRAG, evt));
    } else {
-     _controler.sink.add(new MouseGesturePrimitive.hover(evt));
+     _controler.sink.add(new MouseEvent(MouseEvent.HOVER, evt));
    }
  }
 
- _rawMouseDown(MouseEvent evt) {
+ void _rawMouseDown(html.MouseEvent evt) {
    if (evt.button != 0 /* left */) return;
    evt.preventDefault();
    evt.stopPropagation();
    _mouseDown = true;
    _lastMouseDownTimestamp = new DateTime.now().millisecondsSinceEpoch;
-   _lastMouseDownPos = new Point(evt.offset.x, evt.offset.y);
+   _lastMouseDownPos = new Point2D(evt.offset.x, evt.offset.y);
  }
 
- _rawMouseUp(MouseEvent evt) {
+ void _rawMouseUp(html.MouseEvent evt) {
    if (evt.button != 0 /* left */) return;
    evt.preventDefault();
    evt.stopPropagation();
    if (_isDragging) {
-     _controler.sink.add(new MouseGesturePrimitive.dragEnd(evt));
+     _controler.sink.add(new MouseEvent(MouseEvent.DRAG_END, evt));
    }
    _mouseDown = false;
    _isDragging = false;
@@ -124,9 +131,15 @@ class MouseGestureStream {
 
  get stream =&gt; _controler.stream;
 
- detach() =&gt; _subscriptions.forEach((s) =&gt; s.cancel());
+ /// Detach from source and cancel all event subsriptions
+ void detach() {
+   _subscriptions
+     ..forEach((s) =&gt; s.cancel())
+     ..clear();
+ }
 
- attach(Element source) {
+ /// Attach to [source] and process its raw mouse events.
+ void attach(Element source) {
    _subscriptions.add(source.onClick.listen(_rawMouseClick));
    _subscriptions.add(source.onMouseDown.listen(_rawMouseDown));
    _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
@@ -137,23 +150,26 @@ class MouseGestureStream {
 </div>
 <div>
 <h3>Constructors</h3>
-<div class="method"><h4 id="MouseGestureStream">
+<div class="method"><h4 id="MouseEventStream">
 <button class="show-code">Code</button>
-new <strong>MouseGestureStream</strong>() <a class="anchor-link" href="#MouseGestureStream"
-              title="Permalink to MouseGestureStream.MouseGestureStream">#</a></h4>
+new <strong>MouseEventStream</strong>() <a class="anchor-link" href="#MouseEventStream"
+              title="Permalink to MouseEventStream.MouseEventStream">#</a></h4>
 <div class="doc">
+<p>Creates a new stream which isn't attached to any element</p>
 <pre class="source">
-MouseGestureStream();
+MouseEventStream();
 </pre>
 </div>
 </div>
-<div class="method"><h4 id="MouseGestureStream.from">
+<div class="method"><h4 id="MouseEventStream.from">
 <button class="show-code">Code</button>
-new <strong>MouseGestureStream.from</strong>(<a href="http://api.dartlang.org/dart_html/Element.html">Element</a> source) <a class="anchor-link" href="#MouseGestureStream.from"
-              title="Permalink to MouseGestureStream.MouseGestureStream.from">#</a></h4>
+new <strong>MouseEventStream.from</strong>(<a href="http://api.dartlang.org/dart_html/Element.html">Element</a> source) <a class="anchor-link" href="#MouseEventStream.from"
+              title="Permalink to MouseEventStream.MouseEventStream.from">#</a></h4>
 <div class="doc">
+<p>Creates a new stream which is attached to 
+<span class="param">source</span>. </p>
 <pre class="source">
-MouseGestureStream.from(Element source) {
+MouseEventStream.from(Element source) {
  attach(source);
 }
 </pre>
@@ -162,23 +178,11 @@ MouseGestureStream.from(Element source) {
 </div>
 <div>
 <h3>Properties</h3>
-<div class="field"><h4 id="deferredEvent">
-<button class="show-code">Code</button>
-var         <strong>deferredEvent</strong> <a class="anchor-link"
-            href="#deferredEvent"
-            title="Permalink to MouseGestureStream.deferredEvent">#</a>
-        </h4>
-        <div class="doc">
-<pre class="source">
-deferredEvent = null
-</pre>
-</div>
-</div>
 <div class="field"><h4 id="stream">
 <button class="show-code">Code</button>
 final         <strong>stream</strong> <a class="anchor-link"
             href="#stream"
-            title="Permalink to MouseGestureStream.stream">#</a>
+            title="Permalink to MouseEventStream.stream">#</a>
         </h4>
         <div class="doc">
 <pre class="source">
@@ -191,11 +195,13 @@ get stream =&gt; _controler.stream;
 <h3>Methods</h3>
 <div class="method"><h4 id="attach">
 <button class="show-code">Code</button>
-<strong>attach</strong>(<a href="http://api.dartlang.org/dart_html/Element.html">Element</a> source) <a class="anchor-link" href="#attach"
-              title="Permalink to MouseGestureStream.attach">#</a></h4>
+void <strong>attach</strong>(<a href="http://api.dartlang.org/dart_html/Element.html">Element</a> source) <a class="anchor-link" href="#attach"
+              title="Permalink to MouseEventStream.attach">#</a></h4>
 <div class="doc">
+<p>Attach to 
+<span class="param">source</span> and process its raw mouse events.</p>
 <pre class="source">
-attach(Element source) {
+void attach(Element source) {
  _subscriptions.add(source.onClick.listen(_rawMouseClick));
  _subscriptions.add(source.onMouseDown.listen(_rawMouseDown));
  _subscriptions.add(source.onMouseUp.listen(_rawMouseUp));
@@ -206,11 +212,16 @@ attach(Element source) {
 </div>
 <div class="method"><h4 id="detach">
 <button class="show-code">Code</button>
-<strong>detach</strong>() <a class="anchor-link" href="#detach"
-              title="Permalink to MouseGestureStream.detach">#</a></h4>
+void <strong>detach</strong>() <a class="anchor-link" href="#detach"
+              title="Permalink to MouseEventStream.detach">#</a></h4>
 <div class="doc">
+<p>Detach from source and cancel all event subsriptions</p>
 <pre class="source">
-detach() =&gt; _subscriptions.forEach((s) =&gt; s.cancel());
+void detach() {
+ _subscriptions
+   ..forEach((s) =&gt; s.cancel())
+   ..clear();
+}
 </pre>
 </div>
 </div>
@@ -219,7 +230,7 @@ detach() =&gt; _subscriptions.forEach((s) =&gt; s.cancel());
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.523</div>
+          <div>This page was generated at 2013-06-02 17:31:28.094</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>

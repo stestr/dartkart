@@ -30,8 +30,8 @@
 <li><div class="icon-class"></div><strong>LayerEvent</strong></li>
 <li><a href="../dartkart.map/MapControl.html"><div class="icon-class"></div>MapControl</a></li>
 <li><a href="../dartkart.map/MapViewport.html"><div class="icon-class"></div>MapViewport</a></li>
-<li><a href="../dartkart.map/MouseGesturePrimitive.html"><div class="icon-class"></div>MouseGesturePrimitive</a></li>
-<li><a href="../dartkart.map/MouseGestureStream.html"><div class="icon-class"></div>MouseGestureStream</a></li>
+<li><a href="../dartkart.map/MouseEvent.html"><div class="icon-class"></div>MouseEvent</a></li>
+<li><a href="../dartkart.map/MouseEventStream.html"><div class="icon-class"></div>MouseEventStream</a></li>
 <li><a href="../dartkart.map/PanBehaviour.html"><div class="icon-class"></div>PanBehaviour</a></li>
 <li><a href="../dartkart.map/PanControl.html"><div class="icon-class"></div>PanControl</a></li>
 <li><a href="../dartkart.map/ScaleIndicatorControl.html"><div class="icon-class"></div>ScaleIndicatorControl</a></li>
@@ -60,14 +60,11 @@ class LayerEvent {
  final MapViewport map;
  /// the layer
  final Layer layer;
- /// the type of event (either [ADDED], [REMOVED], or [MOVED]
- final type;
+ /// the type of event (either [ADDED], [REMOVED], or [MOVED])
+ final int type;
 
  /// Creates an event of type [type] emitted by [map] for [layer]
- const LayerEvent(this.map, this.layer, this.type);
- const LayerEvent.added(map, layer): this(map, layer, ADDED);
- const LayerEvent.removed(map, layer):this(map, layer, REMOVED);
- const LayerEvent.moved(map, layer): this(map, layer, MOVED);
+ LayerEvent(this.map, this.layer, this.type);
 }
 </pre>
 </div>
@@ -80,8 +77,9 @@ const         <strong>ADDED</strong> <a class="anchor-link"
             title="Permalink to LayerEvent.ADDED">#</a>
         </h4>
         <div class="doc">
+<p>layer has been added</p>
 <pre class="source">
-ADDED = 0
+static const ADDED = 0
 </pre>
 </div>
 </div>
@@ -92,8 +90,9 @@ const         <strong>MOVED</strong> <a class="anchor-link"
             title="Permalink to LayerEvent.MOVED">#</a>
         </h4>
         <div class="doc">
+<p>layer has been moved</p>
 <pre class="source">
-MOVED = 2
+static const MOVED = 2
 </pre>
 </div>
 </div>
@@ -104,8 +103,9 @@ const         <strong>REMOVED</strong> <a class="anchor-link"
             title="Permalink to LayerEvent.REMOVED">#</a>
         </h4>
         <div class="doc">
+<p>layer has been removed</p>
 <pre class="source">
-REMOVED = 1
+static const REMOVED = 1
 </pre>
 </div>
 </div>
@@ -114,7 +114,7 @@ REMOVED = 1
 <h3>Constructors</h3>
 <div class="method"><h4 id="LayerEvent">
 <button class="show-code">Code</button>
-const <strong>LayerEvent</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> map, <a href="../dartkart.layer/Layer.html">Layer</a> layer, type) <a class="anchor-link" href="#LayerEvent"
+new <strong>LayerEvent</strong>(<a href="../dartkart.map/MapViewport.html">MapViewport</a> map, <a href="../dartkart.layer/Layer.html">Layer</a> layer, <a href="http://api.dartlang.org/dart_core/int.html">int</a> type) <a class="anchor-link" href="#LayerEvent"
               title="Permalink to LayerEvent.LayerEvent">#</a></h4>
 <div class="doc">
 <p>Creates an event of type 
@@ -122,37 +122,7 @@ const <strong>LayerEvent</strong>(<a href="../dartkart.map/MapViewport.html">Map
 <span class="param">map</span> for 
 <span class="param">layer</span></p>
 <pre class="source">
-const LayerEvent(this.map, this.layer, this.type);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="LayerEvent.added">
-<button class="show-code">Code</button>
-const <strong>LayerEvent.added</strong>(map, layer) <a class="anchor-link" href="#LayerEvent.added"
-              title="Permalink to LayerEvent.LayerEvent.added">#</a></h4>
-<div class="doc">
-<pre class="source">
-const LayerEvent.added(map, layer): this(map, layer, ADDED);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="LayerEvent.moved">
-<button class="show-code">Code</button>
-const <strong>LayerEvent.moved</strong>(map, layer) <a class="anchor-link" href="#LayerEvent.moved"
-              title="Permalink to LayerEvent.LayerEvent.moved">#</a></h4>
-<div class="doc">
-<pre class="source">
-const LayerEvent.moved(map, layer): this(map, layer, MOVED);
-</pre>
-</div>
-</div>
-<div class="method"><h4 id="LayerEvent.removed">
-<button class="show-code">Code</button>
-const <strong>LayerEvent.removed</strong>(map, layer) <a class="anchor-link" href="#LayerEvent.removed"
-              title="Permalink to LayerEvent.LayerEvent.removed">#</a></h4>
-<div class="doc">
-<pre class="source">
-const LayerEvent.removed(map, layer):this(map, layer, REMOVED);
+LayerEvent(this.map, this.layer, this.type);
 </pre>
 </div>
 </div>
@@ -166,8 +136,9 @@ final <a href="../dartkart.layer/Layer.html">Layer</a>         <strong>layer</st
             title="Permalink to LayerEvent.layer">#</a>
         </h4>
         <div class="doc">
+<p>the layer</p>
 <pre class="source">
-layer
+final Layer layer
 </pre>
 </div>
 </div>
@@ -178,20 +149,22 @@ final <a href="../dartkart.map/MapViewport.html">MapViewport</a>         <strong
             title="Permalink to LayerEvent.map">#</a>
         </h4>
         <div class="doc">
+<p>the map viewport emitting the event</p>
 <pre class="source">
-map
+final MapViewport map
 </pre>
 </div>
 </div>
 <div class="field"><h4 id="type">
 <button class="show-code">Code</button>
-final         <strong>type</strong> <a class="anchor-link"
+final <a href="http://api.dartlang.org/dart_core/int.html">int</a>         <strong>type</strong> <a class="anchor-link"
             href="#type"
             title="Permalink to LayerEvent.type">#</a>
         </h4>
         <div class="doc">
+<p>the type of event (either <a class="crossref" href="../dartkart.map/LayerEvent.html#ADDED">ADDED</a>, <a class="crossref" href="../dartkart.map/LayerEvent.html#REMOVED">REMOVED</a>, or <a class="crossref" href="../dartkart.map/LayerEvent.html#MOVED">MOVED</a>)</p>
 <pre class="source">
-type
+final int type
 </pre>
 </div>
 </div>
@@ -200,7 +173,7 @@ type
         <div class="clear"></div>
         </div>
         <div class="footer">
-          <div>This page was generated at 2013-03-17 10:16:05.550</div>
+          <div>This page was generated at 2013-06-02 17:31:28.171</div>
         </div>
         <script async src="../client-static.js"></script>
         </body></html>
