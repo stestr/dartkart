@@ -22,20 +22,21 @@ main() {
   );
   wmsLayer.opacity = 0.4;
 
-  map.addLayer(osmLayer);
-  map.addLayer(wmsLayer);
+  map
+    ..addLayer(osmLayer)
+    ..addLayer(wmsLayer);
   
- var zoom = new ZoomControl();
- zoom.attach(map);
+  var zoom = new ZoomControl()
+    ..attach(map);
   
-  var scale = new ScaleIndicatorControl();
-  scale.attach(map);
+  var scale = new ScaleIndicatorControl()
+    ..attach(map);
   
-  var pan = new PanControl();
-  pan.attach(map);
+  var pan = new PanControl()
+    ..attach(map);
   
-  var layerControl = new LayerControl();
-  layerControl.attach(map);
+  var layerControl = new LayerControl()
+    ..attach(map);
 }
 
 
