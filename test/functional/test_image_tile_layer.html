@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+  simple functional test to test zooming, center property, and 
+  opacity interactively
+  
+  Load in Dartium to run the test.
+-->
+<html>
+  <head>
+    <title>mapsample</title>
+    <style type="text/css">
+      body {
+        padding: 10px;
+        margin: 0;
+        outline: 0;
+        border: 0;
+      }
+
+      #sample-map {
+        border-color: black;
+        border-style: solid;
+        border-width: 1px;
+        height: 400px;
+        width: 400px;
+      }
+
+      span.section {
+        font-weight: bold;
+      }     
+  </style>
+  <link rel="stylesheet" href="../..//web/assets/css/controls.css" />
+  </head>
+
+  <body>
+    <div id="sample-map"></div>
+    <div id="zoom-control">
+      <p>
+      <span class="section">zooming</span>:
+      zoom level: <input id="tfZoomLevel"/><button id="btnZoomLevel">Set</button>
+      <button id="btnZoomIn">Zoom In</button>
+      <button id="btnZoomOut">Zoom out</button>
+      </p>
+      
+      <p>
+      <span class="section">update map center</span>
+      lat: <input type="text" id="tfLat"> lon: <input type="text" id="tfLon">
+      <button id="btnSetCenter">Set</button>
+      </p>
+      
+      <p>
+      <span class="section">update opacity</span>
+      opacity: <input type="text" id="tfOpacity">
+      <button id="btnSetOpacity">Set</button>
+      </p>      
+    </div>
+    
+
+    <script type="application/dart" src="test_image_tile_layer.dart"></script>
+    <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

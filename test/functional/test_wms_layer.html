@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+ <!--
+ Function test case for WMS layer.
+ 
+ Load in Dartium and run tests interactively.
+ -->
+
+<html>
+  <head>
+    <title>mapsample</title>
+    <style type="text/css">
+      body {
+        padding: 10px;
+        margin: 0;
+        outline: 0;
+        border: 0;
+      }
+
+      #sample-map {
+        border-color: black;
+        border-style: solid;
+        border-width: 1pt;
+        height: 400pt;
+      }
+
+      span.section {
+        font-weight: bold;
+      }
+  </style>
+   <link rel="stylesheet" href="../..//web/assets/css/controls.css" />
+  </head>
+
+  <body>
+    <div id="sample-map"></div>
+
+    <div id="zoom-control">
+    <p>
+    <span class="section">zooming</span>:
+    zoom level: <input id="tfZoomLevel"/><button id="btnZoomLevel">Set</button>
+    <button id="btnZoomIn">Zoom In</button>
+    <button id="btnZoomOut">Zoom out</button>
+    </p>
+    <p>
+    <span class="section">update map center</span>
+    lat: <input type="text" id="tfLat"></input> lon: <input type="text" id="tfLon"></input>
+    <button id="btnSetCenter">Set</button>
+    </p>
+    </div>
+
+    <script type="application/dart" src="test_wms_layer.dart"></script>
+    <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

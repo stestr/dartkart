@@ -1,3 +1,5 @@
+library test_layer_control;
+
 import "dart:html" hide Point;
 import "dart:math" as math;
 import "dart:svg" hide Point;
@@ -19,7 +21,8 @@ class TestLayer extends Layer {
 }
 
 main() {
-  group("basic tests", () {
+  useHtmlEnhancedConfiguration();
+  group("basic tests -", () {
     var map;
     var container;
 
@@ -34,18 +37,18 @@ main() {
       query("body").children.remove(container);
     });
 
-    test("- create it", () {
+    test("create it", () {
       var control = new LayerControl();
     });
 
-    test("- attach/detach cycle on a map with no layers", () {
+    test("attach/detach cycle on a map with no layers", () {
       var control = new LayerControl();
       control.attach(map);
       control.detach();
     });
  });
 
-  group("tests on a map with three layers", () {
+  group("tests on a map with three layers -", () {
     var map;
     var container;
     var layers;
@@ -64,7 +67,7 @@ main() {
       query("body").children.remove(container);
     });
 
-    test("- attach/detach cycle", () {
+    test("attach/detach cycle", () {
       var control = new LayerControl();
       control.attach(map);
       var rows = control.root.queryAll("tr");
@@ -72,7 +75,7 @@ main() {
       control.detach();
     });
 
-    test("- adding a layer", () {
+    test("adding a layer", () {
       var layer = new TestLayer();
       var control = new LayerControl();
       control.attach(map);
@@ -83,7 +86,7 @@ main() {
       expect(name, layer.name, reason: "Unexpected layer name in view");
     });
 
-    test("- removing a layer", () {
+    test("removing a layer", () {
       var layer = new TestLayer();
       var control = new LayerControl();
       control.attach(map);
@@ -94,7 +97,7 @@ main() {
       expect(name, layers[1].name, reason: "Unexpected layer name in view");
     });
 
-    test("- changing the name of a layer", () {
+    test("changing the name of a layer", () {
       var control = new LayerControl();
       control.attach(map);
       layers[0].name ="new name";
@@ -103,7 +106,7 @@ main() {
       expect(name, layers[0].name, reason: "Unexpected layer name in view");
     });
 
-    test("- changing the visibility of a layer", () {
+    test("changing the visibility of a layer", () {
       var control = new LayerControl();
       control.attach(map);
       layers[0].visible = false;
@@ -121,6 +124,5 @@ main() {
           reason: "Shouldn't have an attribute checked");
     });
  });
-
 }
 

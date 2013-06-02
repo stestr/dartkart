@@ -12,6 +12,19 @@ See [demos](http://gubaer.github.com/dartkart/demo.html)
 ## Documentation 
 See [API docs](http://gubaer.github.com/dartkart/docs)
 
+
+## Depend on it
+`dartlart` isn't available from [pub.dartlang.org](http://pub.dartlang.org) yet. 
+
+For the time beeing, you can add a dependency to the GitHub repository
+to your `pubspec.yaml`.
+  
+```
+dependencies:
+  dartkart:
+  	git: git://github.com/Gubaer/dartkart.git
+```
+
 ## Status
 This is work in progress. APIs and documentation are unstable. 
 
@@ -33,6 +46,5 @@ More to come later (hopefully ...)
 Karl Guggisberg <karl.guggisberg@guggis.ch>
 
 ## License 
-
-* (c) Karl Guggisberg, 2013
-* Released under GPL 3.0, see LICENSE file 
+`dartkart` is licensed under the Apache 2.0 license, see files 
+LICENSE and NOTICE.

@@ -1,4 +1,4 @@
-library base_test;
+library test_base;
 
 import "package:unittest/unittest.dart";
 import "package:unittest/html_enhanced_config.dart";
@@ -22,11 +22,11 @@ class TestLayer extends Layer {
 
 main() {
   useHtmlEnhancedConfiguration();
-  
+
   group("properies - name -", () {
     var layer;
     setUp(() {
-      layer = new TestLayer();      
+      layer = new TestLayer();
     });
     test("initial name is set", () {
       expect(layer.name.isEmpty, false);
@@ -35,25 +35,25 @@ main() {
       var newname ="newname";
       layer.onPropertyChanged.listen(expectAsync1((e) {
         expect(e.name, "name");
-        expect(e.newValue, newname);        
+        expect(e.newValue, newname);
       }));
       layer.name = newname;
-    });    
+    });
     test("null name results in a standard name", () {
       layer.name = null;
       expect(layer.name.isEmpty, false);
     });
-    
+
     test("empty name results in a standard name", () {
       layer.name = "  ";
       expect(layer.name.isEmpty, false);
     });
   });
-  
+
   group("properies - opacity -", () {
     var layer;
     setUp(() {
-      layer = new TestLayer();      
+      layer = new TestLayer();
     });
     test("initial opacity is 1.0", () {
       expect(layer.opacity, 1.0);
@@ -61,34 +61,34 @@ main() {
     test("set opacity ", () {
       layer.opacity = 0.5;
       expect(layer.opacity, 0.5);
-    });    
+    });
     test("set opacity out of range ", () {
       layer.opacity = 1.1;
       expect(layer.opacity, 1.0);
-      
+
       layer.opacity = -0.1;
       expect(layer.opacity, 0.0);
-    });    
+    });
 
     test("set opacity triggers notification", () {
       var value = 0.5;
       layer.onPropertyChanged.listen(expectAsync1((e) {
         expect(e.name, "opacity");
-        expect(e.newValue, value);        
+        expect(e.newValue, value);
       }));
       layer.opacity = value;
-    });   
+    });
   });
-  
+
   group("properies - visibility -", () {
     var layer;
     setUp(() {
-      layer = new TestLayer();      
+      layer = new TestLayer();
     });
     test("inital visibility is true", () {
       expect(layer.visible, true);
     });
-    
+
     test("can enable visibility", () {
       layer.visible = false;
       layer.onPropertyChanged.listen(expectAsync1((e) {
@@ -99,8 +99,8 @@ main() {
       layer.visible = true;
       expect(layer.visible, true);
       expect(layer.container.style.visibility, "visible");
-    });    
-    
+    });
+
     test("can disable visibility", () {
       layer.visible = true;
       layer.onPropertyChanged.listen(expectAsync1((e) {
@@ -110,15 +110,15 @@ main() {
       }));
       layer.visible = false;
       expect(layer.visible, false);
-      expect(layer.container.style.visibility, "hidden");    
-    });    
+      expect(layer.container.style.visibility, "hidden");
+    });
   });
-  
+
   group("attach / detach -", () {
     var layer;
     var map;
     DivElement container;
-    
+
     setUp(() {
       var container = new DivElement();
       container.id = "map";
@@ -126,11 +126,11 @@ main() {
       layer = new TestLayer();
       map = new MapViewport("#map");
     });
-    
+
     tearDown(() {
       query("body").children.remove(container);
     });
-    
+
     test("running an attach/detach cycle", () {
       expect(layer.map, null);
       layer.attach(map);

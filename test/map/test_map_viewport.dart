@@ -1,4 +1,4 @@
-library map_viewport_test;
+library test_map_viewport;
 
 import "dart:html" hide Point;
 import "dart:math" as math;
@@ -21,7 +21,7 @@ class TestLayer extends Layer {
 
 main() {
   useHtmlEnhancedConfiguration();
-  group("layer functionality", () {
+  group("layer functionality -", () {
     var map;
     var container;
 
@@ -36,7 +36,7 @@ main() {
       query("body").children.remove(container);
     });
 
-    test("- adding a layer", () {
+    test("adding a layer", () {
       var layer = new TestLayer();
       map.onLayersChanged.listen(expectAsync1((e) {
         expect(e.type, LayerEvent.ADDED);
@@ -49,7 +49,7 @@ main() {
       expect(layer.map, map);
     });
 
-    test("- removing a layer", () {
+    test("removing a layer", () {
       var layer = new TestLayer();
       map.addLayer(layer);
       map.onLayersChanged.listen(expectAsync1((e) {
