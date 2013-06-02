@@ -66,6 +66,7 @@ class MapViewport extends Object with PropertyObservable{
     }
     _root = new DivElement()
       ..classes.add("dartkart-map-viewport");
+    
     container.children
       ..clear()
       ..add(_root);
