@@ -14,7 +14,7 @@ See [API docs](http://gubaer.github.com/dartkart/docs)
 
 
 ## Depend on it
-`dartlart` isn't available from [pub.dartlang.org](http://pub.dartlang.org) yet. 
+`dartkart` isn't available from [pub.dartlang.org](http://pub.dartlang.org) yet. 
 
 For the time beeing, you can add a dependency to the GitHub repository
 to your `pubspec.yaml`.
