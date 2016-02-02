@@ -8,8 +8,7 @@ import "dart:math";
 import "dart:math" as math;
 import "dart:collection";
 import "dart:async";
-import "dart:json" as json;
-import "package:meta/meta.dart";
+import "dart:convert";
 
 part 'geometry/bounds.dart';
 part "geometry/point2d.dart";

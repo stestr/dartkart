@@ -9,5 +9,5 @@ library test_config;
  *   http://127.0.0.1:3030${DARTKARt_ROOT}/${relative_path}
  *
  */
-const DARTKART_ROOT = "/home/karl/repositories/dartkart";
+const DARTKART_ROOT = "/home/stefan/develop/dart/dartkart";
 

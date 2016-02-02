@@ -524,9 +524,9 @@ class _DragController {
  * `PanBehaviour` controls animated panning of a map viewport.
  */
 class PanBehaviour {
-  const double ACCELERATION = -2.0; // px / (100ms)²
-  const double SPEED = 20.0;        // px / 100ms
-  const int DELTA_T = 20;           // ms, duration of animation step
+  static const double ACCELERATION = -2.0; // px / (100ms)²
+  static const double SPEED = 20.0;        // px / 100ms
+  static const int DELTA_T = 20;           // ms, duration of animation step
 
   /// the map viewport controlled by this behaviour
   final MapViewport viewport;

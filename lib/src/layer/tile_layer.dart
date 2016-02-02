@@ -195,14 +195,14 @@ class Tile {
       var ts = layer.tileSize;
       // the quadrant of the parent tile to be rendered (scaled by 2)
       // in place of the current tile
-      var src = new html.Rect(
+      var src = new math.Rectangle(
           (tc.x % 2) * ts.width ~/ 2,
           (tc.y % 2) * ts.height ~/ 2,
           ts.width ~/ 2,
           ts.height ~/ 2
       );
       // the rectangle where the current tile is rendered
-      var dest = new html.Rect(tl.x, tl.y, ts.width, ts.height);
+      var dest = new math.Rectangle(tl.x, tl.y, ts.width, ts.height);
       context.drawImageToRect(img,dest,sourceRect:src);
     }
   }
@@ -580,8 +580,8 @@ class WMSLayer extends TileLayer {
   WMSLayer({String serviceUrl, layers, Map parameters, renderer})
     : super(renderer:renderer)
   {
-      if (?serviceUrl) this.serviceUrl = serviceUrl;
-      if (?layers) this.layers = layers;
+      if (serviceUrl != null) this.serviceUrl = serviceUrl;
+      if (layers != null) this.layers = layers;
       _initParameters(parameters);
   }
 
@@ -734,7 +734,7 @@ class TileCache {
    *  are invoked later when the image is successfully loaded or
    *  when an error occurs respectively.
    */
-  ImageElement lookup(String url, {onLoad(event), onError(event)}){
+  ImageElement lookup(String url, {onLoad(event), onError(event)}) {
     var img = _map[url];
     if (img != null) {
       _access.remove(img);

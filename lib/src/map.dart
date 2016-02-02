@@ -4,13 +4,12 @@
  */
 library dartkart.map;
 
-import "dart:html" hide Point, Rect, MouseEvent;
-import "dart:html" as html show Rect, MouseEvent;
+import "dart:html" hide Point, MouseEvent, Dimension;
+import "dart:html" as html show MouseEvent;
 import "dart:math" as math;
-import "dart:svg" hide Point, Rect, MouseEvent;
+import "dart:svg" hide Point, Rect;
 import "dart:async";
 import "dart:collection";
-import "package:meta/meta.dart";
 
 import "layer.dart";
 import "geometry.dart";
